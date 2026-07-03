@@ -237,18 +237,35 @@
     <section id="done" class="done" hidden aria-live="polite">
       <div class="wrap">
         <div class="done-card">
-          <p class="done-icon" aria-hidden="true">&#10003;</p>
-          <h2>Booking noted!</h2>
-          <p id="done-summary"></p>
-
-          <div class="done-actions">
-            <a id="whatsapp-send" class="btn btn-solid" target="_blank" rel="noopener noreferrer" hidden>Send via WhatsApp</a>
-            <a id="stripe-pay" class="btn btn-solid" target="_blank" rel="noopener noreferrer" hidden>Pay online now</a>
-            <button id="copy-message" class="btn btn-line" type="button">Copy order message</button>
-            <button id="again" class="btn btn-ghost" type="button">New booking</button>
+          <div class="done-head">
+            <svg class="done-check" viewBox="0 0 52 52" width="60" height="60" aria-hidden="true">
+              <circle cx="26" cy="26" r="25" fill="none" stroke="currentColor" stroke-width="2.5"/>
+              <path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14 27l8 8 16-17"/>
+            </svg>
+            <h2>You're booked in!</h2>
+            <p id="done-summary">We'll confirm your pickup shortly.</p>
           </div>
 
-          <pre id="order-message" class="order-message"></pre>
+          <dl class="receipt">
+            <div><dt>Name</dt><dd id="r-name"></dd></div>
+            <div><dt>Mobile</dt><dd id="r-phone"></dd></div>
+            <div><dt>Order</dt><dd id="r-order"></dd></div>
+            <div><dt>Pickup</dt><dd id="r-pickup"></dd></div>
+            <div class="receipt-total"><dt>Total on pickup</dt><dd id="r-total"></dd></div>
+          </dl>
+
+          <div class="done-actions">
+            <a id="whatsapp-send" class="btn btn-wa btn-block" target="_blank" rel="noopener noreferrer" hidden>
+              Confirm on WhatsApp
+            </a>
+            <a id="stripe-pay" class="btn btn-solid btn-block" target="_blank" rel="noopener noreferrer" hidden>Pay online now</a>
+            <div class="done-row">
+              <button id="copy-message" class="btn btn-line" type="button">Copy order</button>
+              <button id="again" class="btn btn-ghost" type="button">New booking</button>
+            </div>
+          </div>
+
+          <p class="done-hint">Show this screen (or send the message) when you arrive at the market.</p>
         </div>
       </div>
     </section>
