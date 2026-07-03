@@ -380,6 +380,15 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
 .b-bar i { display:block; height:100%; background:linear-gradient(90deg, var(--yolk), var(--amber)); border-radius:999px; }
 .b-meta { font-size:12.5px; color:var(--soft); }
 .b-meta a { color:var(--amber-d); font-weight:700; text-decoration:none; }
+.bb { display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; vertical-align:2px; }
+.bb.gold { background:#fdeecd; color:var(--amber-d); }
+.bb.green { background:var(--green-soft); color:var(--green); }
+.bb.blue { background:var(--blue-soft); color:var(--blue); }
+.b-insight { margin-top:5px; font-size:12.5px; font-weight:700; padding:6px 10px; border-radius:8px; }
+.b-insight.warn { background:#fdeecd; color:var(--amber-d); }
+.b-insight.due { background:var(--blue-soft); color:var(--blue); }
+.b-insight.good { background:var(--green-soft); color:var(--green); }
+.b-insight.soft { background:var(--cream2); color:var(--soft); }
 .dayrow { display:grid; grid-template-columns:96px 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px; }
 .chk { display:flex; align-items:center; gap:8px; font-size:14.5px; font-weight:800; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:12px; }
 .chk input { width:20px; height:20px; min-height:0; accent-color:var(--amber); }
@@ -608,12 +617,14 @@ function renderBuyers(orders) {
   const active = orders.filter(function(o) { return o.status !== "cancelled"; });
   const map = {};
   active.forEach(function(o) {
-    const b = map[o.phone] = map[o.phone] || { name: o.name, phone: o.phone, orders: 0, trays: 0, spend: 0, paid: 0, dates: [] };
+    const b = map[o.phone] = map[o.phone] || { name: o.name, phone: o.phone, orders: 0, trays: 0, spend: 0, paid: 0, dates: [], bundles: {}, days: {} };
     b.orders++;
     b.trays += traysFor(o);
     b.spend += o.price || 0;
     if (o.paymentStatus === "paid") b.paid++;
     b.dates.push(o.createdAt);
+    b.bundles[o.bundle] = (b.bundles[o.bundle] || 0) + 1;
+    b.days[o.pickupDay] = (b.days[o.pickupDay] || 0) + 1;
   });
 
   const buyers = Object.values(map).sort(function(a, b) { return b.spend - a.spend; });
@@ -627,26 +638,67 @@ function renderBuyers(orders) {
     return;
   }
 
+  const BUNDLE_WORD = { tray1: "single trays", tray2: "2-tray packs", box: "full boxes" };
   const maxSpend = buyers[0].spend || 1;
+
   $("buyers").innerHTML = buyers.map(function(b, i) {
     b.dates.sort();
     const newest = b.dates[b.dates.length - 1];
-    let cadence = "one order so far";
-    if (b.dates.length > 1) {
+    const daysSince = Math.max(0, Math.floor((Date.now() - new Date(newest).getTime()) / 86400000));
+
+    // What and when they usually buy
+    const favBundle = Object.keys(b.bundles).sort(function(x, y) { return b.bundles[y] - b.bundles[x]; })[0];
+    const favDay = Object.keys(b.days).sort(function(x, y) { return b.days[y] - b.days[x]; })[0];
+    const avgTrays = Math.round(b.trays / b.orders * 10) / 10;
+
+    // Badges
+    let badges = "";
+    if (i === 0 && buyers.length > 1) badges += '<span class="bb gold">top buyer</span>';
+    if (b.orders >= 3) badges += '<span class="bb green">regular</span>';
+    if (b.paid === b.orders && b.orders > 0) badges += '<span class="bb green">always prepays</span>';
+    if (b.orders === 1 && daysSince <= 10) badges += '<span class="bb blue">new</span>';
+
+    // Reorder prediction
+    let insight = "";
+    let insightClass = "soft";
+    if (b.orders > 1) {
       const spanDays = (new Date(newest) - new Date(b.dates[0])) / 86400000;
-      const gap = Math.max(1, Math.round(spanDays / (b.dates.length - 1)));
-      cadence = "buys about every " + gap + (gap === 1 ? " day" : " days");
+      const gap = Math.max(1, Math.round(spanDays / (b.orders - 1)));
+      const ratio = daysSince / gap;
+      if (ratio >= 1.4) {
+        insight = "Overdue — usually buys every " + gap + " days, quiet for " + daysSince + ". Worth a WhatsApp.";
+        insightClass = "warn";
+      } else if (ratio >= 0.75) {
+        insight = "Due about now — buys roughly every " + gap + " days.";
+        insightClass = "due";
+      } else {
+        const next = Math.max(1, gap - daysSince);
+        insight = "Stocked up — likely needs more in about " + next + (next === 1 ? " day." : " days.");
+        insightClass = "good";
+      }
+    } else if (daysSince <= 10) {
+      insight = "First order " + (daysSince === 0 ? "today" : daysSince + " days ago") + ". A follow-up message turns new buyers into regulars.";
+      insightClass = "due";
+    } else {
+      insight = "One order, " + daysSince + " days ago. Try a comeback message with this week's stock.";
+      insightClass = "soft";
     }
+
     const pct = Math.max(4, Math.round((b.spend / maxSpend) * 100));
     return '<div class="buyer">' +
       '<div class="b-rank' + (i === 0 ? " top" : "") + '">' + (i + 1) + '</div>' +
       '<div class="b-main">' +
-        '<div class="b-line"><b>' + escapeHtml(b.name) + '</b><span class="b-spend">$' + b.spend + '</span></div>' +
+        '<div class="b-line"><span><b>' + escapeHtml(b.name) + '</b>' + badges + '</span><span class="b-spend">$' + b.spend + '</span></div>' +
         '<div class="b-bar"><i style="width:' + pct + '%"></i></div>' +
-        '<div class="b-meta">' + b.orders + (b.orders === 1 ? " order" : " orders") + ' · ' + b.trays + (b.trays === 1 ? ' tray' : ' trays') +
-          (b.paid ? ' · ' + b.paid + ' paid online' : '') +
-          ' · ' + cadence + ' · last ' + daysAgo(newest) +
-          ' · <a href="tel:' + b.phone + '">' + fmtPhone(b.phone) + '</a></div>' +
+        '<div class="b-meta">' +
+          b.orders + (b.orders === 1 ? " order" : " orders") +
+          ' · ' + b.trays + (b.trays === 1 ? " tray" : " trays") + ' total' +
+          (b.orders > 1 ? ' · ~' + avgTrays + ' trays a visit' : '') +
+          ' · usually ' + (BUNDLE_WORD[favBundle] || favBundle) +
+          ' on ' + favDay + 's' +
+          ' · <a href="tel:' + b.phone + '">' + fmtPhone(b.phone) + '</a>' +
+        '</div>' +
+        '<div class="b-insight ' + insightClass + '">' + insight + '</div>' +
       '</div>' +
     '</div>';
   }).join("");
