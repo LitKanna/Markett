@@ -26,6 +26,85 @@ const receipt = {
 
 let lastOrderMessage = "";
 
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- Header elevation on scroll ---------- */
+const topbar = document.querySelector(".topbar");
+window.addEventListener("scroll", () => {
+  topbar.classList.toggle("scrolled", window.scrollY > 8);
+}, { passive: true });
+
+/* ---------- Scroll reveal ---------- */
+const revealTargets = document.querySelectorAll(
+  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .faq details, .stock-note"
+);
+
+revealTargets.forEach((el, i) => {
+  el.classList.add("reveal");
+  el.style.setProperty("--reveal-delay", `${(i % 4) * 70}ms`);
+});
+
+if (!reducedMotion && "IntersectionObserver" in window) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+
+  revealTargets.forEach((el) => io.observe(el));
+} else {
+  revealTargets.forEach((el) => el.classList.add("in"));
+}
+
+/* ---------- Sticky mobile booking bar ---------- */
+const mobileCta = document.getElementById("mobile-cta");
+const heroSection = document.querySelector(".hero");
+
+function updateMobileCta() {
+  const pastHero = window.scrollY > heroSection.offsetHeight * 0.7;
+  const orderRect = orderSection.getBoundingClientRect();
+  const doneVisible = !doneSection.hidden;
+  const orderOnScreen = orderRect.top < window.innerHeight && orderRect.bottom > 0;
+  mobileCta.classList.toggle("show", pastHero && !orderOnScreen && !doneVisible);
+}
+
+window.addEventListener("scroll", updateMobileCta, { passive: true });
+
+/* ---------- Live price on the submit button ---------- */
+const submitBtn = document.getElementById("submit-btn");
+const submitPrice = document.getElementById("submit-price");
+
+function refreshSubmitPrice() {
+  const bundle = BUNDLES[bundleSelect.value] || BUNDLES.tray1;
+  submitPrice.textContent = `$${bundle.price}`;
+  submitBtn.classList.remove("bump");
+  void submitBtn.offsetWidth;
+  submitBtn.classList.add("bump");
+}
+
+bundleSelect.addEventListener("change", refreshSubmitPrice);
+
+/* ---------- Phone formatting as you type ---------- */
+const phoneInput = document.getElementById("phone");
+
+phoneInput.addEventListener("input", () => {
+  const digits = phoneInput.value.replace(/\D/g, "").slice(0, 10);
+  const parts = [digits.slice(0, 4), digits.slice(4, 7), digits.slice(7, 10)].filter(Boolean);
+  phoneInput.value = parts.join(" ");
+});
+
+/* ---------- Field validation feedback ---------- */
+function flagInvalid(input) {
+  const field = input.closest(".field");
+  field.classList.add("error", "shake");
+  input.focus();
+  field.addEventListener("animationend", () => field.classList.remove("shake"), { once: true });
+  input.addEventListener("input", () => field.classList.remove("error"), { once: true });
+}
+
 // Limited-stock note from config
 const traysLeft = Number(config.traysAvailableThisWeek);
 if (Number.isFinite(traysLeft) && traysLeft > 0) {
@@ -50,7 +129,8 @@ form.addEventListener("submit", (event) => {
   const pickupDay = String(data.get("pickupDay") || "Saturday");
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
 
-  if (!name || !phone) return;
+  if (!name) return flagInvalid(document.getElementById("name"));
+  if (phone.replace(/\D/g, "").length < 8) return flagInvalid(phoneInput);
 
   const message = [
     "Hi! I'd like to book eggs for pickup at Flemington.",
@@ -90,7 +170,8 @@ form.addEventListener("submit", (event) => {
 
   orderSection.hidden = true;
   doneSection.hidden = false;
-  doneSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  mobileCta.classList.remove("show");
+  doneSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 });
 
 copyButton.addEventListener("click", async () => {
@@ -110,7 +191,8 @@ copyButton.addEventListener("click", async () => {
 
 againButton.addEventListener("click", () => {
   form.reset();
+  refreshSubmitPrice();
   doneSection.hidden = true;
   orderSection.hidden = false;
-  orderSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  orderSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 });

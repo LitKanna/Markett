@@ -700,6 +700,221 @@ h1, h2, h3 {
 .foot-inner p { margin: 0; }
 .foot-small { margin-top: 8px !important; font-size: 12.5px; opacity: 0.55; }
 
+/* ---------- Premium polish: motion & micro-interactions ---------- */
+
+::selection { background: var(--yolk); color: var(--ink); }
+
+:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+section { scroll-margin-top: 84px; }
+
+/* Header elevates once you scroll */
+.topbar { transition: box-shadow 0.25s ease, background 0.25s ease; }
+
+.topbar.scrolled {
+  background: rgba(253, 248, 239, 0.97);
+  box-shadow: 0 10px 30px rgba(36, 20, 7, 0.09);
+}
+
+/* Brand mark wobbles hello on hover */
+.brand-mark { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.08); }
+
+/* Ticker pauses when inspected */
+.ticker:hover .ticker-track { animation-play-state: paused; }
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 0.9, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal.in { opacity: 1; transform: none; }
+
+/* Hero enters immediately with a soft rise */
+.hero-copy > * {
+  animation: rise 0.7s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+
+.hero-copy > *:nth-child(1) { animation-delay: 0.05s; }
+.hero-copy > *:nth-child(2) { animation-delay: 0.12s; }
+.hero-copy > *:nth-child(3) { animation-delay: 0.2s; }
+.hero-copy > *:nth-child(4) { animation-delay: 0.28s; }
+.hero-copy > *:nth-child(5) { animation-delay: 0.36s; }
+
+.hero-photo { animation: rise 0.8s 0.25s cubic-bezier(0.22, 0.9, 0.3, 1) both; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Price badge floats gently */
+.photo-badge { animation: floaty 4.5s 1.2s ease-in-out infinite; }
+
+@keyframes floaty {
+  0%, 100% { transform: rotate(-2deg) translateY(0); }
+  50% { transform: rotate(-2deg) translateY(-7px); }
+}
+
+/* Card hover lift */
+.price-card,
+.day-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.price-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--yolk);
+}
+
+.price-card.featured:hover { transform: translateY(-14px); }
+
+.day-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Buttons press down */
+.btn:active { transform: translateY(1px) scale(0.98); }
+
+/* Live price chip inside submit button */
+.submit-price {
+  margin-left: 10px;
+  padding: 3px 11px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+#submit-btn.bump .submit-price { animation: bump 0.35s ease; }
+
+@keyframes bump {
+  40% { transform: scale(1.22); }
+}
+
+/* Invalid field shake */
+.field.error input { border-color: #d64545; }
+
+.field.shake { animation: shake 0.4s ease; }
+
+@keyframes shake {
+  20% { transform: translateX(-6px); }
+  45% { transform: translateX(5px); }
+  70% { transform: translateX(-3px); }
+  90% { transform: translateX(2px); }
+}
+
+/* Stock note live dot */
+.stock-note::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  background: var(--amber);
+  border-radius: 50%;
+  animation: blink 1.6s ease-in-out infinite;
+  vertical-align: 1px;
+}
+
+@keyframes blink {
+  50% { opacity: 0.35; }
+}
+
+/* FAQ smooth open */
+.faq summary::after { transition: transform 0.25s ease; }
+.faq details[open] summary::after { content: "+"; transform: translateY(-50%) rotate(45deg); }
+
+.faq details p {
+  overflow: hidden;
+}
+
+.faq details[open] p { animation: faqOpen 0.3s ease; }
+
+@keyframes faqOpen {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Confirmation: card pop + check draw */
+.done-card { animation: pop 0.45s cubic-bezier(0.22, 0.9, 0.3, 1) both; }
+
+@keyframes pop {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.done-check circle,
+.done-check path {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: draw 0.7s 0.15s ease forwards;
+}
+
+.done-check path { animation-delay: 0.5s; animation-duration: 0.45s; }
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.receipt > div { animation: rise 0.4s both; }
+.receipt > div:nth-child(1) { animation-delay: 0.25s; }
+.receipt > div:nth-child(2) { animation-delay: 0.33s; }
+.receipt > div:nth-child(3) { animation-delay: 0.41s; }
+.receipt > div:nth-child(4) { animation-delay: 0.49s; }
+.receipt > div:nth-child(5) { animation-delay: 0.57s; }
+
+/* Sticky mobile booking bar */
+.mobile-cta {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 90;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px 12px 18px;
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgba(36, 20, 7, 0.35);
+  transform: translateY(120%);
+  transition: transform 0.35s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+.mobile-cta.show { transform: none; }
+
+.mobile-cta-text { display: flex; flex-direction: column; line-height: 1.25; }
+.mobile-cta-text strong { font-size: 15.5px; }
+.mobile-cta-text span { font-size: 12px; opacity: 0.65; }
+
+@media (max-width: 720px) {
+  .mobile-cta { display: flex; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .reveal { opacity: 1; transform: none; }
+  html { scroll-behavior: auto; }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 940px) {
   .hero-grid,

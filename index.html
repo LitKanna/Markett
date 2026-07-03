@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
 
   <script type="application/ld+json">
   {
@@ -231,10 +231,13 @@
 
           <div class="field">
             <label for="phone">Mobile</label>
-            <input id="phone" name="phone" type="tel" placeholder="04xx xxx xxx" autocomplete="tel" required>
+            <input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="04xx xxx xxx" autocomplete="tel" required>
           </div>
 
-          <button type="submit" class="btn btn-solid btn-block">Reserve my eggs</button>
+          <button type="submit" class="btn btn-solid btn-block" id="submit-btn">
+            <span id="submit-label">Reserve my eggs</span>
+            <span class="submit-price" id="submit-price">$23</span>
+          </button>
           <p class="form-note">No payment needed now. Pay on pickup, or online once available.</p>
         </form>
       </div>
@@ -305,6 +308,14 @@
     </section>
   </main>
 
+  <div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+    <div class="mobile-cta-text">
+      <strong>30 eggs · $12</strong>
+      <span>Pickup Fri &amp; Sat</span>
+    </div>
+    <a class="btn btn-solid btn-small" href="#order">Book now</a>
+  </div>
+
   <footer class="foot">
     <div class="wrap foot-inner">
       <p><strong>YOLKO</strong>. Pickup Friday &amp; Saturday at Paddy's Markets Flemington.</p>
@@ -312,7 +323,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="config.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
