@@ -209,6 +209,77 @@ function applySettings(settings) {
       stockNote.classList.add("in");
     }
   }
+
+  // Pickup days and hours
+  if (settings.pickup) applyPickup(settings.pickup);
+}
+
+function formatTime(hhmm) {
+  const [h, m] = String(hhmm).split(":").map(Number);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  return m === 0 ? `${hour12} ${suffix}` : `${hour12}:${String(m).padStart(2, "0")} ${suffix}`;
+}
+
+function applyPickup(pickup) {
+  const days = ["Friday", "Saturday"];
+  const enabledDays = days.filter((d) => pickup[d]?.enabled);
+  const dayCards = document.querySelectorAll(".day-cards .day-card");
+  const daySelect = document.getElementById("pickup-day");
+
+  days.forEach((day, i) => {
+    const info = pickup[day];
+    const card = dayCards[i];
+    const option = [...daySelect.options].find((o) => o.value === day);
+    if (!info || !card || !option) return;
+
+    const hours = `${formatTime(info.open)} – ${formatTime(info.close)}`;
+    card.style.display = info.enabled ? "" : "none";
+    const timeEl = card.querySelector(".day-time");
+    if (timeEl) timeEl.textContent = hours;
+    option.textContent = `${day} · ${hours}`;
+    option.disabled = !info.enabled;
+    option.hidden = !info.enabled;
+  });
+
+  // Keep a valid selection
+  if (daySelect.selectedOptions[0]?.disabled && enabledDays.length) {
+    daySelect.value = enabledDays[enabledDays.length - 1];
+  }
+
+  // Texts that mention the days
+  const dayText =
+    enabledDays.length === 2 ? "Friday & Saturday" :
+    enabledDays.length === 1 ? `${enabledDays[0]}s only` : "Paused this week";
+
+  const pickupTitle = document.getElementById("pickup-title");
+  if (pickupTitle) {
+    pickupTitle.textContent =
+      enabledDays.length === 2 ? "Come Friday or Saturday" :
+      enabledDays.length === 1 ? `Come on ${enabledDays[0]}` : "Pickup is paused this week";
+  }
+
+  const stats = document.querySelectorAll(".hero-stats div");
+  if (stats[2]) {
+    stats[2].querySelector("dt").textContent = enabledDays.length ? `${enabledDays.length} day${enabledDays.length > 1 ? "s" : ""}` : "Paused";
+    stats[2].querySelector("dd").textContent = dayText;
+  }
+
+  document.querySelectorAll(".ticker-track span").forEach((el) => {
+    if (/^Pickup /i.test(el.textContent)) el.textContent = `Pickup ${dayText}`;
+  });
+
+  const ctaSpan = document.querySelector(".mobile-cta-text span");
+  if (ctaSpan) ctaSpan.textContent = `Pickup ${dayText}`;
+
+  // No pickup days: block the form politely
+  if (!enabledDays.length) {
+    submitBtn.disabled = true;
+    submitBtn.querySelector("#submit-label").textContent = "Bookings paused";
+  } else {
+    submitBtn.disabled = false;
+    submitBtn.querySelector("#submit-label").textContent = "Reserve my eggs";
+  }
 }
 
 fetch(`${API_BASE}/api/settings`)
