@@ -1,6 +1,6 @@
 # Markett - Flemington Fresh Eggs
 
-Simple one-page marketing site for selling **$10 egg trays** with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.
+Simple one-page marketing site for selling **$12 egg trays** with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.
 
 ## Preview locally (on your computer only)
 
@@ -25,7 +25,7 @@ Open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ## Pricing
 
-- 30-egg tray: **$10**
+- 30-egg tray: **$12**
 - Payment on pickup (cash or card)
 
 ## How to share it
