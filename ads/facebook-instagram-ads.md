@@ -13,7 +13,7 @@ from the same campaign.
 | Age | 25–65 |
 | Interests | Cooking, Baking, Farmers markets, Grocery shopping, Family |
 | Placements | Facebook Feed, Instagram Feed, Stories, Reels |
-| Destination | https://litkanna.github.io/Markett/ |
+| Destination | https://getyolko.com/ |
 | Image | assets/social-eggs-1080.jpg (or a real photo of your trays, real photos often win) |
 
 ## Ad 1 — Price lead

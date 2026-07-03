@@ -10,7 +10,7 @@ Paste into Google Ads (ads.google.com) as a Search campaign.
 | Budget | $5–10 per day to start |
 | Location | 8 km around Flemington NSW 2129 |
 | Bidding | Maximise clicks (switch to conversions later) |
-| Final URL | https://litkanna.github.io/Markett/ |
+| Final URL | https://getyolko.com/ |
 | Schedule | Tuesday–Saturday (people plan and buy late week) |
 
 ## Keywords (phrase match)
@@ -57,7 +57,7 @@ Before paying for ads, create a free Google Business Profile
 - Category: Food products supplier
 - Area: Flemington NSW and surrounds
 - Hours: Friday 10:00–16:30, Saturday 06:00–14:00
-- Website: https://litkanna.github.io/Markett/
+- Website: https://getyolko.com/
 - Description: "30-egg trays of fresh Pace Farm eggs for $12. Book online and
   pick up at Paddy's Markets Flemington every Friday and Saturday."
 - Upload photos of your trays
