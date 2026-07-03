@@ -25,6 +25,7 @@ const receipt = {
 };
 
 let lastOrderMessage = "";
+let lastOrderId = null;
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -307,6 +308,31 @@ fetch(`${API_BASE}/api/settings`)
   .then((s) => { if (s) applySettings(s); })
   .catch(() => {});
 
+/* ---------- Payment confirmation on return from Stripe ---------- */
+const paidSession = new URLSearchParams(location.search).get("paid");
+if (paidSession && paidSession.startsWith("cs_")) {
+  history.replaceState(null, "", location.pathname);
+  fetch(`${API_BASE}/api/confirm-payment?session=${encodeURIComponent(paidSession)}`)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => {
+      if (d && d.paid) showToast("Payment received! Your eggs are locked in. See you at the market. 🥚");
+    })
+    .catch(() => {});
+}
+
+function showToast(text) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.setAttribute("role", "status");
+  toast.textContent = text;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("show"));
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 6000);
+}
+
 // Price-card buttons preselect the bundle in the form
 document.querySelectorAll("[data-bundle]").forEach((link) => {
   link.addEventListener("click", () => {
@@ -346,12 +372,17 @@ form.addEventListener("submit", (event) => {
   ].join("\n");
   lastOrderMessage = message;
 
-  // Record the order so it shows in the admin dashboard
+  // Record the order so it shows in the admin dashboard,
+  // and remember its id for locked-amount online payment
+  lastOrderId = null;
   fetch(`${API_BASE}/api/orders`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, phone: phoneDigits, bundle: bundleKey, pickupDay, quantity }),
-  }).catch(() => {});
+  })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => { if (d && d.id) lastOrderId = d.id; })
+    .catch(() => {});
 
   doneSummary.textContent = `Thanks ${name.split(" ")[0]}! Here are your pickup details.`;
   receipt.name.textContent = name;
@@ -369,17 +400,33 @@ form.addEventListener("submit", (event) => {
     whatsappLink.hidden = true;
   }
 
-  // Stripe Payment Link for the chosen bundle when configured
+  // Online payment: locked-amount checkout created on demand,
+  // with the static payment link as fallback
   const stripeUrl = config.stripeLinks && config.stripeLinks[bundleKey];
-  if (stripeUrl) {
-    stripeLink.href = stripeUrl;
-    stripeLink.textContent = quantity > 1
-      ? `Pay $${total} online (set quantity to ${quantity})`
-      : `Pay $${total} online now`;
-    stripeLink.hidden = false;
-  } else {
-    stripeLink.hidden = true;
-  }
+  stripeLink.textContent = `Pay $${total} online now`;
+  stripeLink.href = "#";
+  stripeLink.hidden = false;
+  stripeLink.onclick = async (e) => {
+    e.preventDefault();
+    stripeLink.textContent = "Opening secure checkout…";
+    try {
+      if (!lastOrderId) throw new Error("no order id yet");
+      const res = await fetch(`${API_BASE}/api/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: lastOrderId }),
+      });
+      const d = await res.json();
+      if (!d.url) throw new Error("checkout failed");
+      window.location.href = d.url;
+    } catch {
+      if (stripeUrl) {
+        window.location.href = stripeUrl;
+      } else {
+        stripeLink.textContent = "Payment unavailable, pay on pickup";
+      }
+    }
+  };
 
   orderSection.hidden = true;
   doneSection.hidden = false;

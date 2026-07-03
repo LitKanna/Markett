@@ -129,6 +129,74 @@ async function handleApi(request, env, url) {
     return json({ orders: valid });
   }
 
+  // Public: create a locked-amount Stripe checkout for an existing order
+  if (url.pathname === "/api/checkout" && request.method === "POST") {
+    if (!env.STRIPE_KEY) return json({ error: "payments not configured" }, 503);
+    const body = await request.json().catch(() => null);
+    const orderId = String(body?.orderId || "");
+    if (!orderId.startsWith("order:")) return json({ error: "bad order" }, 400);
+
+    const order = await env.DATA.get(orderId, "json");
+    if (!order) return json({ error: "order not found" }, 404);
+    if (order.paymentStatus === "paid") return json({ error: "already paid" }, 400);
+
+    const quantity = order.quantity || 1;
+    const unitAmount = Math.round((order.price / quantity) * 100);
+    const labels = { tray1: "Egg tray (30 eggs)", tray2: "2 egg trays (60 eggs)", box: "Full box (180 eggs)" };
+
+    const params = new URLSearchParams({
+      mode: "payment",
+      "line_items[0][price_data][currency]": "aud",
+      "line_items[0][price_data][product_data][name]": labels[order.bundle] || "Eggs",
+      "line_items[0][price_data][product_data][description]": `Pickup ${order.pickupDay} at Paddy's Markets Flemington`,
+      "line_items[0][price_data][unit_amount]": String(unitAmount),
+      "line_items[0][quantity]": String(quantity),
+      "metadata[orderId]": orderId,
+      success_url: "https://getyolko.com/?paid={CHECKOUT_SESSION_ID}",
+      cancel_url: "https://getyolko.com/#order",
+    });
+
+    const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.STRIPE_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params.toString(),
+    });
+    const session = await resp.json();
+    if (!session.url) return json({ error: "checkout failed" }, 502);
+
+    order.paymentStatus = "pending";
+    order.sessionId = session.id;
+    await env.DATA.put(orderId, JSON.stringify(order));
+    return json({ url: session.url });
+  }
+
+  // Public: confirm payment after returning from Stripe
+  if (url.pathname === "/api/confirm-payment" && request.method === "GET") {
+    if (!env.STRIPE_KEY) return json({ error: "payments not configured" }, 503);
+    const sid = url.searchParams.get("session") || "";
+    if (!sid.startsWith("cs_")) return json({ error: "bad session" }, 400);
+
+    const resp = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sid)}`, {
+      headers: { Authorization: `Bearer ${env.STRIPE_KEY}` },
+    });
+    const session = await resp.json();
+    const orderId = session?.metadata?.orderId;
+    const paid = session?.payment_status === "paid";
+
+    if (paid && orderId) {
+      const order = await env.DATA.get(orderId, "json");
+      if (order && order.paymentStatus !== "paid") {
+        order.paymentStatus = "paid";
+        if (order.status === "new") order.status = "confirmed";
+        await env.DATA.put(orderId, JSON.stringify(order));
+      }
+    }
+    return json({ paid });
+  }
+
   // Admin: update order status
   if (url.pathname === "/api/order-status" && request.method === "POST") {
     if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
@@ -286,11 +354,13 @@ async function loadOrders() {
 
   const active = orders.filter(o => o.status !== "cancelled");
   const revenue = active.filter(o => o.status !== "new").reduce((s, o) => s + (o.price || 0), 0);
+  const paidOnline = active.filter(o => o.paymentStatus === "paid").reduce((s, o) => s + (o.price || 0), 0);
   const pending = orders.filter(o => o.status === "new").length;
   $("stats").innerHTML =
     "<div><b>" + orders.length + "</b>total orders</div>" +
     "<div><b>" + pending + "</b>waiting</div>" +
-    "<div><b>$" + revenue + "</b>confirmed value</div>";
+    "<div><b>$" + revenue + "</b>confirmed value</div>" +
+    "<div><b>$" + paidOnline + "</b>paid online</div>";
 
   $("rows").innerHTML = orders.map(o => (
     "<tr>" +
@@ -300,7 +370,7 @@ async function loadOrders() {
     "<td>" + ((o.quantity || 1) > 1 ? (o.quantity + " × ") : "") + (BUNDLE_LABELS[o.bundle] || o.bundle) + "</td>" +
     "<td class='hide-sm'>" + o.pickupDay + "</td>" +
     "<td><b>$" + o.price + "</b></td>" +
-    "<td><span class='pill " + o.status + "'>" + o.status + "</span></td>" +
+    "<td><span class='pill " + o.status + "'>" + o.status + "</span>" + (o.paymentStatus === "paid" ? " <span class='pill done'>💳 paid</span>" : "") + "</td>" +
     "<td class='actions'>" + actionButtons(o) + "</td>" +
     "</tr>"
   )).join("");
