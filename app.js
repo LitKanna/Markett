@@ -107,13 +107,32 @@ function refreshSubmitPrice() {
 
 bundleSelect.addEventListener("change", refreshSubmitPrice);
 
-/* ---------- Phone formatting as you type ---------- */
+/* ---------- Australian mobile handling ---------- */
 const phoneInput = document.getElementById("phone");
+const phoneError = document.getElementById("phone-error");
+
+// Normalise any way people type their number (+61 433..., 61433..., 0433..., 433...)
+// down to local digits: 04XXXXXXXX
+function normaliseAuMobile(raw) {
+  let digits = String(raw).replace(/\D/g, "");
+  if (digits.startsWith("0061")) digits = digits.slice(4);
+  if (digits.startsWith("61") && digits.length >= 10) digits = digits.slice(2);
+  if (digits.startsWith("4")) digits = "0" + digits;
+  return digits.slice(0, 10);
+}
+
+function isValidAuMobile(digits) {
+  return /^04\d{8}$/.test(digits);
+}
+
+function formatAuMobile(digits) {
+  const parts = [digits.slice(0, 4), digits.slice(4, 7), digits.slice(7, 10)].filter(Boolean);
+  return parts.join(" ");
+}
 
 phoneInput.addEventListener("input", () => {
-  const digits = phoneInput.value.replace(/\D/g, "").slice(0, 10);
-  const parts = [digits.slice(0, 4), digits.slice(4, 7), digits.slice(7, 10)].filter(Boolean);
-  phoneInput.value = parts.join(" ");
+  phoneInput.value = formatAuMobile(normaliseAuMobile(phoneInput.value));
+  phoneError.hidden = true;
 });
 
 /* ---------- Field validation feedback ---------- */
@@ -144,13 +163,17 @@ form.addEventListener("submit", (event) => {
 
   const data = new FormData(form);
   const name = String(data.get("name") || "").trim();
-  const phone = String(data.get("phone") || "").trim();
+  const phoneDigits = normaliseAuMobile(data.get("phone") || "");
   const bundleKey = String(data.get("bundle") || "tray1");
   const pickupDay = String(data.get("pickupDay") || "Saturday");
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
 
   if (!name) return flagInvalid(document.getElementById("name"));
-  if (phone.replace(/\D/g, "").length < 8) return flagInvalid(phoneInput);
+  if (!isValidAuMobile(phoneDigits)) {
+    phoneError.hidden = false;
+    return flagInvalid(phoneInput);
+  }
+  const phone = formatAuMobile(phoneDigits);
 
   const message = [
     "Hi! I'd like to book eggs for pickup at Flemington.",

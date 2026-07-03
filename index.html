@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
 
   <script type="application/ld+json">
   {
@@ -238,8 +238,9 @@
           </div>
 
           <div class="field">
-            <label for="phone">Mobile</label>
+            <label for="phone">Mobile (Australian)</label>
             <input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="04xx xxx xxx" autocomplete="tel" required>
+            <p class="field-error" id="phone-error" hidden>Enter a valid Australian mobile, e.g. 0412 345 678</p>
           </div>
 
           <button type="submit" class="btn btn-solid btn-block" id="submit-btn">
@@ -255,35 +256,36 @@
     <section id="done" class="done" hidden aria-live="polite">
       <div class="wrap">
         <div class="done-card">
-          <div class="done-head">
-            <svg class="done-check" viewBox="0 0 52 52" width="60" height="60" aria-hidden="true">
-              <circle cx="26" cy="26" r="25" fill="none" stroke="currentColor" stroke-width="2.5"/>
-              <path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14 27l8 8 16-17"/>
-            </svg>
+          <div class="done-side">
+            <picture>
+              <source type="image/webp" srcset="assets/booked-420.webp 420w, assets/booked-720.webp 720w" sizes="(max-width: 760px) 70vw, 320px">
+              <img class="done-art" src="assets/booked-720.jpg" srcset="assets/booked-420.jpg 420w, assets/booked-720.jpg 720w" sizes="(max-width: 760px) 70vw, 320px" alt="Egg tray with a green booked checkmark" width="720" height="480" decoding="async">
+            </picture>
             <h2>You're booked in!</h2>
             <p id="done-summary">We'll confirm your pickup shortly.</p>
+            <p class="done-hint">Show this screen when you arrive at the market.</p>
           </div>
 
-          <dl class="receipt">
-            <div><dt>Name</dt><dd id="r-name"></dd></div>
-            <div><dt>Mobile</dt><dd id="r-phone"></dd></div>
-            <div><dt>Order</dt><dd id="r-order"></dd></div>
-            <div><dt>Pickup</dt><dd id="r-pickup"></dd></div>
-            <div class="receipt-total"><dt>Total on pickup</dt><dd id="r-total"></dd></div>
-          </dl>
+          <div class="done-detail">
+            <dl class="receipt">
+              <div><dt>Name</dt><dd id="r-name"></dd></div>
+              <div><dt>Mobile</dt><dd id="r-phone"></dd></div>
+              <div><dt>Order</dt><dd id="r-order"></dd></div>
+              <div><dt>Pickup</dt><dd id="r-pickup"></dd></div>
+              <div class="receipt-total"><dt>Total on pickup</dt><dd id="r-total"></dd></div>
+            </dl>
 
-          <div class="done-actions">
-            <a id="whatsapp-send" class="btn btn-wa btn-block" target="_blank" rel="noopener noreferrer" hidden>
-              Confirm on WhatsApp
-            </a>
-            <a id="stripe-pay" class="btn btn-solid btn-block" target="_blank" rel="noopener noreferrer" hidden>Pay online now</a>
-            <div class="done-row">
-              <button id="copy-message" class="btn btn-line" type="button">Copy order</button>
-              <button id="again" class="btn btn-ghost" type="button">New booking</button>
+            <div class="done-actions">
+              <a id="whatsapp-send" class="btn btn-wa btn-block" target="_blank" rel="noopener noreferrer" hidden>
+                Confirm on WhatsApp
+              </a>
+              <a id="stripe-pay" class="btn btn-solid btn-block" target="_blank" rel="noopener noreferrer" hidden>Pay online now</a>
+              <div class="done-row">
+                <button id="copy-message" class="btn btn-line" type="button">Copy order</button>
+                <button id="again" class="btn btn-ghost" type="button">New booking</button>
+              </div>
             </div>
           </div>
-
-          <p class="done-hint">Show this screen (or send the message) when you arrive at the market.</p>
         </div>
       </div>
     </section>
@@ -331,7 +333,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="config.js?v=9"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
