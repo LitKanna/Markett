@@ -28,6 +28,42 @@ let lastOrderId = null;
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/* ---------- Ticker: always covers the screen, loops seamlessly ---------- */
+const TICKER_ITEMS = [
+  "Fresh eggs every week",
+  "30 eggs for $12",
+  "Pickup Friday & Saturday",
+  "Paddy's Markets Flemington",
+];
+
+function renderTicker() {
+  const track = document.getElementById("ticker-track");
+  if (!track) return;
+
+  const dot = '<i>\u2B24</i>';
+  const base = TICKER_ITEMS.map((t) => `<span>${t}</span>${dot}`).join("");
+
+  // Measure one copy, then repeat until each half is wider than the screen,
+  // so the tail never leaves an empty gap before the loop restarts.
+  track.innerHTML = `<div class="ticker-half">${base}</div>`;
+  const half = track.firstElementChild;
+  const copies = Math.max(1, Math.ceil(window.innerWidth / Math.max(1, half.scrollWidth)));
+  const filled = base.repeat(copies);
+  track.innerHTML = `<div class="ticker-half">${filled}</div><div class="ticker-half">${filled}</div>`;
+
+  // Constant scroll speed regardless of content length
+  const speed = 65; // px per second
+  track.style.animationDuration = `${Math.round(track.firstElementChild.scrollWidth / speed)}s`;
+}
+
+renderTicker();
+
+let tickerResizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(tickerResizeTimer);
+  tickerResizeTimer = setTimeout(renderTicker, 250);
+});
+
 /* ---------- Scroll effects, throttled to one update per frame ---------- */
 const topbar = document.querySelector(".topbar");
 let scrollTicking = false;
@@ -232,9 +268,8 @@ function applySettings(settings) {
   if (leadStrong) leadStrong.textContent = `$${p1}`;
 
   // Ticker and mobile bar
-  document.querySelectorAll(".ticker-track span").forEach((el) => {
-    if (/30 eggs/i.test(el.textContent)) el.textContent = `30 eggs for $${p1}`;
-  });
+  TICKER_ITEMS[1] = `30 eggs for $${p1}`;
+  renderTicker();
   const ctaStrong = document.querySelector(".mobile-cta-text strong");
   if (ctaStrong) ctaStrong.textContent = `30 eggs · $${p1}`;
 
@@ -368,9 +403,8 @@ function applyPickup(pickup) {
     stats[2].querySelector("dd").textContent = dayText;
   }
 
-  document.querySelectorAll(".ticker-track span").forEach((el) => {
-    if (/^Pickup /i.test(el.textContent)) el.textContent = `Pickup ${dayText}`;
-  });
+  TICKER_ITEMS[2] = `Pickup ${dayText}`;
+  renderTicker();
 
   const ctaSpan = document.querySelector(".mobile-cta-text span");
   if (ctaSpan) ctaSpan.textContent = `Pickup ${dayText}`;
