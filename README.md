@@ -1,4 +1,4 @@
-# Markett - Flemington Fresh Eggs
+# Markett - Flemington Eggs
 
 One-page marketing site for selling fresh egg trays with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.
 
