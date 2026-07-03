@@ -16,15 +16,16 @@ from the same campaign.
 | Destination | https://getyolko.com/ |
 | Image | assets/social-eggs-1080.jpg (or a real photo of your trays, real photos often win) |
 
-## Ad 1 — Price lead
+## Ad 1 — Price lead (pre-order for next market day)
 
 **Primary text:**
-30 fresh eggs for $12 — that's 40 cents an egg.
-Pace Farm trays, picked up at Paddy's Markets Flemington every Friday and Saturday.
-Book online in 30 seconds. Pay when you collect.
+30 XL fresh eggs for $12. That's 40 cents an egg.
+Book your Pace Farm tray online now and pick it up at Paddy's Markets
+Flemington this coming Friday or Saturday. The website shows your exact
+pickup date when you book. Pay online for priority, or pay at pickup.
 
-**Headline:** 30 Eggs — $12 — Flemington Pickup
-**Description:** Friday & Saturday at Paddy's Markets
+**Headline:** 30 Eggs $12 — Book Now, Pickup Fri/Sat
+**Description:** Paddy's Markets Flemington
 **CTA button:** Book Now
 
 ## Ad 2 — Family angle

@@ -148,6 +148,7 @@ async function handleApi(request, env, url) {
     const bundle = ["tray1", "tray2", "box"].includes(body?.bundle) ? body.bundle : null;
     const pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
     const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
+    const pickupDate = String(body?.pickupDate || "").replace(/[^0-9A-Za-z ]/g, "").slice(0, 12);
 
     if (!name || !/^04\d{8}$/.test(phone) || !bundle || !pickupDay) {
       return json({ error: "invalid order" }, 400);
@@ -166,6 +167,7 @@ async function handleApi(request, env, url) {
       bundle,
       quantity,
       pickupDay,
+      pickupDate,
       price: settings.prices[bundle] * quantity,
       status: "new",
       createdAt: now.toISOString(),
@@ -202,7 +204,7 @@ async function handleApi(request, env, url) {
       mode: "payment",
       "line_items[0][price_data][currency]": "aud",
       "line_items[0][price_data][product_data][name]": labels[order.bundle] || "Eggs",
-      "line_items[0][price_data][product_data][description]": `Pickup ${order.pickupDay} at Paddy's Markets Flemington`,
+      "line_items[0][price_data][product_data][description]": `Pickup ${order.pickupDay}${order.pickupDate ? " " + order.pickupDate : ""} at Paddy's Markets Flemington`,
       "line_items[0][price_data][unit_amount]": String(unitAmount),
       "line_items[0][quantity]": String(quantity),
       "metadata[orderId]": orderId,
@@ -595,7 +597,7 @@ async function loadOrders() {
     return '<div class="order' + (prio ? ' prio' : '') + '">' +
       '<div class="o-top"><span class="o-name">' + escapeHtml(o.name) + '</span><span class="o-price">$' + o.price + '</span></div>' +
       '<div class="o-time">' + fmtTime(o.createdAt) + '</div>' +
-      '<div class="o-what">' + describeOrder(o.bundle, o.quantity) + ' <span>· pickup ' + o.pickupDay + '</span></div>' +
+      '<div class="o-what">' + describeOrder(o.bundle, o.quantity) + ' <span>· pickup ' + o.pickupDay + (o.pickupDate ? ' ' + o.pickupDate : '') + '</span></div>' +
       '<div class="o-tags">' +
         '<span class="pill ' + o.status + '">' + o.status + '</span>' +
         '<span class="pill day">uses ' + traysFor(o) + (traysFor(o) === 1 ? ' tray' : ' trays') + '</span>' +
