@@ -28,10 +28,21 @@ let lastOrderMessage = "";
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ---------- Header elevation on scroll ---------- */
+/* ---------- Scroll effects, throttled to one update per frame ---------- */
 const topbar = document.querySelector(".topbar");
-window.addEventListener("scroll", () => {
+let scrollTicking = false;
+
+function onScrollFrame() {
   topbar.classList.toggle("scrolled", window.scrollY > 8);
+  updateMobileCta();
+  scrollTicking = false;
+}
+
+window.addEventListener("scroll", () => {
+  if (!scrollTicking) {
+    scrollTicking = true;
+    requestAnimationFrame(onScrollFrame);
+  }
 }, { passive: true });
 
 /* ---------- Scroll reveal ---------- */
@@ -81,8 +92,6 @@ function updateMobileCta() {
   const orderOnScreen = orderRect.top < window.innerHeight && orderRect.bottom > 0;
   mobileCta.classList.toggle("show", pastHero && !orderOnScreen && !doneVisible);
 }
-
-window.addEventListener("scroll", updateMobileCta, { passive: true });
 
 /* ---------- Live price on the submit button ---------- */
 const submitBtn = document.getElementById("submit-btn");
