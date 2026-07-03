@@ -158,9 +158,12 @@ function refreshSubmitPrice() {
   orderSummary.classList.add("bump");
 }
 
-document.querySelectorAll('input[name="bundle"], input[name="pickupDay"]').forEach((radio) => {
+document.querySelectorAll('input[name="bundle"]').forEach((radio) => {
   radio.addEventListener("change", refreshSubmitPrice);
 });
+
+// Day radios are re-rendered from settings, so listen on the container
+document.getElementById("day-seg").addEventListener("change", refreshSubmitPrice);
 
 /* ---------- Australian mobile handling ---------- */
 const phoneInput = document.getElementById("phone");
@@ -287,46 +290,63 @@ function formatTime(hhmm) {
   return m === 0 ? `${hour12} ${suffix}` : `${hour12}:${String(m).padStart(2, "0")} ${suffix}`;
 }
 
+const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAY_BEFORE = {
+  Monday: "Sunday", Tuesday: "Monday", Wednesday: "Tuesday", Thursday: "Wednesday",
+  Friday: "Thursday", Saturday: "Friday", Sunday: "Saturday",
+};
+const SHORT_DAY = {
+  Monday: "Mon", Tuesday: "Tue", Wednesday: "Wed", Thursday: "Thu",
+  Friday: "Fri", Saturday: "Sat", Sunday: "Sun",
+};
+
 function applyPickup(pickup) {
-  const days = ["Friday", "Saturday"];
-  const enabledDays = days.filter((d) => pickup[d]?.enabled);
-  const dayCards = document.querySelectorAll(".day-cards .day-card");
+  const enabledDays = WEEK_DAYS.filter((d) => pickup[d]?.enabled);
+  const previousChoice = currentPickupDay();
 
-  days.forEach((day, i) => {
-    const info = pickup[day];
-    const card = dayCards[i];
-    const radio = document.querySelector(`input[name="pickupDay"][value="${day}"]`);
-    if (!info || !card || !radio) return;
+  // Day cards in the pickup section
+  const cardsBox = document.querySelector(".day-cards");
+  if (cardsBox) {
+    cardsBox.innerHTML = enabledDays.map((day) => {
+      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
+      return `<article class="day-card">
+        <p class="day-name">${day}</p>
+        <p class="day-time">${hours}</p>
+        <p class="day-note">Book by ${DAY_BEFORE[day]} night</p>
+      </article>`;
+    }).join("") || `<article class="day-card"><p class="day-name">Paused</p><p class="day-time">Back soon</p><p class="day-note">Check again Wednesday</p></article>`;
+  }
 
-    const hours = `${formatTime(info.open)} – ${formatTime(info.close)}`;
-    card.style.display = info.enabled ? "" : "none";
-    const timeEl = card.querySelector(".day-time");
-    if (timeEl) timeEl.textContent = hours;
-
-    const hoursEl = document.getElementById(`hours-${day}`);
-    if (hoursEl) hoursEl.textContent = hours;
-    radio.disabled = !info.enabled;
-    radio.closest(".seg-opt").classList.toggle("off", !info.enabled);
-  });
-
-  // Keep a valid selection
-  const selected = document.querySelector('input[name="pickupDay"]:checked');
-  if ((!selected || selected.disabled) && enabledDays.length) {
-    const fallback = document.querySelector(`input[name="pickupDay"][value="${enabledDays[enabledDays.length - 1]}"]`);
-    if (fallback) fallback.checked = true;
+  // Booking form day segments
+  const seg = document.getElementById("day-seg");
+  if (seg) {
+    const pick = enabledDays.includes(previousChoice) ? previousChoice : enabledDays[enabledDays.length - 1];
+    seg.innerHTML = enabledDays.map((day) => {
+      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
+      return `<label class="seg-opt">
+        <input type="radio" name="pickupDay" value="${day}"${day === pick ? " checked" : ""}>
+        <span class="seg-day">${day}</span>
+        <span class="seg-hours">${hours}</span>
+      </label>`;
+    }).join("");
   }
   refreshSubmitPrice();
 
   // Texts that mention the days
+  const shortNames = enabledDays.map((d) => SHORT_DAY[d]);
   const dayText =
-    enabledDays.length === 2 ? "Friday & Saturday" :
-    enabledDays.length === 1 ? `${enabledDays[0]}s only` : "Paused this week";
+    enabledDays.length === 0 ? "Paused this week" :
+    enabledDays.length === 1 ? `${enabledDays[0]}s only` :
+    enabledDays.length === 2 ? `${shortNames[0]} & ${shortNames[1]}` :
+    `${enabledDays.length} days a week`;
 
   const pickupTitle = document.getElementById("pickup-title");
   if (pickupTitle) {
     pickupTitle.textContent =
-      enabledDays.length === 2 ? "Come Friday or Saturday" :
-      enabledDays.length === 1 ? `Come on ${enabledDays[0]}` : "Pickup is paused this week";
+      enabledDays.length === 0 ? "Pickup is paused this week" :
+      enabledDays.length === 1 ? `Come on ${enabledDays[0]}` :
+      enabledDays.length === 2 ? `Come ${enabledDays[0]} or ${enabledDays[1]}` :
+      `Open ${enabledDays.length} days a week`;
   }
 
   const stats = document.querySelectorAll(".hero-stats div");

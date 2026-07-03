@@ -18,13 +18,20 @@ const MIME = {
   md: "text/plain; charset=utf-8",
 };
 
+const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 const DEFAULT_SETTINGS = {
   prices: { tray1: 12, tray2: 23, box: 66 },
   traysAvailable: 24,
   trayWeight: "1.75",
   pickup: {
+    Monday: { enabled: false, open: "09:00", close: "14:00" },
+    Tuesday: { enabled: false, open: "09:00", close: "14:00" },
+    Wednesday: { enabled: false, open: "09:00", close: "14:00" },
+    Thursday: { enabled: false, open: "09:00", close: "14:00" },
     Friday: { enabled: true, open: "10:00", close: "16:30" },
     Saturday: { enabled: true, open: "06:00", close: "14:00" },
+    Sunday: { enabled: false, open: "09:00", close: "14:00" },
   },
 };
 
@@ -92,10 +99,9 @@ async function getSettings(env) {
     ...DEFAULT_SETTINGS,
     ...stored,
     prices: { ...DEFAULT_SETTINGS.prices, ...(stored.prices || {}) },
-    pickup: {
-      Friday: cleanPickupDay((stored.pickup || {}).Friday, DEFAULT_SETTINGS.pickup.Friday),
-      Saturday: cleanPickupDay((stored.pickup || {}).Saturday, DEFAULT_SETTINGS.pickup.Saturday),
-    },
+    pickup: Object.fromEntries(
+      WEEK_DAYS.map((d) => [d, cleanPickupDay((stored.pickup || {})[d], DEFAULT_SETTINGS.pickup[d])])
+    ),
   };
 }
 
@@ -126,10 +132,9 @@ async function handleApi(request, env, url) {
         ? Math.max(0, Math.floor(Number(body.traysAvailable)))
         : current.traysAvailable,
       trayWeight: ["1.5", "1.75"].includes(body?.trayWeight) ? body.trayWeight : current.trayWeight,
-      pickup: {
-        Friday: cleanPickupDay((body?.pickup || {}).Friday, current.pickup.Friday),
-        Saturday: cleanPickupDay((body?.pickup || {}).Saturday, current.pickup.Saturday),
-      },
+      pickup: Object.fromEntries(
+        WEEK_DAYS.map((d) => [d, cleanPickupDay((body?.pickup || {})[d], current.pickup[d])])
+      ),
     };
     await env.DATA.put("settings", JSON.stringify(next));
     return json(next);
@@ -141,7 +146,7 @@ async function handleApi(request, env, url) {
     const name = String(body?.name || "").trim().slice(0, 80);
     const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
     const bundle = ["tray1", "tray2", "box"].includes(body?.bundle) ? body.bundle : null;
-    const pickupDay = ["Friday", "Saturday"].includes(body?.pickupDay) ? body.pickupDay : null;
+    const pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
     const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
 
     if (!name || !/^04\d{8}$/.test(phone) || !bundle || !pickupDay) {
@@ -406,16 +411,7 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
       </div>
 
       <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
-      <div class="dayrow">
-        <label class="chk"><input id="fri-on" type="checkbox"> Friday</label>
-        <div><label>Opens</label><input id="fri-open" type="time"></div>
-        <div><label>Closes</label><input id="fri-close" type="time"></div>
-      </div>
-      <div class="dayrow">
-        <label class="chk"><input id="sat-on" type="checkbox"> Saturday</label>
-        <div><label>Opens</label><input id="sat-open" type="time"></div>
-        <div><label>Closes</label><input id="sat-close" type="time"></div>
-      </div>
+      <div id="day-rows"></div>
 
       <button onclick="saveSettings()" style="width:100%">Save changes</button><span class="msg" id="save-msg"></span>
       <p class="note">Changes appear on the website within seconds. Untick a day to hide it and block bookings for it.</p>
@@ -433,6 +429,44 @@ function describeOrder(bundle, qty) {
   if (bundle === "box") return qty === 1 ? "1 box (180 eggs)" : qty + " boxes (" + (180 * qty).toLocaleString() + " eggs)";
   const trays = (bundle === "tray2" ? 2 : 1) * qty;
   return trays === 1 ? "1 tray (30 eggs)" : trays + " trays (" + (30 * trays).toLocaleString() + " eggs)";
+}
+
+const WEEK_DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+function timeOptions(selected) {
+  let out = "";
+  for (let h = 5; h <= 21; h++) {
+    for (const m of [0, 30]) {
+      const val = String(h).padStart(2, "0") + ":" + (m ? "30" : "00");
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      const label = h12 + (m ? ":30 " : ":00 ") + (h >= 12 ? "PM" : "AM");
+      out += '<option value="' + val + '"' + (val === selected ? " selected" : "") + ">" + label + "</option>";
+    }
+  }
+  return out;
+}
+
+function renderDayRows(pickup) {
+  $("day-rows").innerHTML = WEEK_DAYS.map(function(day) {
+    const p = pickup[day] || { enabled: false, open: "09:00", close: "14:00" };
+    return '<div class="dayrow">' +
+      '<label class="chk"><input type="checkbox" data-day="' + day + '" data-k="on"' + (p.enabled ? " checked" : "") + '> ' + day.slice(0,3) + '</label>' +
+      '<div><label>Opens</label><select data-day="' + day + '" data-k="open">' + timeOptions(p.open) + '</select></div>' +
+      '<div><label>Closes</label><select data-day="' + day + '" data-k="close">' + timeOptions(p.close) + '</select></div>' +
+    '</div>';
+  }).join("");
+}
+
+function collectDayRows() {
+  const out = {};
+  WEEK_DAYS.forEach(function(day) {
+    out[day] = {
+      enabled: document.querySelector('[data-day="' + day + '"][data-k="on"]').checked,
+      open: document.querySelector('[data-day="' + day + '"][data-k="open"]').value,
+      close: document.querySelector('[data-day="' + day + '"][data-k="close"]').value,
+    };
+  });
+  return out;
 }
 
 function traysFor(o) {
@@ -545,12 +579,7 @@ async function loadSettings() {
   const stat = $("stat-stock");
   if (stat) stat.textContent = s.traysAvailable;
   $("tray-weight").value = s.trayWeight || "1.75";
-  $("fri-on").checked = s.pickup.Friday.enabled;
-  $("fri-open").value = s.pickup.Friday.open;
-  $("fri-close").value = s.pickup.Friday.close;
-  $("sat-on").checked = s.pickup.Saturday.enabled;
-  $("sat-open").value = s.pickup.Saturday.open;
-  $("sat-close").value = s.pickup.Saturday.close;
+  renderDayRows(s.pickup || {});
 }
 
 async function saveSettings() {
@@ -558,10 +587,7 @@ async function saveSettings() {
     prices: { tray1: +$("p1").value, tray2: +$("p2").value, box: +$("p3").value },
     traysAvailable: +$("stock").value,
     trayWeight: $("tray-weight").value,
-    pickup: {
-      Friday: { enabled: $("fri-on").checked, open: $("fri-open").value, close: $("fri-close").value },
-      Saturday: { enabled: $("sat-on").checked, open: $("sat-open").value, close: $("sat-close").value },
-    },
+    pickup: collectDayRows(),
   };
   const res = await fetch("/api/settings", { method: "PUT", headers: authHeaders(), body: JSON.stringify(body) });
   const el = $("save-msg");
