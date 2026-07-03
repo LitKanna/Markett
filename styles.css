@@ -584,9 +584,11 @@ h1, h2, h3 {
 .done-side { text-align: center; }
 
 .done-art {
-  max-width: 300px;
-  margin: 0 auto 14px;
-  border-radius: var(--r-md);
+  display: block;
+  width: 100%;
+  max-width: 290px;
+  height: auto;
+  margin: 0 auto 12px;
 }
 
 .done-side h2 { font-size: 27px; font-weight: 800; margin-bottom: 6px; }

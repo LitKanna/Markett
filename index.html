@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=10">
 
   <script type="application/ld+json">
   {
@@ -257,10 +257,45 @@
       <div class="wrap">
         <div class="done-card">
           <div class="done-side">
-            <picture>
-              <source type="image/webp" srcset="assets/booked-420.webp 420w, assets/booked-720.webp 720w" sizes="(max-width: 760px) 70vw, 320px">
-              <img class="done-art" src="assets/booked-720.jpg" srcset="assets/booked-420.jpg 420w, assets/booked-720.jpg 720w" sizes="(max-width: 760px) 70vw, 320px" alt="Egg tray with a green booked checkmark" width="720" height="480" decoding="async">
-            </picture>
+            <svg class="done-art" viewBox="0 0 340 224" role="img" aria-label="Egg tray with a booked checkmark" width="340" height="224">
+              <!-- accents -->
+              <path d="M62 38l3.5 9 9 3.5-9 3.5-3.5 9-3.5-9-9-3.5 9-3.5z" fill="#f6b52b"/>
+              <path d="M124 18l2.5 6.5 6.5 2.5-6.5 2.5-2.5 6.5-2.5-6.5-6.5-2.5 6.5-2.5z" fill="#f6b52b" opacity="0.8"/>
+              <circle cx="96" cy="66" r="4.5" fill="#d97a29" opacity="0.85"/>
+              <circle cx="206" cy="26" r="5" fill="#e8b84a" opacity="0.9"/>
+              <circle cx="316" cy="122" r="3.5" fill="#d97a29" opacity="0.7"/>
+              <path d="M28 128q14-10 26-4" stroke="#3c6e4f" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.55"/>
+              <path d="M312 156q-14 8-24 2" stroke="#3c6e4f" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.55"/>
+
+              <!-- tray back -->
+              <rect x="44" y="120" width="252" height="42" rx="10" fill="#dcc39a"/>
+
+              <!-- eggs -->
+              <ellipse cx="70"  cy="118" rx="21" ry="27" fill="#e29a56"/>
+              <ellipse cx="120" cy="114" rx="22" ry="28" fill="#d98a45"/>
+              <ellipse cx="170" cy="118" rx="21" ry="27" fill="#eaa763"/>
+              <ellipse cx="220" cy="114" rx="22" ry="28" fill="#d98a45"/>
+              <ellipse cx="270" cy="118" rx="21" ry="27" fill="#e29a56"/>
+              <!-- soft highlights -->
+              <ellipse cx="63"  cy="106" rx="6" ry="9" fill="#f0bd8a" opacity="0.7"/>
+              <ellipse cx="113" cy="102" rx="6" ry="9" fill="#e8ab6f" opacity="0.7"/>
+              <ellipse cx="163" cy="106" rx="6" ry="9" fill="#f4c795" opacity="0.7"/>
+              <ellipse cx="213" cy="102" rx="6" ry="9" fill="#e8ab6f" opacity="0.7"/>
+              <ellipse cx="263" cy="106" rx="6" ry="9" fill="#f0bd8a" opacity="0.7"/>
+
+              <!-- tray front with cup dips -->
+              <path d="M36 138
+                       h268
+                       a12 12 0 0 1 12 12v26a12 12 0 0 1-12 12H36a12 12 0 0 1-12-12v-26a12 12 0 0 1 12-12z"
+                    fill="#ecd7ae"/>
+              <path d="M45 138a25 10 0 0 0 50 0zM95 138a25 10 0 0 0 50 0zM145 138a25 10 0 0 0 50 0zM195 138a25 10 0 0 0 50 0zM245 138a25 10 0 0 0 50 0z"
+                    fill="#dcc39a" opacity="0.65"/>
+
+              <!-- booked badge -->
+              <circle cx="262" cy="58" r="42" fill="#3c6e4f" opacity="0.12"/>
+              <circle cx="262" cy="58" r="34" fill="#3c6e4f"/>
+              <path d="M246 58l11 11 21-23" stroke="#fdf8ef" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
             <h2>You're booked in!</h2>
             <p id="done-summary">We'll confirm your pickup shortly.</p>
             <p class="done-hint">Show this screen when you arrive at the market.</p>
@@ -333,7 +368,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="config.js?v=10"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
