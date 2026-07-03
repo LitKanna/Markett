@@ -1,4 +1,22 @@
-const UPSTREAM = "https://litkanna.github.io/Markett";
+// Serve the site straight from the repository's main branch so the domain
+// never depends on GitHub Pages deployments.
+const UPSTREAM = "https://raw.githubusercontent.com/LitKanna/Markett/main";
+
+const MIME = {
+  html: "text/html; charset=utf-8",
+  css: "text/css; charset=utf-8",
+  js: "application/javascript; charset=utf-8",
+  mjs: "application/javascript; charset=utf-8",
+  svg: "image/svg+xml",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  ico: "image/x-icon",
+  txt: "text/plain; charset=utf-8",
+  json: "application/json",
+  md: "text/plain; charset=utf-8",
+};
 
 const DEFAULT_SETTINGS = {
   prices: { tray1: 12, tray2: 23, box: 66 },
@@ -502,35 +520,26 @@ export default {
       return handleApi(request, env, url);
     }
 
-    const upstreamUrl = UPSTREAM + url.pathname + url.search;
-    const upstreamResp = await fetch(upstreamUrl, {
-      method: request.method,
-      headers: {
-        "User-Agent": request.headers.get("User-Agent") || "yolko-edge",
-        "Accept": request.headers.get("Accept") || "*/*",
-        "Accept-Encoding": request.headers.get("Accept-Encoding") || "",
-      },
-      redirect: "manual",
+    let path = url.pathname;
+    if (path === "/" || path === "") path = "/index.html";
+    const ext = path.includes(".") ? path.split(".").pop().toLowerCase() : "html";
+    if (!path.includes(".")) path += ".html";
+
+    const upstreamResp = await fetch(UPSTREAM + path, {
+      headers: { "User-Agent": "yolko-edge" },
+      cf: { cacheTtl: 60, cacheEverything: true },
     });
 
-    if (upstreamResp.status >= 301 && upstreamResp.status <= 308) {
-      const location = upstreamResp.headers.get("Location") || "";
-      const rewritten = location
-        .replace("https://litkanna.github.io/Markett", "https://getyolko.com")
-        .replace("https://litkanna.github.io", "https://getyolko.com");
-      const headers = new Headers(upstreamResp.headers);
-      headers.set("Location", rewritten);
-      return new Response(null, { status: upstreamResp.status, headers });
+    if (!upstreamResp.ok) {
+      return new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain" } });
     }
 
-    const headers = new Headers(upstreamResp.headers);
-    headers.delete("X-GitHub-Request-Id");
-    headers.delete("X-Served-By");
-    headers.delete("X-Fastly-Request-ID");
-
     return new Response(upstreamResp.body, {
-      status: upstreamResp.status,
-      headers,
+      status: 200,
+      headers: {
+        "Content-Type": MIME[ext] || "application/octet-stream",
+        "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=300",
+      },
     });
   },
 };
