@@ -151,6 +151,71 @@ if (Number.isFinite(traysLeft) && traysLeft > 0) {
   stockNote.hidden = false;
 }
 
+/* ---------- Live prices and stock from the shop API ---------- */
+const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://getyolko.com";
+
+function applySettings(settings) {
+  const p = settings.prices || {};
+  if (p.tray1) BUNDLES.tray1.price = p.tray1;
+  if (p.tray2) BUNDLES.tray2.price = p.tray2;
+  if (p.box) BUNDLES.box.price = p.box;
+
+  const p1 = BUNDLES.tray1.price;
+  const perEgg = Math.round((p1 / 30) * 100);
+  const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
+
+  // Hero
+  const badge = document.querySelector(".badge-price");
+  if (badge) badge.textContent = `$${p1}`;
+  const stats = document.querySelectorAll(".hero-stats dt");
+  if (stats[0]) stats[0].textContent = `$${p1}`;
+  if (stats[1]) stats[1].innerHTML = `${perEgg}&cent;`;
+  const leadStrong = document.querySelector(".hero-sub strong");
+  if (leadStrong) leadStrong.textContent = `$${p1}`;
+
+  // Ticker and mobile bar
+  document.querySelectorAll(".ticker-track span").forEach((el) => {
+    if (/30 eggs/i.test(el.textContent)) el.textContent = `30 eggs for $${p1}`;
+  });
+  const ctaStrong = document.querySelector(".mobile-cta-text strong");
+  if (ctaStrong) ctaStrong.textContent = `30 eggs · $${p1}`;
+
+  // Price cards
+  const bigs = document.querySelectorAll(".price-big");
+  const pers = document.querySelectorAll(".price-per");
+  if (bigs[0]) bigs[0].textContent = `$${BUNDLES.tray1.price}`;
+  if (bigs[1]) bigs[1].textContent = `$${BUNDLES.tray2.price}`;
+  if (bigs[2]) bigs[2].textContent = `$${BUNDLES.box.price}`;
+  if (pers[0]) pers[0].innerHTML = `30 eggs · ${perEgg}&cent; each`;
+  if (pers[1]) pers[1].textContent = saving > 0 ? `60 eggs · save $${saving}` : "60 eggs";
+  if (pers[2]) pers[2].textContent = "6 trays · 180 eggs";
+
+  // Form options and submit chip
+  bundleSelect.options[0].textContent = `1 tray (30 eggs) $${BUNDLES.tray1.price}`;
+  bundleSelect.options[1].textContent = `2 trays (60 eggs) $${BUNDLES.tray2.price}`;
+  bundleSelect.options[2].textContent = `Full box (180 eggs) $${BUNDLES.box.price}`;
+  refreshSubmitPrice();
+
+  // Stock note
+  const stock = Number(settings.traysAvailable);
+  if (Number.isFinite(stock)) {
+    if (stock > 0) {
+      stockNote.textContent = `Only ${stock} trays available this week. Book early.`;
+      stockNote.hidden = false;
+      stockNote.classList.add("in");
+    } else {
+      stockNote.textContent = "Sold out this week. Check back Wednesday.";
+      stockNote.hidden = false;
+      stockNote.classList.add("in");
+    }
+  }
+}
+
+fetch(`${API_BASE}/api/settings`)
+  .then((r) => (r.ok ? r.json() : null))
+  .then((s) => { if (s) applySettings(s); })
+  .catch(() => {});
+
 // Price-card buttons preselect the bundle in the form
 document.querySelectorAll("[data-bundle]").forEach((link) => {
   link.addEventListener("click", () => {
@@ -184,6 +249,13 @@ form.addEventListener("submit", (event) => {
     `Total: $${bundle.price}`,
   ].join("\n");
   lastOrderMessage = message;
+
+  // Record the order so it shows in the admin dashboard
+  fetch(`${API_BASE}/api/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, phone: phoneDigits, bundle: bundleKey, pickupDay }),
+  }).catch(() => {});
 
   doneSummary.textContent = `Thanks ${name.split(" ")[0]}! Here are your pickup details.`;
   receipt.name.textContent = name;
