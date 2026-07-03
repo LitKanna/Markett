@@ -144,7 +144,7 @@ h1, h2, h3 {
   letter-spacing: 0.01em;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+  transition: transform 0.18s cubic-bezier(0.22, 0.61, 0.36, 1), background 0.18s ease;
 }
 
 .btn:hover { transform: translateY(-2px); }
@@ -713,7 +713,7 @@ h1, h2, h3 {
 section { scroll-margin-top: 84px; }
 
 /* Header elevates once you scroll */
-.topbar { transition: box-shadow 0.25s ease, background 0.25s ease; }
+.topbar { transition: box-shadow 0.18s ease, background 0.18s ease; }
 
 .topbar.scrolled {
   background: rgba(253, 248, 239, 0.97);
@@ -727,55 +727,72 @@ section { scroll-margin-top: 84px; }
 /* Ticker pauses when inspected */
 .ticker:hover .ticker-track { animation-play-state: paused; }
 
-/* Scroll reveal */
+/* Scroll reveal: transform + opacity only, GPU composited */
 .reveal {
   opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 0.9, 0.3, 1);
+  transform: translateY(14px);
+  transition: opacity 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+              transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
   transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
 }
 
 .reveal.in { opacity: 1; transform: none; }
 
 /* Hero enters immediately with a soft rise */
 .hero-copy > * {
-  animation: rise 0.7s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  animation: rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
-.hero-copy > *:nth-child(1) { animation-delay: 0.05s; }
-.hero-copy > *:nth-child(2) { animation-delay: 0.12s; }
-.hero-copy > *:nth-child(3) { animation-delay: 0.2s; }
-.hero-copy > *:nth-child(4) { animation-delay: 0.28s; }
-.hero-copy > *:nth-child(5) { animation-delay: 0.36s; }
+.hero-copy > *:nth-child(1) { animation-delay: 0.04s; }
+.hero-copy > *:nth-child(2) { animation-delay: 0.1s; }
+.hero-copy > *:nth-child(3) { animation-delay: 0.16s; }
+.hero-copy > *:nth-child(4) { animation-delay: 0.22s; }
+.hero-copy > *:nth-child(5) { animation-delay: 0.28s; }
 
-.hero-photo { animation: rise 0.8s 0.25s cubic-bezier(0.22, 0.9, 0.3, 1) both; }
+.hero-photo { animation: rise 0.55s 0.18s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(26px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: none; }
 }
 
-/* Card hover lift */
+/* Card hover lift: shadow fades via pseudo layer, no repaint jank */
 .price-card,
 .day-card {
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+  z-index: 0;
+  transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+              border-color 0.25s ease;
 }
 
-.price-card:hover {
-  transform: translateY(-6px);
+.price-card::after,
+.day-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
   box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.price-card:hover::after,
+.day-card:hover::after { opacity: 1; }
+
+.price-card:hover {
+  transform: translateY(-5px);
   border-color: var(--yolk);
 }
 
-.price-card.featured:hover { transform: translateY(-14px); }
+.price-card.featured:hover { transform: translateY(-12px); }
 
-.day-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
+.day-card:hover { transform: translateY(-3px); }
 
 /* Buttons press down */
-.btn:active { transform: translateY(1px) scale(0.98); }
+.btn:active { transform: scale(0.985); }
 
 /* Live price chip inside submit button */
 .submit-price {
@@ -982,19 +999,16 @@ section { scroll-margin-top: 84px; }
 .price-big { transition: transform 0.25s ease; }
 .price-card:hover .price-big { transform: translateY(-2px) scale(1.03); }
 
-/* Photos straighten and breathe when touched */
+/* Photos straighten when touched: transform only */
 .hero-photo img,
 .order-photo {
-  transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.3, 1), box-shadow 0.45s ease;
+  transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
 }
 
-.hero-photo:hover img {
-  transform: rotate(0deg) scale(1.015);
-  box-shadow: 0 30px 70px rgba(36, 20, 7, 0.2);
-}
-
+.hero-photo:hover img,
 .order-photo:hover {
-  transform: rotate(0deg) scale(1.015);
+  transform: rotate(0deg) scale(1.01);
 }
 
 /* Day cards: time glows amber */
@@ -1002,16 +1016,19 @@ section { scroll-margin-top: 84px; }
 .day-card:hover .day-time { color: var(--amber-dark); }
 
 /* Steps: numbers pop as you pass */
-.steps li span { transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease; }
-.steps li:hover span { transform: scale(1.18) rotate(-6deg); background: var(--amber); color: var(--white); }
+.steps li span { transition: transform 0.22s cubic-bezier(0.22, 0.61, 0.36, 1), background 0.22s ease, color 0.22s ease; }
+.steps li:hover span { transform: scale(1.1); background: var(--amber); color: var(--white); }
 
-/* FAQ: cards tint on hover */
-.faq details { transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease; }
+/* FAQ: cards tint on hover, transform only */
+.faq details {
+  position: relative;
+  z-index: 0;
+  transition: border-color 0.22s ease, transform 0.22s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
 
 .faq details:hover {
   border-color: var(--yolk);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
 }
 
 /* Trust strip items brighten */
@@ -1022,16 +1039,10 @@ section { scroll-margin-top: 84px; }
 .receipt > div { transition: background 0.2s ease; }
 .receipt > div:hover { background: var(--cream); }
 
-/* Form selects and inputs: lift slightly on focus */
+/* Form fields: clean border highlight, no movement */
 .field input,
 .field select {
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.field input:focus,
-.field select:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(246, 181, 43, 0.25);
+  transition: border-color 0.18s ease;
 }
 
 /* Respect reduced motion */
