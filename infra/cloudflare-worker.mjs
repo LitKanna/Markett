@@ -251,6 +251,25 @@ const ADMIN_HTML = `<!doctype html>
 body { margin:0; font-family:"Plus Jakarta Sans",system-ui,sans-serif; background:var(--cream); color:var(--ink); font-size:15px; }
 .wrap { max-width:640px; margin:0 auto; padding:18px 14px 70px; }
 
+/* iPad: wider canvas, orders flow in two columns */
+@media (min-width:760px) {
+  .wrap { max-width:920px; padding:26px 24px 80px; }
+  #orders { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; }
+  .stat b { font-size:24px; }
+  .card { padding:26px 24px; }
+}
+
+/* Desktop: dashboard layout, orders left, settings pinned right */
+@media (min-width:1140px) {
+  .wrap { max-width:1200px; padding:32px 28px 90px; }
+  .cols { display:grid; grid-template-columns:1.6fr 1fr; gap:18px; align-items:start; }
+  .cols > .card { margin-bottom:0; }
+  .cols > .card:last-child { position:sticky; top:18px; }
+  #orders { grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .top h1 { font-size:26px; }
+  h2 { font-size:21px; }
+}
+
 .top { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
 .top svg { flex-shrink:0; }
 .top h1 { font-family:"Bricolage Grotesque",sans-serif; font-size:22px; font-weight:800; letter-spacing:.06em; margin:0; line-height:1; }
@@ -291,7 +310,10 @@ button.danger { background:var(--red-soft); color:var(--red); }
 .callbtn { background:var(--ink); color:var(--cream); }
 
 label { display:block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--soft); margin-bottom:5px; }
-input, select { width:100%; min-height:46px; padding:10px 13px; border:2px solid var(--line); border-radius:12px; font:inherit; font-size:16px; background:var(--cream); }
+input, select { width:100%; min-height:46px; padding:10px 13px; border:2px solid var(--line); border-radius:12px; font:inherit; font-size:16px; font-weight:600; background:var(--cream); color:var(--ink); transition:border-color .15s ease, background .15s ease; }
+select { appearance:none; -webkit-appearance:none; padding-right:40px; cursor:pointer; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9"><path d="M1 1.5 7 7.5 13 1.5" fill="none" stroke="%23b05f17" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'); background-repeat:no-repeat; background-position:right 14px center; }
+input[type="time"] { cursor:pointer; }
+input:hover, select:hover { border-color:#e0cfae; }
 input:focus, select:focus { outline:none; border-color:var(--yolk); background:#fff; }
 .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
 .dayrow { display:grid; grid-template-columns:96px 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px; }
@@ -324,6 +346,7 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
   <div id="panel" style="display:none">
     <div class="stats" id="stats"></div>
 
+    <div class="cols">
     <div class="card">
       <h2>Orders</h2>
       <div id="orders"></div>
@@ -360,6 +383,7 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
 
       <button onclick="saveSettings()" style="width:100%">Save changes</button><span class="msg" id="save-msg"></span>
       <p class="note">Changes appear on the website within seconds. Untick a day to hide it and block bookings for it.</p>
+    </div>
     </div>
   </div>
 </div>
