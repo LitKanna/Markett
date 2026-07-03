@@ -9,7 +9,6 @@ const config = typeof SITE_CONFIG === "object" && SITE_CONFIG !== null ? SITE_CO
 const form = document.getElementById("order-form");
 const doneSection = document.getElementById("done");
 const doneSummary = document.getElementById("done-summary");
-const orderMessage = document.getElementById("order-message");
 const whatsappLink = document.getElementById("whatsapp-send");
 const stripeLink = document.getElementById("stripe-pay");
 const copyButton = document.getElementById("copy-message");
@@ -17,6 +16,15 @@ const againButton = document.getElementById("again");
 const orderSection = document.getElementById("order");
 const bundleSelect = document.getElementById("bundle");
 const stockNote = document.getElementById("stock-note");
+const receipt = {
+  name: document.getElementById("r-name"),
+  phone: document.getElementById("r-phone"),
+  order: document.getElementById("r-order"),
+  pickup: document.getElementById("r-pickup"),
+  total: document.getElementById("r-total"),
+};
+
+let lastOrderMessage = "";
 
 // Limited-stock note from config
 const traysLeft = Number(config.traysAvailableThisWeek);
@@ -52,11 +60,14 @@ form.addEventListener("submit", (event) => {
     `Pickup day: ${pickupDay}`,
     `Total: $${bundle.price}`,
   ].join("\n");
+  lastOrderMessage = message;
 
-  doneSummary.textContent =
-    `Thanks ${name}! ${bundle.label} for ${pickupDay} pickup — $${bundle.price}. ` +
-    "Send us the message below so we can confirm your booking.";
-  orderMessage.textContent = message;
+  doneSummary.textContent = `Thanks ${name.split(" ")[0]}! Here are your pickup details.`;
+  receipt.name.textContent = name;
+  receipt.phone.textContent = phone;
+  receipt.order.textContent = bundle.label;
+  receipt.pickup.textContent = `${pickupDay} at Paddy's Markets Flemington`;
+  receipt.total.textContent = `$${bundle.price}`;
 
   // WhatsApp deep link when a number is configured
   const number = String(config.whatsappNumber || "").replace(/\D/g, "");
@@ -83,18 +94,17 @@ form.addEventListener("submit", (event) => {
 });
 
 copyButton.addEventListener("click", async () => {
-  const text = orderMessage.textContent;
-  if (!text) return;
+  if (!lastOrderMessage) return;
 
   try {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(lastOrderMessage);
     copyButton.textContent = "Copied!";
   } catch {
-    copyButton.textContent = "Select and copy above";
+    copyButton.textContent = "Copy failed";
   }
 
   setTimeout(() => {
-    copyButton.textContent = "Copy order message";
+    copyButton.textContent = "Copy order";
   }, 1800);
 });
 

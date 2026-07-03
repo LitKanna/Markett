@@ -528,53 +528,89 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 }
 
 /* ---------- Done ---------- */
-.done { padding: 60px 0; background: var(--green-soft); }
+.done { padding: 64px 0; background: var(--green-soft); }
 
 .done-card {
-  max-width: 620px;
+  max-width: 480px;
   margin: 0 auto;
   background: var(--white);
   border-radius: var(--r-lg);
-  padding: 42px 34px;
-  text-align: center;
+  padding: 38px 32px 30px;
   box-shadow: var(--shadow-lg);
 }
 
-.done-icon {
-  width: 62px;
-  height: 62px;
-  margin: 0 auto 18px;
-  display: grid;
-  place-items: center;
-  background: var(--green);
-  color: var(--white);
-  border-radius: 50%;
-  font-size: 28px;
-  font-weight: 800;
+.done-head { text-align: center; margin-bottom: 26px; }
+
+.done-check {
+  color: var(--green);
+  margin-bottom: 14px;
 }
 
-.done-card h2 { font-size: 32px; font-weight: 750; margin-bottom: 10px; }
-.done-card > p { color: var(--ink-soft); margin: 0 0 24px; }
+.done-head h2 { font-size: 30px; font-weight: 750; margin-bottom: 8px; }
+.done-head p { color: var(--ink-soft); margin: 0; font-size: 15px; }
 
-.done-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 22px;
-}
-
-.order-message {
-  text-align: left;
-  background: var(--cream);
-  border: 1px dashed var(--line);
+.receipt {
+  margin: 0 0 24px;
+  border: 1px solid var(--line);
   border-radius: var(--r-md);
-  padding: 18px;
-  font-family: var(--font-body);
-  font-size: 14px;
-  white-space: pre-wrap;
+  overflow: hidden;
+}
+
+.receipt > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 13px 18px;
+}
+
+.receipt > div + div { border-top: 1px solid var(--line); }
+
+.receipt dt {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--ink-soft);
+}
+
+.receipt dd {
   margin: 0;
+  font-weight: 650;
+  font-size: 15px;
+  text-align: right;
+}
+
+.receipt-total { background: var(--cream); }
+
+.receipt-total dd {
+  font-family: var(--font-head);
+  font-size: 24px;
+  font-weight: 750;
+  color: var(--amber-dark);
+}
+
+.done-actions { display: grid; gap: 10px; }
+
+.btn-wa {
+  background: #23b33a;
+  color: var(--white);
+  box-shadow: 0 8px 22px rgba(35, 179, 58, 0.3);
+}
+
+.btn-wa:hover { background: #1c9530; }
+
+.done-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.done-hint {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
 }
 
 /* ---------- FAQ ---------- */
