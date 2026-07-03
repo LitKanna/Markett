@@ -755,14 +755,6 @@ section { scroll-margin-top: 84px; }
   to { opacity: 1; transform: none; }
 }
 
-/* Price badge floats gently */
-.photo-badge { animation: floaty 4.5s 1.2s ease-in-out infinite; }
-
-@keyframes floaty {
-  0%, 100% { transform: rotate(-2deg) translateY(0); }
-  50% { transform: rotate(-2deg) translateY(-7px); }
-}
-
 /* Card hover lift */
 .price-card,
 .day-card {
