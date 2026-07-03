@@ -903,6 +903,145 @@ section { scroll-margin-top: 84px; }
   .mobile-cta { display: flex; }
 }
 
+/* ---------- Hover language ---------- */
+
+/* Buttons: light sweep on hover */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-110%);
+  transition: transform 0.55s ease;
+  pointer-events: none;
+}
+
+.btn:hover::before { transform: translateX(110%); }
+
+.btn-ghost::before,
+.btn-line::before {
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(217, 122, 41, 0.14) 50%,
+    transparent 70%
+  );
+}
+
+/* Nav links: underline slides in */
+.topnav a {
+  position: relative;
+  padding-bottom: 3px;
+}
+
+.topnav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--amber);
+  border-radius: 999px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.28s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+.topnav a:hover::after { transform: scaleX(1); }
+
+/* Price cards: warm glow follows the cursor */
+.price-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    220px circle at var(--mx, 50%) var(--my, 0%),
+    rgba(246, 181, 43, 0.16),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.price-card:hover::before { opacity: 1; }
+
+.price-card.featured::before {
+  background: radial-gradient(
+    240px circle at var(--mx, 50%) var(--my, 0%),
+    rgba(246, 181, 43, 0.2),
+    transparent 65%
+  );
+}
+
+/* Price inside card nudges up */
+.price-big { transition: transform 0.25s ease; }
+.price-card:hover .price-big { transform: translateY(-2px) scale(1.03); }
+
+/* Photos straighten and breathe when touched */
+.hero-photo img,
+.order-photo {
+  transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.3, 1), box-shadow 0.45s ease;
+}
+
+.hero-photo:hover img {
+  transform: rotate(0deg) scale(1.015);
+  box-shadow: 0 30px 70px rgba(36, 20, 7, 0.2);
+}
+
+.order-photo:hover {
+  transform: rotate(0deg) scale(1.015);
+}
+
+/* Day cards: time glows amber */
+.day-time { transition: color 0.25s ease; }
+.day-card:hover .day-time { color: var(--amber-dark); }
+
+/* Steps: numbers pop as you pass */
+.steps li span { transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease; }
+.steps li:hover span { transform: scale(1.18) rotate(-6deg); background: var(--amber); color: var(--white); }
+
+/* FAQ: cards tint on hover */
+.faq details { transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease; }
+
+.faq details:hover {
+  border-color: var(--yolk);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Trust strip items brighten */
+.trust-row p { transition: opacity 0.25s ease, transform 0.25s ease; opacity: 0.92; }
+.trust-row p:hover { opacity: 1; transform: translateY(-2px); }
+
+/* Receipt rows highlight softly */
+.receipt > div { transition: background 0.2s ease; }
+.receipt > div:hover { background: var(--cream); }
+
+/* Form selects and inputs: lift slightly on focus */
+.field input,
+.field select {
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field input:focus,
+.field select:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(246, 181, 43, 0.25);
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
