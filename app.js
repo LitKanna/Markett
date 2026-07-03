@@ -95,7 +95,6 @@ function updateMobileCta() {
 
 /* ---------- Booking controls ---------- */
 const submitBtn = document.getElementById("submit-btn");
-const submitPrice = document.getElementById("submit-price");
 const quantityInput = document.getElementById("quantity");
 const qtyValue = document.getElementById("qty-value");
 const orderSummary = document.getElementById("order-summary");
@@ -152,12 +151,11 @@ function refreshSubmitPrice() {
   const bundleKey = currentBundle();
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const qty = currentQuantity();
-  submitPrice.textContent = `$${bundle.price * qty}`;
-  submitBtn.classList.remove("bump");
-  void submitBtn.offsetWidth;
-  submitBtn.classList.add("bump");
 
   orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} &middot; $${bundle.price * qty}`;
+  orderSummary.classList.remove("bump");
+  void orderSummary.offsetWidth;
+  orderSummary.classList.add("bump");
 }
 
 document.querySelectorAll('input[name="bundle"], input[name="pickupDay"]').forEach((radio) => {
