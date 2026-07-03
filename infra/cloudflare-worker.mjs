@@ -220,86 +220,107 @@ const ADMIN_HTML = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#fdf8ef">
 <title>YOLKO Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root { --cream:#fdf8ef; --ink:#241407; --soft:#6b5949; --line:#ecdfc8; --amber:#d97a29; --amber-d:#b05f17; --yolk:#f6b52b; --green:#3c6e4f; --red:#c0392b; }
-* { box-sizing:border-box; }
-body { margin:0; font-family:system-ui,-apple-system,sans-serif; background:var(--cream); color:var(--ink); }
-.wrap { max-width:860px; margin:0 auto; padding:24px 16px 60px; }
-h1 { font-size:26px; margin:0 0 4px; }
-.sub { color:var(--soft); margin:0 0 24px; font-size:14px; }
-.card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:18px; box-shadow:0 6px 18px rgba(36,20,7,.06); }
-.card h2 { margin:0 0 14px; font-size:18px; }
-label { display:block; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--soft); margin-bottom:4px; }
-input { width:100%; padding:10px 12px; border:2px solid var(--line); border-radius:10px; font:inherit; font-size:16px; }
-input:focus { outline:none; border-color:var(--yolk); }
-.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:14px; }
-button { padding:11px 20px; border:0; border-radius:999px; font:inherit; font-weight:700; cursor:pointer; background:var(--amber); color:#fff; }
-button:hover { background:var(--amber-d); }
-button.ghost { background:#f5eadc; color:var(--ink); }
-.msg { font-size:13.5px; font-weight:600; margin-left:10px; }
-.msg.ok { color:var(--green); } .msg.err { color:var(--red); }
-table { width:100%; border-collapse:collapse; font-size:14px; }
-th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--soft); padding:8px 10px; border-bottom:2px solid var(--line); }
-td { padding:10px; border-bottom:1px solid var(--line); vertical-align:top; }
-tr:last-child td { border-bottom:0; }
-.pill { display:inline-block; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:800; }
+:root { --cream:#fdf8ef; --cream2:#f7efdf; --ink:#241407; --soft:#6b5949; --line:#ecdfc8; --amber:#d97a29; --amber-d:#b05f17; --yolk:#f6b52b; --green:#3c6e4f; --green-soft:#e7f2ea; --blue:#1d4f91; --blue-soft:#e2ecf9; --red:#c0392b; --red-soft:#f7e0dd; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { margin:0; font-family:"Plus Jakarta Sans",system-ui,sans-serif; background:var(--cream); color:var(--ink); font-size:15px; }
+.wrap { max-width:640px; margin:0 auto; padding:18px 14px 70px; }
+
+.top { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+.top svg { flex-shrink:0; }
+.top h1 { font-family:"Bricolage Grotesque",sans-serif; font-size:22px; font-weight:800; letter-spacing:.06em; margin:0; line-height:1; }
+.top small { display:block; font-size:9.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--amber-d); margin-top:3px; }
+.top .out { margin-left:auto; }
+
+.card { background:#fff; border:1px solid var(--line); border-radius:20px; padding:20px 18px; margin-bottom:16px; box-shadow:0 8px 24px rgba(36,20,7,.06); }
+h2 { font-family:"Bricolage Grotesque",sans-serif; font-size:19px; font-weight:800; margin:0 0 14px; letter-spacing:-.01em; }
+
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+.stat { background:var(--cream2); border-radius:14px; padding:10px 8px; text-align:center; }
+.stat b { display:block; font-family:"Bricolage Grotesque",sans-serif; font-size:20px; font-weight:800; }
+.stat span { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--soft); }
+
+.order { border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:10px; }
+.order.prio { background:#f6fbf4; border-color:#cfe5d3; }
+.o-top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.o-name { font-weight:800; font-size:16px; }
+.o-price { font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:20px; color:var(--amber-d); }
+.o-time { font-size:12px; color:var(--soft); margin:2px 0 8px; }
+.o-what { font-weight:700; font-size:14.5px; margin-bottom:10px; }
+.o-what span { font-weight:600; color:var(--soft); }
+.o-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.pill { display:inline-block; padding:4px 11px; border-radius:999px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
 .pill.new { background:#fdeecd; color:var(--amber-d); }
-.pill.confirmed { background:#e2ecf9; color:#1d4f91; }
-.pill.done { background:#e7f2ea; color:var(--green); }
-.pill.cancelled { background:#f7e0dd; color:var(--red); }
-.pill.prio-pill { background:var(--green); color:#fff; }
-tr.prio td { background:#f4faf3; }
-tr.prio td:first-child { border-left:3px solid var(--green); }
-.actions button { padding:5px 12px; font-size:12px; margin:2px 2px 0 0; }
-.dayrow { display:grid; grid-template-columns:120px 1fr 1fr; gap:12px; align-items:end; margin-bottom:12px; }
-.chk { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:10px; }
-.chk input { width:18px; height:18px; accent-color:var(--amber); }
-.stats { display:flex; gap:22px; flex-wrap:wrap; margin-bottom:6px; }
-.stats div { font-size:13px; color:var(--soft); }
-.stats b { display:block; font-size:22px; color:var(--ink); }
-.empty { color:var(--soft); text-align:center; padding:26px 0; }
-.topline { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
-@media (max-width:640px){ .hide-sm { display:none; } }
+.pill.confirmed { background:var(--blue-soft); color:var(--blue); }
+.pill.done { background:var(--green-soft); color:var(--green); }
+.pill.cancelled { background:var(--red-soft); color:var(--red); }
+.pill.paid { background:var(--green); color:#fff; }
+.pill.day { background:var(--cream2); color:var(--ink); }
+.o-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.o-actions a, .o-actions button { flex:1; min-width:100px; }
+
+button, .callbtn { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:9px 16px; border:0; border-radius:999px; font:inherit; font-weight:700; font-size:14px; cursor:pointer; background:var(--amber); color:#fff; text-decoration:none; transition:transform .15s ease; }
+button:active, .callbtn:active { transform:scale(.97); }
+button.ghost { background:var(--cream2); color:var(--ink); }
+button.danger { background:var(--red-soft); color:var(--red); }
+.callbtn { background:var(--ink); color:var(--cream); }
+
+label { display:block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--soft); margin-bottom:5px; }
+input { width:100%; min-height:46px; padding:10px 13px; border:2px solid var(--line); border-radius:12px; font:inherit; font-size:16px; background:var(--cream); }
+input:focus { outline:none; border-color:var(--yolk); background:#fff; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.dayrow { display:grid; grid-template-columns:96px 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px; }
+.chk { display:flex; align-items:center; gap:8px; font-size:14.5px; font-weight:800; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:12px; }
+.chk input { width:20px; height:20px; min-height:0; accent-color:var(--amber); }
+.msg { font-size:13.5px; font-weight:700; margin-left:10px; }
+.msg.ok { color:var(--green); } .msg.err { color:var(--red); }
+.note { font-size:12.5px; color:var(--soft); margin:12px 0 0; }
+.empty { color:var(--soft); text-align:center; padding:24px 0; }
+.refresh { width:100%; margin-top:4px; }
+.login { max-width:420px; margin:40px auto 0; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>YOLKO Admin</h1>
-  <p class="sub">Orders and shop settings for getyolko.com</p>
+  <div class="top">
+    <svg viewBox="0 0 32 40" width="24" height="30" aria-hidden="true"><path d="M16 2C9 2 2 16 2 26a14 14 0 0 0 28 0C30 16 23 2 16 2Z" fill="#f6b52b"/><path d="M16 2C9 2 2 16 2 26a14 14 0 0 0 14 14V2Z" fill="#d97a29"/><circle cx="16" cy="26" r="6.5" fill="#fdf8ef"/></svg>
+    <div><h1>YOLKO</h1><small>Admin</small></div>
+    <button class="ghost out" id="signout" onclick="logout()" style="display:none">Sign out</button>
+  </div>
 
-  <div class="card" id="login-card">
+  <div class="card login" id="login-card">
     <h2>Sign in</h2>
-    <div class="grid"><div><label>Admin key</label><input id="key" type="password" placeholder="Paste your admin key"></div></div>
-    <button onclick="saveKey()">Sign in</button><span class="msg" id="login-msg"></span>
+    <label>Admin key</label>
+    <input id="key" type="password" placeholder="Paste your admin key" style="margin-bottom:12px">
+    <button onclick="saveKey()" style="width:100%">Sign in</button>
+    <p class="msg err" id="login-msg" style="margin:10px 0 0; display:block; text-align:center"></p>
   </div>
 
   <div id="panel" style="display:none">
+    <div class="stats" id="stats"></div>
+
     <div class="card">
-      <div class="topline">
-        <h2>Orders</h2>
-        <button class="ghost" onclick="loadOrders()">Refresh</button>
-      </div>
-      <div class="stats" id="stats"></div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr><th>When</th><th>Name</th><th>Phone</th><th>Order</th><th class="hide-sm">Pickup</th><th>$</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
-        <p class="empty" id="empty" style="display:none">No orders yet. Share getyolko.com to get your first booking!</p>
-      </div>
+      <h2>Orders</h2>
+      <div id="orders"></div>
+      <p class="empty" id="empty" style="display:none">No orders yet. Share getyolko.com to get your first booking!</p>
+      <button class="ghost refresh" onclick="loadOrders()">Refresh orders</button>
     </div>
 
     <div class="card">
       <h2>Prices &amp; stock</h2>
-      <div class="grid">
+      <div class="grid2">
         <div><label>1 tray ($)</label><input id="p1" type="number" min="1" step="0.5"></div>
         <div><label>2 trays ($)</label><input id="p2" type="number" min="1" step="0.5"></div>
         <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="0.5"></div>
         <div><label>Trays available</label><input id="stock" type="number" min="0" step="1"></div>
       </div>
 
-      <h2 style="margin-top:8px">Pickup days &amp; hours</h2>
+      <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
       <div class="dayrow">
         <label class="chk"><input id="fri-on" type="checkbox"> Friday</label>
         <div><label>Opens</label><input id="fri-open" type="time"></div>
@@ -311,11 +332,9 @@ tr.prio td:first-child { border-left:3px solid var(--green); }
         <div><label>Closes</label><input id="sat-close" type="time"></div>
       </div>
 
-      <button onclick="saveSettings()">Save changes</button><span class="msg" id="save-msg"></span>
-      <p style="font-size:12.5px;color:var(--soft);margin:12px 0 0">Changes appear on the website within seconds. No code needed. Untick a day to hide it from the site and block new bookings for it.</p>
+      <button onclick="saveSettings()" style="width:100%">Save changes</button><span class="msg" id="save-msg"></span>
+      <p class="note">Changes appear on the website within seconds. Untick a day to hide it and block bookings for it.</p>
     </div>
-
-    <button class="ghost" onclick="logout()">Sign out</button>
   </div>
 </div>
 
@@ -325,9 +344,7 @@ let KEY = localStorage.getItem("yolko_admin_key") || "";
 
 function describeOrder(bundle, qty) {
   qty = qty || 1;
-  if (bundle === "box") {
-    return qty === 1 ? "1 box (180 eggs)" : qty + " boxes (" + (180 * qty).toLocaleString() + " eggs)";
-  }
+  if (bundle === "box") return qty === 1 ? "1 box (180 eggs)" : qty + " boxes (" + (180 * qty).toLocaleString() + " eggs)";
   const trays = (bundle === "tray2" ? 2 : 1) * qty;
   return trays === 1 ? "1 tray (30 eggs)" : trays + " trays (" + (30 * trays).toLocaleString() + " eggs)";
 }
@@ -342,27 +359,23 @@ async function saveKey() {
     $("login-msg").textContent = "";
     boot();
   } else {
-    $("login-msg").textContent = "Wrong key";
-    $("login-msg").className = "msg err";
+    $("login-msg").textContent = "Wrong key, try again";
   }
 }
 
-function logout() {
-  localStorage.removeItem("yolko_admin_key");
-  location.reload();
-}
+function logout() { localStorage.removeItem("yolko_admin_key"); location.reload(); }
 
 function fmtTime(iso) {
-  const d = new Date(iso);
-  return d.toLocaleString("en-AU", { timeZone: "Australia/Sydney", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Sydney", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 }
+
+function fmtPhone(p) { return p.replace(/(\\d{4})(\\d{3})(\\d{3})/, "$1 $2 $3"); }
 
 async function loadOrders() {
   const res = await fetch("/api/orders", { headers: authHeaders() });
   if (!res.ok) return;
   const { orders } = await res.json();
 
-  // Priority order: prepaid first, then unpaid, cancelled last; newest first within each group
   orders.sort((a, b) => {
     const rank = (o) => o.status === "cancelled" ? 2 : (o.paymentStatus === "paid" ? 0 : 1);
     return rank(a) - rank(b) || b.createdAt.localeCompare(a.createdAt);
@@ -373,31 +386,35 @@ async function loadOrders() {
   const paidOnline = active.filter(o => o.paymentStatus === "paid").reduce((s, o) => s + (o.price || 0), 0);
   const pending = orders.filter(o => o.status === "new").length;
   $("stats").innerHTML =
-    "<div><b>" + orders.length + "</b>total orders</div>" +
-    "<div><b>" + pending + "</b>waiting</div>" +
-    "<div><b>$" + revenue + "</b>confirmed value</div>" +
-    "<div><b>$" + paidOnline + "</b>paid online</div>";
+    '<div class="stat"><b>' + orders.length + '</b><span>orders</span></div>' +
+    '<div class="stat"><b>' + pending + '</b><span>waiting</span></div>' +
+    '<div class="stat"><b>$' + revenue + '</b><span>confirmed</span></div>' +
+    '<div class="stat"><b>$' + paidOnline + '</b><span>paid online</span></div>';
 
-  $("rows").innerHTML = orders.map(o => (
-    "<tr" + (o.paymentStatus === "paid" && o.status !== "cancelled" ? " class='prio'" : "") + ">" +
-    "<td>" + fmtTime(o.createdAt) + "</td>" +
-    "<td>" + escapeHtml(o.name) + "</td>" +
-    "<td><a href='tel:" + o.phone + "'>" + o.phone.replace(/(\\d{4})(\\d{3})(\\d{3})/, "$1 $2 $3") + "</a></td>" +
-    "<td>" + describeOrder(o.bundle, o.quantity) + "</td>" +
-    "<td class='hide-sm'>" + o.pickupDay + "</td>" +
-    "<td><b>$" + o.price + "</b></td>" +
-    "<td><span class='pill " + o.status + "'>" + o.status + "</span>" + (o.paymentStatus === "paid" ? " <span class='pill prio-pill'>&#9889; PAID · PRIORITY</span>" : "") + "</td>" +
-    "<td class='actions'>" + actionButtons(o) + "</td>" +
-    "</tr>"
-  )).join("");
+  $("orders").innerHTML = orders.map(o => {
+    const prio = o.paymentStatus === "paid" && o.status !== "cancelled";
+    return '<div class="order' + (prio ? ' prio' : '') + '">' +
+      '<div class="o-top"><span class="o-name">' + escapeHtml(o.name) + '</span><span class="o-price">$' + o.price + '</span></div>' +
+      '<div class="o-time">' + fmtTime(o.createdAt) + '</div>' +
+      '<div class="o-what">' + describeOrder(o.bundle, o.quantity) + ' <span>· pickup ' + o.pickupDay + '</span></div>' +
+      '<div class="o-tags">' +
+        '<span class="pill ' + o.status + '">' + o.status + '</span>' +
+        (prio ? '<span class="pill paid">&#9889; paid · priority</span>' : '') +
+      '</div>' +
+      '<div class="o-actions">' +
+        '<a class="callbtn" href="tel:' + o.phone + '">Call ' + fmtPhone(o.phone) + '</a>' +
+        actionButtons(o) +
+      '</div>' +
+    '</div>';
+  }).join("");
   $("empty").style.display = orders.length ? "none" : "block";
 }
 
 function actionButtons(o) {
-  const btn = (status, label) => "<button class='ghost' onclick=\\"setStatus('" + o.id + "','" + status + "')\\">" + label + "</button>";
-  if (o.status === "new") return btn("confirmed", "Confirm") + btn("cancelled", "Cancel");
-  if (o.status === "confirmed") return btn("done", "Picked up") + btn("cancelled", "Cancel");
-  return btn("new", "Reopen");
+  const btn = (status, label, cls) => '<button class="' + cls + '" onclick="setStatus(\\'' + o.id + '\\',\\'' + status + '\\')">' + label + '</button>';
+  if (o.status === "new") return btn("confirmed", "Confirm", "") + btn("cancelled", "Cancel", "danger");
+  if (o.status === "confirmed") return btn("done", "Picked up", "") + btn("cancelled", "Cancel", "danger");
+  return btn("new", "Reopen", "ghost");
 }
 
 async function setStatus(id, status) {
@@ -443,6 +460,7 @@ async function boot() {
   if (!res.ok) return;
   $("login-card").style.display = "none";
   $("panel").style.display = "block";
+  $("signout").style.display = "inline-flex";
   loadSettings();
   loadOrders();
   setInterval(loadOrders, 30000);
