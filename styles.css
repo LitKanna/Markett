@@ -540,15 +540,154 @@ h1, h2, h3 {
 
 .field-row {
   display: grid;
-  grid-template-columns: 1fr 110px;
+  grid-template-columns: 132px 1fr;
   gap: 12px;
+  align-items: start;
 }
 
-.bulk-hint {
-  margin: -6px 0 0;
+/* Bundle picker: three tappable cards */
+.picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.picker legend {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(253, 248, 239, 0.7);
+  margin-bottom: 8px;
+}
+
+.bundle-opt {
+  position: relative;
+  display: grid;
+  gap: 1px;
+  padding: 12px 10px 10px;
+  background: rgba(253, 248, 239, 0.08);
+  border: 2px solid rgba(253, 248, 239, 0.14);
+  border-radius: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.bundle-opt:hover { border-color: rgba(246, 181, 43, 0.55); }
+
+.bundle-opt input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bundle-opt:has(input:checked) {
+  background: var(--cream);
+  border-color: var(--yolk);
+  transform: translateY(-2px);
+}
+
+.bo-name { font-weight: 800; font-size: 14.5px; color: var(--cream); }
+.bo-eggs { font-size: 11px; font-weight: 600; color: rgba(253, 248, 239, 0.6); }
+.bo-price {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 19px;
   color: var(--yolk);
+  margin-top: 2px;
+}
+
+.bundle-opt:has(input:checked) .bo-name { color: var(--ink); }
+.bundle-opt:has(input:checked) .bo-eggs { color: var(--ink-soft); }
+.bundle-opt:has(input:checked) .bo-price { color: var(--amber-dark); }
+
+/* Quantity stepper */
+.field-label {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(253, 248, 239, 0.7);
+}
+
+.stepper {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  background: var(--cream);
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 52px;
+}
+
+.step-btn {
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--amber-dark);
+  min-height: 52px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.step-btn:hover { background: rgba(217, 122, 41, 0.12); }
+.step-btn:active { background: rgba(217, 122, 41, 0.22); }
+
+.step-value {
+  text-align: center;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+/* Pickup day segments */
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.seg-opt {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  background: rgba(253, 248, 239, 0.08);
+  border: 2px solid rgba(253, 248, 239, 0.14);
+  border-radius: 14px;
+  text-align: center;
+  cursor: pointer;
+  min-height: 52px;
+  align-content: center;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.seg-opt:hover { border-color: rgba(246, 181, 43, 0.55); }
+.seg-opt input { position: absolute; opacity: 0; pointer-events: none; }
+
+.seg-opt:has(input:checked) {
+  background: var(--cream);
+  border-color: var(--yolk);
+}
+
+.seg-day { font-weight: 800; font-size: 14px; color: var(--cream); }
+.seg-hours { font-size: 10.5px; font-weight: 600; color: rgba(253, 248, 239, 0.6); }
+.seg-opt:has(input:checked) .seg-day { color: var(--ink); }
+.seg-opt:has(input:checked) .seg-hours { color: var(--ink-soft); }
+.seg-opt.off { opacity: 0.35; pointer-events: none; }
+
+/* Live order summary */
+.order-summary {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: rgba(253, 248, 239, 0.85);
 }
 
 .field label {
@@ -1147,6 +1286,12 @@ section { scroll-margin-top: 84px; }
 
 @media (max-width: 540px) {
   .wrap { width: calc(100% - 28px); }
+
+  .field-row { grid-template-columns: 1fr; }
+
+  .picker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bo-name { font-size: 13px; }
+  .bo-price { font-size: 17px; }
   .hero { padding: 38px 0 52px; }
   .hero-stats { gap: 22px; }
   .day-cards { grid-template-columns: 1fr; }

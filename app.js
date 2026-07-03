@@ -14,7 +14,6 @@ const stripeLink = document.getElementById("stripe-pay");
 const copyButton = document.getElementById("copy-message");
 const againButton = document.getElementById("again");
 const orderSection = document.getElementById("order");
-const bundleSelect = document.getElementById("bundle");
 const stockNote = document.getElementById("stock-note");
 const receipt = {
   name: document.getElementById("r-name"),
@@ -94,15 +93,44 @@ function updateMobileCta() {
   mobileCta.classList.toggle("show", pastHero && !orderOnScreen && !doneVisible);
 }
 
-/* ---------- Live price on the submit button ---------- */
+/* ---------- Booking controls ---------- */
 const submitBtn = document.getElementById("submit-btn");
 const submitPrice = document.getElementById("submit-price");
-const quantitySelect = document.getElementById("quantity");
-const bulkHint = document.getElementById("bulk-hint");
+const quantityInput = document.getElementById("quantity");
+const qtyValue = document.getElementById("qty-value");
+const orderSummary = document.getElementById("order-summary");
+
+function currentBundle() {
+  const checked = document.querySelector('input[name="bundle"]:checked');
+  return checked ? checked.value : "tray2";
+}
+
+function setBundle(key) {
+  const radio = document.querySelector(`input[name="bundle"][value="${key}"]`);
+  if (radio) {
+    radio.checked = true;
+    refreshSubmitPrice();
+  }
+}
+
+function currentPickupDay() {
+  const checked = document.querySelector('input[name="pickupDay"]:checked');
+  return checked ? checked.value : "Saturday";
+}
 
 function currentQuantity() {
-  return Math.max(1, parseInt(quantitySelect.value, 10) || 1);
+  return Math.max(1, parseInt(quantityInput.value, 10) || 1);
 }
+
+function setQuantity(qty) {
+  const next = Math.min(10, Math.max(1, qty));
+  quantityInput.value = String(next);
+  qtyValue.textContent = String(next);
+  refreshSubmitPrice();
+}
+
+document.getElementById("qty-minus").addEventListener("click", () => setQuantity(currentQuantity() - 1));
+document.getElementById("qty-plus").addEventListener("click", () => setQuantity(currentQuantity() + 1));
 
 function eggCount(bundleKey) {
   return bundleKey === "box" ? 180 : bundleKey === "tray2" ? 60 : 30;
@@ -121,23 +149,20 @@ function describeOrder(bundleKey, qty) {
 }
 
 function refreshSubmitPrice() {
-  const bundle = BUNDLES[bundleSelect.value] || BUNDLES.tray1;
+  const bundleKey = currentBundle();
+  const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const qty = currentQuantity();
   submitPrice.textContent = `$${bundle.price * qty}`;
   submitBtn.classList.remove("bump");
   void submitBtn.offsetWidth;
   submitBtn.classList.add("bump");
 
-  if (qty > 1) {
-    bulkHint.textContent = `That's ${describeOrder(bundleSelect.value, qty)}.`;
-    bulkHint.hidden = false;
-  } else {
-    bulkHint.hidden = true;
-  }
+  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} pickup`;
 }
 
-bundleSelect.addEventListener("change", refreshSubmitPrice);
-quantitySelect.addEventListener("change", refreshSubmitPrice);
+document.querySelectorAll('input[name="bundle"], input[name="pickupDay"]').forEach((radio) => {
+  radio.addEventListener("change", refreshSubmitPrice);
+});
 
 /* ---------- Australian mobile handling ---------- */
 const phoneInput = document.getElementById("phone");
@@ -223,9 +248,12 @@ function applySettings(settings) {
   if (pers[2]) pers[2].textContent = "6 trays · 180 eggs";
 
   // Form options and submit chip
-  bundleSelect.options[0].textContent = `1 tray (30 eggs) $${BUNDLES.tray1.price}`;
-  bundleSelect.options[1].textContent = `2 trays (60 eggs) $${BUNDLES.tray2.price}`;
-  bundleSelect.options[2].textContent = `Full box (180 eggs) $${BUNDLES.box.price}`;
+  const bpTray1 = document.getElementById("bp-tray1");
+  const bpTray2 = document.getElementById("bp-tray2");
+  const bpBox = document.getElementById("bp-box");
+  if (bpTray1) bpTray1.textContent = `$${BUNDLES.tray1.price}`;
+  if (bpTray2) bpTray2.textContent = `$${BUNDLES.tray2.price}`;
+  if (bpBox) bpBox.textContent = `$${BUNDLES.box.price}`;
   refreshSubmitPrice();
 
   // Stock note
@@ -265,27 +293,31 @@ function applyPickup(pickup) {
   const days = ["Friday", "Saturday"];
   const enabledDays = days.filter((d) => pickup[d]?.enabled);
   const dayCards = document.querySelectorAll(".day-cards .day-card");
-  const daySelect = document.getElementById("pickup-day");
 
   days.forEach((day, i) => {
     const info = pickup[day];
     const card = dayCards[i];
-    const option = [...daySelect.options].find((o) => o.value === day);
-    if (!info || !card || !option) return;
+    const radio = document.querySelector(`input[name="pickupDay"][value="${day}"]`);
+    if (!info || !card || !radio) return;
 
     const hours = `${formatTime(info.open)} – ${formatTime(info.close)}`;
     card.style.display = info.enabled ? "" : "none";
     const timeEl = card.querySelector(".day-time");
     if (timeEl) timeEl.textContent = hours;
-    option.textContent = `${day} · ${hours}`;
-    option.disabled = !info.enabled;
-    option.hidden = !info.enabled;
+
+    const hoursEl = document.getElementById(`hours-${day}`);
+    if (hoursEl) hoursEl.textContent = hours;
+    radio.disabled = !info.enabled;
+    radio.closest(".seg-opt").classList.toggle("off", !info.enabled);
   });
 
   // Keep a valid selection
-  if (daySelect.selectedOptions[0]?.disabled && enabledDays.length) {
-    daySelect.value = enabledDays[enabledDays.length - 1];
+  const selected = document.querySelector('input[name="pickupDay"]:checked');
+  if ((!selected || selected.disabled) && enabledDays.length) {
+    const fallback = document.querySelector(`input[name="pickupDay"][value="${enabledDays[enabledDays.length - 1]}"]`);
+    if (fallback) fallback.checked = true;
   }
+  refreshSubmitPrice();
 
   // Texts that mention the days
   const dayText =
@@ -355,7 +387,7 @@ function showToast(text) {
 // Price-card buttons preselect the bundle in the form
 document.querySelectorAll("[data-bundle]").forEach((link) => {
   link.addEventListener("click", () => {
-    bundleSelect.value = link.dataset.bundle;
+    setBundle(link.dataset.bundle);
   });
 });
 
