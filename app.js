@@ -59,6 +59,17 @@ if (!reducedMotion && "IntersectionObserver" in window) {
   revealTargets.forEach((el) => el.classList.add("in"));
 }
 
+/* ---------- Cursor-following glow on price cards ---------- */
+if (!reducedMotion && window.matchMedia("(hover: hover)").matches) {
+  document.querySelectorAll(".price-card").forEach((card) => {
+    card.addEventListener("pointermove", (e) => {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+      card.style.setProperty("--my", `${e.clientY - rect.top}px`);
+    });
+  });
+}
+
 /* ---------- Sticky mobile booking bar ---------- */
 const mobileCta = document.getElementById("mobile-cta");
 const heroSection = document.querySelector(".hero");
