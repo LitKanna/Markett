@@ -670,6 +670,14 @@ h1, h2, h3 {
   gap: 10px;
 }
 
+.pay-perk {
+  margin: -2px 0 2px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--green);
+}
+
 /* ---------- FAQ ---------- */
 .faq { padding: 76px 0 84px; }
 

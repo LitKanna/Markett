@@ -415,6 +415,7 @@ form.addEventListener("submit", (event) => {
   stripeLink.textContent = `Pay $${total} online now`;
   stripeLink.href = "#";
   stripeLink.hidden = false;
+  document.getElementById("pay-perk").hidden = false;
   stripeLink.onclick = async (e) => {
     e.preventDefault();
     stripeLink.textContent = "Opening secure checkout…";
