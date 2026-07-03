@@ -1,242 +1,114 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Fresh 30-egg trays from $10. Order online and pick up at Paddy's Markets Flemington every Friday and Saturday.">
-  <title>Flemington Fresh Eggs — Pickup Fri & Sat</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Order 30 fresh eggs for $10 and pick up Friday or Saturday at Paddy's Markets Flemington, Sydney Markets.">
+  <title>Fresh Eggs Flemington | Friday and Saturday Pickup</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="container header-inner">
-      <a href="#" class="logo">
-        <span class="logo-icon" aria-hidden="true">🥚</span>
-        <span>Flemington Fresh Eggs</span>
-      </a>
-      <nav class="nav">
-        <a href="#pickup">Pickup times</a>
-        <a href="#order">Order</a>
-        <a href="#location">Location</a>
-      </nav>
-    </div>
-  </header>
+  <main class="page">
+    <section class="hero" aria-labelledby="page-title">
+      <p class="kicker">Sydney Markets Flemington</p>
+      <h1 id="page-title">Fresh eggs for pickup at Flemington</h1>
+      <p class="lead">30 eggs per tray for <strong>$10</strong>. Reserve online and pick up at Paddy's Markets Flemington on Friday or Saturday.</p>
 
-  <main>
-    <section class="hero">
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <p class="eyebrow">Sydney Markets · Flemington</p>
-          <h1>Fresh egg trays.<br>Pick up <em>Friday</em> or <em>Saturday</em>.</h1>
-          <p class="hero-lead">
-            30 eggs per tray — just <strong>$10</strong>. Order on our website, then collect at Paddy's Markets Flemington on your chosen day.
-          </p>
-          <div class="hero-actions">
-            <a href="#order" class="btn btn-primary">Order for pickup</a>
-            <a href="#pickup" class="btn btn-secondary">See pickup times</a>
-          </div>
-          <ul class="hero-stats">
-            <li>
-              <span class="stat-value">$10</span>
-              <span class="stat-label">per 30-egg tray</span>
-            </li>
-            <li>
-              <span class="stat-value">$4+</span>
-              <span class="stat-label">cheaper than delivery apps</span>
-            </li>
-            <li>
-              <span class="stat-value">2</span>
-              <span class="stat-label">pickup days each week</span>
-            </li>
-          </ul>
-        </div>
-        <div class="hero-card" aria-hidden="true">
-          <div class="tray-visual">
-            <div class="egg-grid">
-              <span></span><span></span><span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span><span></span><span></span>
-            </div>
-            <p class="tray-label">30 large eggs · $10 tray</p>
-          </div>
-        </div>
+      <div class="price-card" aria-label="Main offer">
+        <span class="price">$10</span>
+        <span class="price-note">per 30 egg tray</span>
+      </div>
+
+      <div class="actions">
+        <a class="button primary" href="#order">Reserve a tray</a>
+        <a class="button secondary" href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets" target="_blank" rel="noopener noreferrer">Open map</a>
       </div>
     </section>
 
-    <section id="pickup" class="pickup-section">
-      <div class="container">
-        <div class="section-head">
-          <h2>When can I pick up?</h2>
-          <p>Choose <strong>Friday</strong> or <strong>Saturday</strong> when you order. We'll confirm your slot by SMS or WhatsApp.</p>
-        </div>
-
-        <div class="pickup-cards">
-          <article class="pickup-card pickup-friday">
-            <div class="pickup-badge">Friday</div>
-            <h3>Paddy's Markets Flemington</h3>
-            <p class="pickup-time">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              10:00 AM – 4:30 PM
-            </p>
-            <p class="pickup-desc">Relaxed weekday shopping. Great if you want to avoid the Saturday rush — order ahead and collect anytime during market hours.</p>
-            <ul class="pickup-checklist">
-              <li>Order by Thursday 6 PM</li>
-              <li>Bring your order confirmation</li>
-              <li>Pay on pickup (cash or card)</li>
-            </ul>
-          </article>
-
-          <article class="pickup-card pickup-saturday featured">
-            <div class="pickup-badge">Saturday</div>
-            <div class="popular-tag">Most popular</div>
-            <h3>Paddy's Markets Flemington</h3>
-            <p class="pickup-time">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              6:00 AM – 2:00 PM
-            </p>
-            <p class="pickup-desc">Sydney's biggest farmers market day. Pick up your trays while you shop for fruit and veg — arrive early for the best selection.</p>
-            <ul class="pickup-checklist">
-              <li>Order by Friday 6 PM</li>
-              <li>Recommended slot: 7–11 AM</li>
-              <li>Pay on pickup (cash or card)</li>
-            </ul>
-          </article>
-        </div>
-
-        <div class="pickup-note">
-          <p><strong>How pickup works:</strong> Place your order below → we text you a confirmation with your pickup day → come to Building D, Paddy's Markets Flemington → show your confirmation and collect your trays.</p>
-        </div>
+    <section class="section" aria-labelledby="pickup-title">
+      <h2 id="pickup-title">Pickup days</h2>
+      <div class="pickup-grid">
+        <article class="pickup-card">
+          <span class="day">Friday</span>
+          <strong>10:00 AM - 4:30 PM</strong>
+          <p>Order by Thursday evening.</p>
+        </article>
+        <article class="pickup-card">
+          <span class="day">Saturday</span>
+          <strong>6:00 AM - 2:00 PM</strong>
+          <p>Order by Friday evening.</p>
+        </article>
       </div>
+      <p class="location">Pickup: Paddy's Markets Flemington, Building D, Sydney Markets, 250 Parramatta Road, Flemington NSW 2129.</p>
     </section>
 
-    <section id="order" class="order-section">
-      <div class="container order-grid">
-        <div class="order-info">
-          <h2>Order for Friday or Saturday pickup</h2>
-          <p>Fill in the form and we'll reserve your trays. Limited stock each week — first come, first served.</p>
-
-          <div class="price-box">
-            <div class="price-row">
-              <span>30-egg tray</span>
-              <strong>$10.00</strong>
-            </div>
-            <div class="price-row muted">
-              <span>Per dozen (approx.)</span>
-              <span>~$4.00</span>
-            </div>
-          </div>
-
-          <div class="compare-box">
-            <p>Compare: similar 30-packs on DoorDash from <strong>$14.49</strong>. Same bulk size — save over $4 when you pick up locally.</p>
-          </div>
-        </div>
-
-        <form id="order-form" class="order-form" novalidate>
-          <div class="form-group">
-            <label for="name">Full name</label>
-            <input type="text" id="name" name="name" required autocomplete="name" placeholder="Your name">
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="phone">Mobile / WhatsApp</label>
-              <input type="tel" id="phone" name="phone" required autocomplete="tel" placeholder="04xx xxx xxx">
-            </div>
-            <div class="form-group">
-              <label for="email">Email (optional)</label>
-              <input type="email" id="email" name="email" autocomplete="email" placeholder="you@email.com">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="trays">Number of trays</label>
-              <select id="trays" name="trays" required>
-                <option value="1">1 tray (30 eggs) — $10</option>
-                <option value="2">2 trays (60 eggs) — $20</option>
-                <option value="3">3 trays (90 eggs) — $30</option>
-                <option value="4">4 trays (120 eggs) — $40</option>
-                <option value="5">5 trays (150 eggs) — $50</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="pickup-day">Pickup day</label>
-              <select id="pickup-day" name="pickup-day" required>
-                <option value="friday">Friday (10 AM – 4:30 PM)</option>
-                <option value="saturday" selected>Saturday (6 AM – 2 PM)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="notes">Notes (optional)</label>
-            <textarea id="notes" name="notes" rows="3" placeholder="Preferred pickup time, e.g. Saturday around 9 AM"></textarea>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-full">Submit order request</button>
-          <p class="form-footnote">We'll confirm availability within a few hours. Payment is on pickup.</p>
-        </form>
-      </div>
+    <section class="section simple-steps" aria-labelledby="steps-title">
+      <h2 id="steps-title">How it works</h2>
+      <ol>
+        <li>Choose your pickup day.</li>
+        <li>Send your name, phone number, and tray quantity.</li>
+        <li>We confirm by SMS or WhatsApp.</li>
+        <li>Come Friday or Saturday and pick up your eggs.</li>
+      </ol>
     </section>
 
-    <section id="confirmation" class="confirmation-section hidden" aria-live="polite">
-      <div class="container">
-        <div class="confirmation-card">
-          <div class="confirmation-icon" aria-hidden="true">✓</div>
-          <h2>Order received!</h2>
-          <p id="confirmation-message"></p>
-          <div id="confirmation-details" class="confirmation-details"></div>
-          <button type="button" id="new-order-btn" class="btn btn-secondary">Place another order</button>
-        </div>
-      </div>
+    <section class="section promotion" aria-labelledby="promotion-title">
+      <h2 id="promotion-title">Where customers will find us</h2>
+      <p>This page is made to promote the eggs through Google, Facebook, Instagram, local community groups, and QR codes at Flemington Markets.</p>
+      <ul>
+        <li>Google searches like "eggs Flemington" and "fresh eggs near me"</li>
+        <li>Facebook local groups for Flemington, Homebush, Strathfield, Lidcombe, and Auburn</li>
+        <li>Instagram posts and reels showing weekly stock and pickup times</li>
+      </ul>
     </section>
 
-    <section id="location" class="location-section">
-      <div class="container location-grid">
-        <div class="location-copy">
-          <h2>Find us at Paddy's Flemington</h2>
-          <address>
-            Building D, Sydney Markets<br>
-            250 Parramatta Road<br>
-            Flemington NSW 2129
-          </address>
-          <p class="location-hint">Enter via Parramatta Road. Look for Paddy's Markets — we'll send exact meeting point details in your confirmation message.</p>
-          <a
-            href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets"
-            class="btn btn-secondary"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open in Google Maps
-          </a>
-        </div>
-        <div class="location-map">
-          <iframe
-            title="Map to Paddy's Markets Flemington"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3312.8!2d151.0686!3d-33.8685!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6b12a574e8f8f8f9%3A0x8b8b8b8b8b8b8b8b!2sPaddy%27s%20Markets%20Flemington!5e0!3m2!1sen!2sau!4v1710000000000!5m2!1sen!2sau"
-            width="100%"
-            height="100%"
-            style="border:0;"
-            allowfullscreen=""
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-          ></iframe>
-        </div>
+    <section id="order" class="section order-panel" aria-labelledby="order-title">
+      <h2 id="order-title">Reserve your eggs</h2>
+      <p class="muted">This simple form creates a ready-to-send message. Next step can connect it to WhatsApp or SMS.</p>
+
+      <form id="order-form">
+        <label>
+          Name
+          <input id="name" name="name" type="text" placeholder="Your name" required>
+        </label>
+
+        <label>
+          Phone
+          <input id="phone" name="phone" type="tel" placeholder="04xx xxx xxx" required>
+        </label>
+
+        <label>
+          Trays
+          <select id="trays" name="trays">
+            <option value="1">1 tray - $10</option>
+            <option value="2">2 trays - $20</option>
+            <option value="3">3 trays - $30</option>
+            <option value="4">4 trays - $40</option>
+            <option value="5">5 trays - $50</option>
+          </select>
+        </label>
+
+        <label>
+          Pickup day
+          <select id="pickup-day" name="pickupDay">
+            <option value="Friday">Friday</option>
+            <option value="Saturday" selected>Saturday</option>
+          </select>
+        </label>
+
+        <button class="button primary full" type="submit">Create order message</button>
+      </form>
+
+      <div id="result" class="result" hidden>
+        <h3>Order message</h3>
+        <p id="message"></p>
+        <button id="copy-button" class="button secondary" type="button">Copy message</button>
       </div>
     </section>
   </main>
-
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <p>Flemington Fresh Eggs · Pickup Fri & Sat at Paddy's Markets</p>
-      <p class="footer-small">NSW Food Authority notification required before trading. Eggs sold subject to availability.</p>
-    </div>
-  </footer>
 
   <script src="app.js"></script>
 </body>

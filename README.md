@@ -1,6 +1,6 @@
-# Markett — Flemington Fresh Eggs
+# Markett - Flemington Fresh Eggs
 
-Landing page for selling egg trays with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.
+Simple one-page marketing site for selling **$10 egg trays** with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.
 
 ## Preview locally (on your computer only)
 
@@ -12,17 +12,9 @@ Open [http://localhost:8080](http://localhost:8080) in your browser.
 
 **Note:** `localhost` only works on the same device running the server. It will **not** work on your phone — use the live URL below instead.
 
-## Live website (works on phone)
-
-1. Open **GitHub → Markett → Settings → Pages**
-2. Under **Build and deployment**, set **Source** to **GitHub Actions**
-3. Go to **Actions** tab → re-run **Deploy static site to GitHub Pages**
-
-Your site will be live at:
+## Live website
 
 **https://litkanna.github.io/Markett/**
-
-(Allow 1–2 minutes after the workflow completes.)
 
 ## Pickup schedule
 
@@ -35,3 +27,9 @@ Your site will be live at:
 
 - 30-egg tray: **$10**
 - Payment on pickup (cash or card)
+
+## Marketing focus
+
+- Google: target "eggs Flemington", "fresh eggs near me", and nearby suburbs
+- Facebook: post in Flemington, Homebush, Strathfield, Lidcombe, and Auburn groups
+- Instagram: weekly stock posts, pickup reminders, and simple market videos
