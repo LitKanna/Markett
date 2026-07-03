@@ -4,7 +4,7 @@
 const SITE_CONFIG = {
   // Your WhatsApp number in international format, digits only.
   // Example for an Australian mobile 0412 345 678: "61412345678"
-  whatsappNumber: "",
+  whatsappNumber: "61433975055",
 
   // Stripe Payment Links (create at https://dashboard.stripe.com/payment-links)
   // Paste the full link for each bundle. Leave empty to hide online payment.
