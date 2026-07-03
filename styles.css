@@ -54,11 +54,18 @@ h1, h2, h3 {
 
 .ticker-track {
   display: flex;
-  gap: 28px;
-  align-items: center;
   width: max-content;
   padding: 9px 0;
   animation: ticker 22s linear infinite;
+}
+
+/* Two identical halves, each carrying its own trailing gap,
+   so translating exactly -50% loops without a visible seam */
+.ticker-half {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  padding-right: 28px;
 }
 
 .ticker-track span { white-space: nowrap; }
