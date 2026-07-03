@@ -29,7 +29,7 @@ let lastOrderMessage = "";
 // Limited-stock note from config
 const traysLeft = Number(config.traysAvailableThisWeek);
 if (Number.isFinite(traysLeft) && traysLeft > 0) {
-  stockNote.textContent = `Only ${traysLeft} trays available this week — book early.`;
+  stockNote.textContent = `Only ${traysLeft} trays available this week. Book early.`;
   stockNote.hidden = false;
 }
 
