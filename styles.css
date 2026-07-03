@@ -126,6 +126,26 @@ h3 {
   gap: 12px;
 }
 
+.hero-points {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-points li {
+  padding: 9px 12px;
+  color: var(--muted);
+  background: #fffaf3;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -138,6 +158,11 @@ h3 {
   font-weight: 800;
   text-decoration: none;
   cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
 }
 
 .button.primary {
@@ -222,6 +247,12 @@ h3 {
 
 .promotion li + li {
   margin-top: 8px;
+}
+
+.promotion li::marker,
+.simple-steps li::marker {
+  color: var(--accent);
+  font-weight: 800;
 }
 
 .order-panel {

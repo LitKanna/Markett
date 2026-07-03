@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Order 30 fresh eggs for $10 and pick up Friday or Saturday at Paddy's Markets Flemington, Sydney Markets.">
-  <title>Fresh Eggs Flemington | Friday and Saturday Pickup</title>
+  <meta name="description" content="30 fresh eggs for $10. Pick up Friday or Saturday at Paddy's Markets Flemington, Sydney Markets.">
+  <title>Fresh Eggs at Flemington Markets</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,61 +13,67 @@
 <body>
   <main class="page">
     <section class="hero" aria-labelledby="page-title">
-      <p class="kicker">Sydney Markets Flemington</p>
-      <h1 id="page-title">Fresh eggs for pickup at Flemington</h1>
-      <p class="lead">30 eggs per tray for <strong>$10</strong>. Reserve online and pick up at Paddy's Markets Flemington on Friday or Saturday.</p>
+      <p class="kicker">Paddy's Markets Flemington</p>
+      <h1 id="page-title">Fresh eggs. Easy pickup.</h1>
+      <p class="lead">Get a tray of <strong>30 eggs for $10</strong>. Pick up on Friday or Saturday at Flemington Markets.</p>
 
       <div class="price-card" aria-label="Main offer">
         <span class="price">$10</span>
-        <span class="price-note">per 30 egg tray</span>
+        <span class="price-note">for 30 eggs</span>
       </div>
 
       <div class="actions">
-        <a class="button primary" href="#order">Reserve a tray</a>
+        <a class="button primary" href="#order">Book your tray</a>
         <a class="button secondary" href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets" target="_blank" rel="noopener noreferrer">Open map</a>
       </div>
+
+      <ul class="hero-points" aria-label="Quick details">
+        <li>30 eggs for $10</li>
+        <li>Friday or Saturday pickup</li>
+        <li>Pay when you collect</li>
+      </ul>
     </section>
 
     <section class="section" aria-labelledby="pickup-title">
-      <h2 id="pickup-title">Pickup days</h2>
+      <h2 id="pickup-title">Come Friday or Saturday</h2>
       <div class="pickup-grid">
         <article class="pickup-card">
           <span class="day">Friday</span>
           <strong>10:00 AM - 4:30 PM</strong>
-          <p>Order by Thursday evening.</p>
+          <p>Best to book by Thursday night.</p>
         </article>
         <article class="pickup-card">
           <span class="day">Saturday</span>
           <strong>6:00 AM - 2:00 PM</strong>
-          <p>Order by Friday evening.</p>
+          <p>Best to book by Friday night.</p>
         </article>
       </div>
-      <p class="location">Pickup: Paddy's Markets Flemington, Building D, Sydney Markets, 250 Parramatta Road, Flemington NSW 2129.</p>
+      <p class="location"><strong>Pickup place:</strong> Paddy's Markets Flemington, Building D, Sydney Markets, 250 Parramatta Road, Flemington NSW 2129.</p>
     </section>
 
     <section class="section simple-steps" aria-labelledby="steps-title">
-      <h2 id="steps-title">How it works</h2>
+      <h2 id="steps-title">How to buy</h2>
       <ol>
-        <li>Choose your pickup day.</li>
-        <li>Send your name, phone number, and tray quantity.</li>
-        <li>We confirm by SMS or WhatsApp.</li>
-        <li>Come Friday or Saturday and pick up your eggs.</li>
+        <li>Choose Friday or Saturday.</li>
+        <li>Tell us how many trays you want.</li>
+        <li>We confirm your order by text or WhatsApp.</li>
+        <li>Pay when you pick up.</li>
       </ol>
     </section>
 
     <section class="section promotion" aria-labelledby="promotion-title">
-      <h2 id="promotion-title">Where customers will find us</h2>
-      <p>This page is made to promote the eggs through Google, Facebook, Instagram, local community groups, and QR codes at Flemington Markets.</p>
+      <h2 id="promotion-title">Help people find the eggs</h2>
+      <p>Share this page with people near Flemington, Homebush, Strathfield, Lidcombe, and Auburn.</p>
       <ul>
-        <li>Google searches like "eggs Flemington" and "fresh eggs near me"</li>
-        <li>Facebook local groups for Flemington, Homebush, Strathfield, Lidcombe, and Auburn</li>
-        <li>Instagram posts and reels showing weekly stock and pickup times</li>
+        <li>Post the link in local Facebook groups.</li>
+        <li>Share photos and pickup times on Instagram.</li>
+        <li>Add the link to Google so people can search "eggs Flemington".</li>
       </ul>
     </section>
 
     <section id="order" class="section order-panel" aria-labelledby="order-title">
-      <h2 id="order-title">Reserve your eggs</h2>
-      <p class="muted">This simple form creates a ready-to-send message. Next step can connect it to WhatsApp or SMS.</p>
+      <h2 id="order-title">Book a tray</h2>
+      <p class="muted">Fill this in and copy the message. Send it by text or WhatsApp to book your eggs.</p>
 
       <form id="order-form">
         <label>
@@ -81,7 +87,7 @@
         </label>
 
         <label>
-          Trays
+          How many trays?
           <select id="trays" name="trays">
             <option value="1">1 tray - $10</option>
             <option value="2">2 trays - $20</option>
@@ -92,18 +98,18 @@
         </label>
 
         <label>
-          Pickup day
+          Pick up day
           <select id="pickup-day" name="pickupDay">
             <option value="Friday">Friday</option>
             <option value="Saturday" selected>Saturday</option>
           </select>
         </label>
 
-        <button class="button primary full" type="submit">Create order message</button>
+        <button class="button primary full" type="submit">Show my message</button>
       </form>
 
       <div id="result" class="result" hidden>
-        <h3>Order message</h3>
+        <h3>Copy this message</h3>
         <p id="message"></p>
         <button id="copy-button" class="button secondary" type="button">Copy message</button>
       </div>

@@ -28,8 +28,8 @@ Open [http://localhost:8080](http://localhost:8080) in your browser.
 - 30-egg tray: **$10**
 - Payment on pickup (cash or card)
 
-## Marketing focus
+## How to share it
 
-- Google: target "eggs Flemington", "fresh eggs near me", and nearby suburbs
-- Facebook: post in Flemington, Homebush, Strathfield, Lidcombe, and Auburn groups
-- Instagram: weekly stock posts, pickup reminders, and simple market videos
+- Google: use words like "eggs Flemington" and "fresh eggs near me"
+- Facebook: share in Flemington, Homebush, Strathfield, Lidcombe, and Auburn groups
+- Instagram: post weekly stock photos and pickup times

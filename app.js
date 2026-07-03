@@ -18,12 +18,12 @@ form.addEventListener("submit", (event) => {
   }
 
   const orderMessage = [
-    "Fresh Eggs Flemington order",
+    "Hi, I want to book eggs for pickup at Flemington.",
     `Name: ${name}`,
     `Phone: ${phone}`,
-    `Order: ${trays} tray${trays > 1 ? "s" : ""} (${trays * 30} eggs)`,
+    `Trays: ${trays} (${trays * 30} eggs)`,
+    `Pickup day: ${pickupDay}`,
     `Total: $${total}`,
-    `Pickup: ${pickupDay} at Paddy's Markets Flemington`,
   ].join("\n");
 
   message.textContent = orderMessage;
