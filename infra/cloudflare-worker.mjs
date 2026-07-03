@@ -248,6 +248,9 @@ tr:last-child td { border-bottom:0; }
 .pill.confirmed { background:#e2ecf9; color:#1d4f91; }
 .pill.done { background:#e7f2ea; color:var(--green); }
 .pill.cancelled { background:#f7e0dd; color:var(--red); }
+.pill.prio-pill { background:var(--green); color:#fff; }
+tr.prio td { background:#f4faf3; }
+tr.prio td:first-child { border-left:3px solid var(--green); }
 .actions button { padding:5px 12px; font-size:12px; margin:2px 2px 0 0; }
 .dayrow { display:grid; grid-template-columns:120px 1fr 1fr; gap:12px; align-items:end; margin-bottom:12px; }
 .chk { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:10px; }
@@ -359,6 +362,12 @@ async function loadOrders() {
   if (!res.ok) return;
   const { orders } = await res.json();
 
+  // Priority order: prepaid first, then unpaid, cancelled last; newest first within each group
+  orders.sort((a, b) => {
+    const rank = (o) => o.status === "cancelled" ? 2 : (o.paymentStatus === "paid" ? 0 : 1);
+    return rank(a) - rank(b) || b.createdAt.localeCompare(a.createdAt);
+  });
+
   const active = orders.filter(o => o.status !== "cancelled");
   const revenue = active.filter(o => o.status !== "new").reduce((s, o) => s + (o.price || 0), 0);
   const paidOnline = active.filter(o => o.paymentStatus === "paid").reduce((s, o) => s + (o.price || 0), 0);
@@ -370,14 +379,14 @@ async function loadOrders() {
     "<div><b>$" + paidOnline + "</b>paid online</div>";
 
   $("rows").innerHTML = orders.map(o => (
-    "<tr>" +
+    "<tr" + (o.paymentStatus === "paid" && o.status !== "cancelled" ? " class='prio'" : "") + ">" +
     "<td>" + fmtTime(o.createdAt) + "</td>" +
     "<td>" + escapeHtml(o.name) + "</td>" +
     "<td><a href='tel:" + o.phone + "'>" + o.phone.replace(/(\\d{4})(\\d{3})(\\d{3})/, "$1 $2 $3") + "</a></td>" +
     "<td>" + describeOrder(o.bundle, o.quantity) + "</td>" +
     "<td class='hide-sm'>" + o.pickupDay + "</td>" +
     "<td><b>$" + o.price + "</b></td>" +
-    "<td><span class='pill " + o.status + "'>" + o.status + "</span>" + (o.paymentStatus === "paid" ? " <span class='pill done'>💳 paid</span>" : "") + "</td>" +
+    "<td><span class='pill " + o.status + "'>" + o.status + "</span>" + (o.paymentStatus === "paid" ? " <span class='pill prio-pill'>&#9889; PAID · PRIORITY</span>" : "") + "</td>" +
     "<td class='actions'>" + actionButtons(o) + "</td>" +
     "</tr>"
   )).join("");
