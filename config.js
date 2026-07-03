@@ -9,9 +9,9 @@ const SITE_CONFIG = {
   // Stripe Payment Links (create at https://dashboard.stripe.com/payment-links)
   // Paste the full link for each bundle. Leave empty to hide online payment.
   stripeLinks: {
-    tray1: "",
-    tray2: "",
-    box: "",
+    tray1: "https://buy.stripe.com/fZu7sN81A1yrfMh25u2wU00",
+    tray2: "https://buy.stripe.com/bJe3cxbdMdh9bw111q2wU01",
+    box: "https://buy.stripe.com/eVqfZj95E0un9nTaC02wU02",
   },
 
   // How many trays you have this week. Shown as a limited-stock note.
