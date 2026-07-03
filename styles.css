@@ -712,6 +712,13 @@ h1, h2, h3 {
 
 section { scroll-margin-top: 84px; }
 
+/* Skip rendering below-the-fold sections until needed */
+.pickup,
+.faq {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
+}
+
 /* Header elevates once you scroll */
 .topbar { transition: box-shadow 0.18s ease, background 0.18s ease; }
 
