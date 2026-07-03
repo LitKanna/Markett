@@ -14,8 +14,8 @@
   --shadow-lg: 0 24px 60px rgba(36, 20, 7, 0.14);
   --r-lg: 26px;
   --r-md: 16px;
-  --font-head: "Fraunces", Georgia, serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-head: "Bricolage Grotesque", "Arial Black", sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -34,7 +34,12 @@ img { max-width: 100%; height: auto; display: block; }
 
 .wrap { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
 
-h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
+h1, h2, h3 {
+  font-family: var(--font-head);
+  line-height: 1.06;
+  margin: 0;
+  letter-spacing: -0.025em;
+}
 
 /* ---------- Ticker ---------- */
 .ticker {
@@ -93,7 +98,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 
 .brand-name {
   font-family: var(--font-head);
-  font-weight: 650;
+  font-weight: 700;
   font-size: 15px;
   line-height: 1.05;
 }
@@ -119,8 +124,9 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
   border-radius: 999px;
   border: 2px solid transparent;
   font: inherit;
-  font-weight: 750;
-  font-size: 15.5px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.01em;
   text-decoration: none;
   cursor: pointer;
   transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
@@ -186,15 +192,31 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 }
 
 .hero h1 {
-  font-size: clamp(42px, 6.2vw, 68px);
-  font-weight: 750;
-  letter-spacing: -0.02em;
+  font-size: clamp(40px, 6vw, 64px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
   margin-bottom: 20px;
 }
 
 .hero h1 em {
-  font-style: italic;
+  font-style: normal;
   color: var(--amber);
+  position: relative;
+  white-space: nowrap;
+}
+
+.hero h1 em::after {
+  content: "";
+  position: absolute;
+  left: 2%;
+  bottom: 0.02em;
+  width: 96%;
+  height: 0.14em;
+  background: var(--yolk);
+  border-radius: 999px;
+  opacity: 0.55;
+  z-index: -1;
 }
 
 .hero-sub {
@@ -219,7 +241,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 .hero-stats dt {
   font-family: var(--font-head);
   font-size: 30px;
-  font-weight: 750;
+  font-weight: 800;
 }
 
 .hero-stats dd { margin: 2px 0 0; color: var(--ink-soft); font-size: 13.5px; }
@@ -254,7 +276,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 .badge-price {
   font-family: var(--font-head);
   font-size: 34px;
-  font-weight: 750;
+  font-weight: 800;
   color: var(--amber-dark);
 }
 
@@ -285,9 +307,9 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 .section-head.left { text-align: left; margin-inline: 0; }
 
 .section-head h2 {
-  font-size: clamp(30px, 4.4vw, 44px);
-  font-weight: 750;
-  letter-spacing: -0.02em;
+  font-size: clamp(28px, 4.2vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin-bottom: 12px;
 }
 
@@ -339,12 +361,12 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
   white-space: nowrap;
 }
 
-.price-card h3 { font-size: 21px; font-weight: 650; margin-bottom: 10px; }
+.price-card h3 { font-size: 21px; font-weight: 700; margin-bottom: 10px; }
 
 .price-big {
   font-family: var(--font-head);
   font-size: 52px;
-  font-weight: 750;
+  font-weight: 800;
   margin: 0;
   line-height: 1;
 }
@@ -419,7 +441,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
   color: var(--amber-dark);
 }
 
-.day-time { margin: 0; font-family: var(--font-head); font-size: 22px; font-weight: 650; }
+.day-time { margin: 0; font-family: var(--font-head); font-size: 22px; font-weight: 700; }
 .day-note { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-soft); }
 
 .steps {
@@ -452,7 +474,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
   background: var(--yolk);
   border-radius: 50%;
   font-family: var(--font-head);
-  font-weight: 750;
+  font-weight: 800;
   font-size: 17px;
 }
 
@@ -468,7 +490,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 
 .order-copy h2 {
   font-size: clamp(30px, 4.4vw, 44px);
-  font-weight: 750;
+  font-weight: 800;
   letter-spacing: -0.02em;
   margin-bottom: 12px;
 }
@@ -546,7 +568,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
   margin-bottom: 14px;
 }
 
-.done-head h2 { font-size: 30px; font-weight: 750; margin-bottom: 8px; }
+.done-head h2 { font-size: 30px; font-weight: 800; margin-bottom: 8px; }
 .done-head p { color: var(--ink-soft); margin: 0; font-size: 15px; }
 
 .receipt {
@@ -576,7 +598,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 
 .receipt dd {
   margin: 0;
-  font-weight: 650;
+  font-weight: 700;
   font-size: 15px;
   text-align: right;
 }
@@ -586,7 +608,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 .receipt-total dd {
   font-family: var(--font-head);
   font-size: 24px;
-  font-weight: 750;
+  font-weight: 800;
   color: var(--amber-dark);
 }
 
@@ -634,7 +656,7 @@ h1, h2, h3 { font-family: var(--font-head); line-height: 1.05; margin: 0; }
 
 .faq summary {
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 800;
   font-size: 15.5px;
   list-style: none;
   position: relative;
