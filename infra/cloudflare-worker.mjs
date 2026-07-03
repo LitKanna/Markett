@@ -357,6 +357,16 @@ input[type="time"] { cursor:pointer; }
 input:hover, select:hover { border-color:#e0cfae; }
 input:focus, select:focus { outline:none; border-color:var(--yolk); background:#fff; }
 .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.hint { margin:-6px 0 10px; font-size:12.5px; color:var(--soft); }
+.day-chips { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:14px; }
+.chip { min-height:44px; padding:0; border:2px solid var(--line); border-radius:12px; background:var(--cream2); color:var(--soft); font:inherit; font-weight:800; font-size:13px; cursor:pointer; transition:all .18s ease; }
+.chip:hover { border-color:var(--yolk); color:var(--ink); }
+.chip.on { background:var(--amber); border-color:var(--amber); color:#fff; box-shadow:0 4px 12px rgba(217,122,41,.3); }
+.hours-row { display:grid; grid-template-columns:44px 1fr 26px 1fr; gap:8px; align-items:center; margin-bottom:10px; }
+.hours-row b { font-size:13.5px; color:var(--amber-d); }
+.hours-row span { text-align:center; font-size:12.5px; color:var(--soft); }
+.hours-row select { min-height:44px; }
+.hours-empty { margin:4px 0 10px; font-size:13.5px; color:var(--soft); }
 .dayrow { display:grid; grid-template-columns:96px 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px; }
 .chk { display:flex; align-items:center; gap:8px; font-size:14.5px; font-weight:800; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:12px; }
 .chk input { width:20px; height:20px; min-height:0; accent-color:var(--amber); }
@@ -411,7 +421,9 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
       </div>
 
       <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
-      <div id="day-rows"></div>
+      <p class="hint">Tap a day to open or close it</p>
+      <div class="day-chips" id="day-chips"></div>
+      <div id="day-hours"></div>
 
       <button onclick="saveSettings()" style="width:100%">Save changes</button><span class="msg" id="save-msg"></span>
       <p class="note">Changes appear on the website within seconds. Untick a day to hide it and block bookings for it.</p>
@@ -446,27 +458,45 @@ function timeOptions(selected) {
   return out;
 }
 
-function renderDayRows(pickup) {
-  $("day-rows").innerHTML = WEEK_DAYS.map(function(day) {
-    const p = pickup[day] || { enabled: false, open: "09:00", close: "14:00" };
-    return '<div class="dayrow">' +
-      '<label class="chk"><input type="checkbox" data-day="' + day + '" data-k="on"' + (p.enabled ? " checked" : "") + '> ' + day.slice(0,3) + '</label>' +
-      '<div><label>Opens</label><select data-day="' + day + '" data-k="open">' + timeOptions(p.open) + '</select></div>' +
-      '<div><label>Closes</label><select data-day="' + day + '" data-k="close">' + timeOptions(p.close) + '</select></div>' +
-    '</div>';
+let PICKUP = {};
+
+function renderDays() {
+  $("day-chips").innerHTML = WEEK_DAYS.map(function(day) {
+    const on = PICKUP[day] && PICKUP[day].enabled;
+    return '<button type="button" class="chip' + (on ? " on" : "") + '" data-day="' + day + '">' + day.slice(0,3) + '</button>';
   }).join("");
+
+  const open = WEEK_DAYS.filter(function(d) { return PICKUP[d] && PICKUP[d].enabled; });
+  $("day-hours").innerHTML = open.length
+    ? open.map(function(day) {
+        const p = PICKUP[day];
+        return '<div class="hours-row">' +
+          '<b>' + day.slice(0,3) + '</b>' +
+          '<select data-day="' + day + '" data-k="open">' + timeOptions(p.open) + '</select>' +
+          '<span>to</span>' +
+          '<select data-day="' + day + '" data-k="close">' + timeOptions(p.close) + '</select>' +
+        '</div>';
+      }).join("")
+    : '<p class="hours-empty">No pickup days open. Tap a day above.</p>';
 }
 
+$("day-chips") && document.addEventListener("click", function(e) {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  const day = chip.dataset.day;
+  PICKUP[day] = PICKUP[day] || { enabled: false, open: "09:00", close: "14:00" };
+  PICKUP[day].enabled = !PICKUP[day].enabled;
+  renderDays();
+});
+
+document.addEventListener("change", function(e) {
+  const sel = e.target.closest("#day-hours select");
+  if (!sel) return;
+  PICKUP[sel.dataset.day][sel.dataset.k] = sel.value;
+});
+
 function collectDayRows() {
-  const out = {};
-  WEEK_DAYS.forEach(function(day) {
-    out[day] = {
-      enabled: document.querySelector('[data-day="' + day + '"][data-k="on"]').checked,
-      open: document.querySelector('[data-day="' + day + '"][data-k="open"]').value,
-      close: document.querySelector('[data-day="' + day + '"][data-k="close"]').value,
-    };
-  });
-  return out;
+  return PICKUP;
 }
 
 function traysFor(o) {
@@ -579,7 +609,8 @@ async function loadSettings() {
   const stat = $("stat-stock");
   if (stat) stat.textContent = s.traysAvailable;
   $("tray-weight").value = s.trayWeight || "1.75";
-  renderDayRows(s.pickup || {});
+  PICKUP = s.pickup || {};
+  renderDays();
 }
 
 async function saveSettings() {
