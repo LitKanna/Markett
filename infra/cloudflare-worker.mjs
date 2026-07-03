@@ -367,6 +367,19 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
 .hours-row span { text-align:center; font-size:12.5px; color:var(--soft); }
 .hours-row select { min-height:44px; }
 .hours-empty { margin:4px 0 10px; font-size:13.5px; color:var(--soft); }
+.b-sum { font-size:12.5px; font-weight:700; color:var(--soft); }
+.buyer { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line); }
+.buyer:last-child { border-bottom:0; padding-bottom:2px; }
+.b-rank { flex-shrink:0; width:30px; height:30px; display:grid; place-items:center; background:var(--cream2); border-radius:50%; font-weight:800; font-size:13px; color:var(--soft); margin-top:2px; }
+.b-rank.top { background:var(--yolk); color:var(--ink); }
+.b-main { flex:1; min-width:0; }
+.b-line { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.b-line b { font-size:15px; }
+.b-spend { font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:17px; color:var(--amber-d); }
+.b-bar { height:7px; background:var(--cream2); border-radius:999px; margin:7px 0 6px; overflow:hidden; }
+.b-bar i { display:block; height:100%; background:linear-gradient(90deg, var(--yolk), var(--amber)); border-radius:999px; }
+.b-meta { font-size:12.5px; color:var(--soft); }
+.b-meta a { color:var(--amber-d); font-weight:700; text-decoration:none; }
 .dayrow { display:grid; grid-template-columns:96px 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px; }
 .chk { display:flex; align-items:center; gap:8px; font-size:14.5px; font-weight:800; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:12px; }
 .chk input { width:20px; height:20px; min-height:0; accent-color:var(--amber); }
@@ -398,11 +411,21 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
     <div class="stats" id="stats"></div>
 
     <div class="cols">
+    <div class="col-left">
     <div class="card">
       <h2>Orders</h2>
       <div id="orders"></div>
       <p class="empty" id="empty" style="display:none">No orders yet. Share getyolko.com to get your first booking!</p>
       <button class="ghost refresh" onclick="loadOrders()">Refresh orders</button>
+    </div>
+
+    <div class="card">
+      <div class="topline">
+        <h2>Buyers</h2>
+        <span class="b-sum" id="buyer-sum"></span>
+      </div>
+      <div id="buyers"></div>
+    </div>
     </div>
 
     <div class="card">
@@ -573,6 +596,60 @@ async function loadOrders() {
     '</div>';
   }).join("");
   $("empty").style.display = orders.length ? "none" : "block";
+  renderBuyers(orders);
+}
+
+function daysAgo(iso) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  return days <= 0 ? "today" : days === 1 ? "yesterday" : days + " days ago";
+}
+
+function renderBuyers(orders) {
+  const active = orders.filter(function(o) { return o.status !== "cancelled"; });
+  const map = {};
+  active.forEach(function(o) {
+    const b = map[o.phone] = map[o.phone] || { name: o.name, phone: o.phone, orders: 0, trays: 0, spend: 0, paid: 0, dates: [] };
+    b.orders++;
+    b.trays += traysFor(o);
+    b.spend += o.price || 0;
+    if (o.paymentStatus === "paid") b.paid++;
+    b.dates.push(o.createdAt);
+  });
+
+  const buyers = Object.values(map).sort(function(a, b) { return b.spend - a.spend; });
+  const repeat = buyers.filter(function(b) { return b.orders > 1; }).length;
+  $("buyer-sum").textContent = buyers.length
+    ? buyers.length + (buyers.length === 1 ? " buyer" : " buyers") + " · " + repeat + " repeat"
+    : "";
+
+  if (!buyers.length) {
+    $("buyers").innerHTML = '<p class="empty">No buyers yet. They appear with their first order.</p>';
+    return;
+  }
+
+  const maxSpend = buyers[0].spend || 1;
+  $("buyers").innerHTML = buyers.map(function(b, i) {
+    b.dates.sort();
+    const newest = b.dates[b.dates.length - 1];
+    let cadence = "one order so far";
+    if (b.dates.length > 1) {
+      const spanDays = (new Date(newest) - new Date(b.dates[0])) / 86400000;
+      const gap = Math.max(1, Math.round(spanDays / (b.dates.length - 1)));
+      cadence = "buys about every " + gap + (gap === 1 ? " day" : " days");
+    }
+    const pct = Math.max(4, Math.round((b.spend / maxSpend) * 100));
+    return '<div class="buyer">' +
+      '<div class="b-rank' + (i === 0 ? " top" : "") + '">' + (i + 1) + '</div>' +
+      '<div class="b-main">' +
+        '<div class="b-line"><b>' + escapeHtml(b.name) + '</b><span class="b-spend">$' + b.spend + '</span></div>' +
+        '<div class="b-bar"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="b-meta">' + b.orders + (b.orders === 1 ? " order" : " orders") + ' · ' + b.trays + (b.trays === 1 ? ' tray' : ' trays') +
+          (b.paid ? ' · ' + b.paid + ' paid online' : '') +
+          ' · ' + cadence + ' · last ' + daysAgo(newest) +
+          ' · <a href="tel:' + b.phone + '">' + fmtPhone(b.phone) + '</a></div>' +
+      '</div>' +
+    '</div>';
+  }).join("");
 }
 
 function actionButtons(o) {
