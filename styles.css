@@ -995,19 +995,11 @@ section { scroll-margin-top: 84px; }
 .btn:active { transform: scale(0.985); }
 
 /* Live price chip inside submit button */
-.submit-price {
-  margin-left: 10px;
-  padding: 3px 11px;
-  background: rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  font-size: 14px;
-  transition: transform 0.2s ease;
-}
-
-#submit-btn.bump .submit-price { animation: bump 0.35s ease; }
+/* Order summary pulses gently when the total changes */
+.order-summary.bump { animation: bump 0.35s ease; }
 
 @keyframes bump {
-  40% { transform: scale(1.22); }
+  40% { transform: scale(1.06); }
 }
 
 /* Invalid field shake */
