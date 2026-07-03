@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=25">
+  <link rel="stylesheet" href="styles.css?v=26">
 
   <script type="application/ld+json">
   {
@@ -178,8 +178,8 @@
       <div class="wrap pickup-grid">
         <div class="pickup-copy">
           <header class="section-head left">
-            <h2>Pickup days</h2>
-            <p>Come to Paddy's Markets Flemington, Building D, Sydney Markets, 250 Parramatta Road, Flemington NSW 2129.</p>
+            <h2 id="pickup-title">Come Friday or Saturday</h2>
+            <p>Two market mornings a week. Book ahead, walk in, walk out with your eggs.</p>
           </header>
 
           <div class="day-cards">
@@ -195,15 +195,25 @@
             </article>
           </div>
 
-          <a class="btn btn-ghost" href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
+          <div class="loc-card">
+            <svg class="loc-pin" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div class="loc-text">
+              <strong>Paddy's Markets Flemington</strong>
+              <span>Building D, Sydney Markets, 250 Parramatta Rd, Flemington NSW 2129</span>
+            </div>
+            <a class="btn btn-ghost btn-small" href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets" target="_blank" rel="noopener noreferrer">Maps</a>
+          </div>
         </div>
 
-        <ol class="steps">
-          <li><span>1</span>Choose your bundle and pickup day</li>
-          <li><span>2</span>We confirm by text or WhatsApp</li>
-          <li><span>3</span>Pick up your eggs at the market</li>
-          <li><span>4</span>Pay on pickup, or prepay online for priority</li>
-        </ol>
+        <div class="steps-card">
+          <p class="steps-title">How it works</p>
+          <ol class="steps">
+            <li><span>1</span>Choose your bundle and pickup day</li>
+            <li><span>2</span>We confirm by text or WhatsApp</li>
+            <li><span>3</span>Pick up your eggs at the market</li>
+            <li><span>4</span>Pay on pickup, or prepay online for priority</li>
+          </ol>
+        </div>
       </div>
     </section>
 
@@ -398,7 +408,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=25"></script>
-  <script src="app.js?v=25"></script>
+  <script src="config.js?v=26"></script>
+  <script src="app.js?v=26"></script>
 </body>
 </html>
