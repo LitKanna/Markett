@@ -3,7 +3,22 @@ const UPSTREAM = "https://litkanna.github.io/Markett";
 const DEFAULT_SETTINGS = {
   prices: { tray1: 12, tray2: 23, box: 66 },
   traysAvailable: 24,
+  pickup: {
+    Friday: { enabled: true, open: "10:00", close: "16:30" },
+    Saturday: { enabled: true, open: "06:00", close: "14:00" },
+  },
 };
+
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+function cleanPickupDay(input, fallback) {
+  if (!input || typeof input !== "object") return fallback;
+  return {
+    enabled: typeof input.enabled === "boolean" ? input.enabled : fallback.enabled,
+    open: TIME_RE.test(input.open) ? input.open : fallback.open,
+    close: TIME_RE.test(input.close) ? input.close : fallback.close,
+  };
+}
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -24,8 +39,16 @@ function isAdmin(request, env) {
 }
 
 async function getSettings(env) {
-  const stored = await env.DATA.get("settings", "json");
-  return { ...DEFAULT_SETTINGS, ...(stored || {}), prices: { ...DEFAULT_SETTINGS.prices, ...((stored || {}).prices || {}) } };
+  const stored = (await env.DATA.get("settings", "json")) || {};
+  return {
+    ...DEFAULT_SETTINGS,
+    ...stored,
+    prices: { ...DEFAULT_SETTINGS.prices, ...(stored.prices || {}) },
+    pickup: {
+      Friday: cleanPickupDay((stored.pickup || {}).Friday, DEFAULT_SETTINGS.pickup.Friday),
+      Saturday: cleanPickupDay((stored.pickup || {}).Saturday, DEFAULT_SETTINGS.pickup.Saturday),
+    },
+  };
 }
 
 async function handleApi(request, env, url) {
@@ -54,6 +77,10 @@ async function handleApi(request, env, url) {
       traysAvailable: Number.isFinite(Number(body?.traysAvailable))
         ? Math.max(0, Math.floor(Number(body.traysAvailable)))
         : current.traysAvailable,
+      pickup: {
+        Friday: cleanPickupDay((body?.pickup || {}).Friday, current.pickup.Friday),
+        Saturday: cleanPickupDay((body?.pickup || {}).Saturday, current.pickup.Saturday),
+      },
     };
     await env.DATA.put("settings", JSON.stringify(next));
     return json(next);
@@ -72,6 +99,9 @@ async function handleApi(request, env, url) {
     }
 
     const settings = await getSettings(env);
+    if (!settings.pickup[pickupDay]?.enabled) {
+      return json({ error: "pickup day unavailable" }, 400);
+    }
     const now = new Date();
     const id = `order:${now.toISOString()}:${Math.random().toString(36).slice(2, 8)}`;
     const order = {
@@ -149,6 +179,9 @@ tr:last-child td { border-bottom:0; }
 .pill.done { background:#e7f2ea; color:var(--green); }
 .pill.cancelled { background:#f7e0dd; color:var(--red); }
 .actions button { padding:5px 12px; font-size:12px; margin:2px 2px 0 0; }
+.dayrow { display:grid; grid-template-columns:120px 1fr 1fr; gap:12px; align-items:end; margin-bottom:12px; }
+.chk { display:flex; align-items:center; gap:8px; font-size:15px; font-weight:700; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:10px; }
+.chk input { width:18px; height:18px; accent-color:var(--amber); }
 .stats { display:flex; gap:22px; flex-wrap:wrap; margin-bottom:6px; }
 .stats div { font-size:13px; color:var(--soft); }
 .stats b { display:block; font-size:22px; color:var(--ink); }
@@ -192,8 +225,21 @@ tr:last-child td { border-bottom:0; }
         <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="0.5"></div>
         <div><label>Trays available</label><input id="stock" type="number" min="0" step="1"></div>
       </div>
+
+      <h2 style="margin-top:8px">Pickup days &amp; hours</h2>
+      <div class="dayrow">
+        <label class="chk"><input id="fri-on" type="checkbox"> Friday</label>
+        <div><label>Opens</label><input id="fri-open" type="time"></div>
+        <div><label>Closes</label><input id="fri-close" type="time"></div>
+      </div>
+      <div class="dayrow">
+        <label class="chk"><input id="sat-on" type="checkbox"> Saturday</label>
+        <div><label>Opens</label><input id="sat-open" type="time"></div>
+        <div><label>Closes</label><input id="sat-close" type="time"></div>
+      </div>
+
       <button onclick="saveSettings()">Save changes</button><span class="msg" id="save-msg"></span>
-      <p style="font-size:12.5px;color:var(--soft);margin:12px 0 0">Changes appear on the website within seconds. No code needed.</p>
+      <p style="font-size:12.5px;color:var(--soft);margin:12px 0 0">Changes appear on the website within seconds. No code needed. Untick a day to hide it from the site and block new bookings for it.</p>
     </div>
 
     <button class="ghost" onclick="logout()">Sign out</button>
@@ -278,12 +324,22 @@ async function loadSettings() {
   $("p2").value = s.prices.tray2;
   $("p3").value = s.prices.box;
   $("stock").value = s.traysAvailable;
+  $("fri-on").checked = s.pickup.Friday.enabled;
+  $("fri-open").value = s.pickup.Friday.open;
+  $("fri-close").value = s.pickup.Friday.close;
+  $("sat-on").checked = s.pickup.Saturday.enabled;
+  $("sat-open").value = s.pickup.Saturday.open;
+  $("sat-close").value = s.pickup.Saturday.close;
 }
 
 async function saveSettings() {
   const body = {
     prices: { tray1: +$("p1").value, tray2: +$("p2").value, box: +$("p3").value },
     traysAvailable: +$("stock").value,
+    pickup: {
+      Friday: { enabled: $("fri-on").checked, open: $("fri-open").value, close: $("fri-close").value },
+      Saturday: { enabled: $("sat-on").checked, open: $("sat-open").value, close: $("sat-close").value },
+    },
   };
   const res = await fetch("/api/settings", { method: "PUT", headers: authHeaders(), body: JSON.stringify(body) });
   const el = $("save-msg");
