@@ -1,6 +1,6 @@
 # YOLKO Launch Plan
 
-Your live website: **https://litkanna.github.io/Markett/**
+Your live website: **https://getyolko.com/**
 
 ## Before you post anything (30 minutes, one time)
 
@@ -41,7 +41,7 @@ traysAvailableThisWeek: 24,
 > Fresh eggs at Flemington Markets this Friday and Saturday.
 > Pace Farm 30-egg tray for $12 (2 trays $23, full box of 180 for $66).
 > Book online in 30 seconds and pick up at Paddy's Markets Flemington.
-> https://litkanna.github.io/Markett/
+> https://getyolko.com/
 > Limited trays each week.
 
 Post in 2-3 groups per day, not all at once. Reply to every comment.
@@ -62,12 +62,12 @@ Caption:
 > Link in bio.
 > #FlemingtonMarkets #SydneyEggs #HomebushWest #Strathfield #SupportLocal #SydneyFood #EggsSydney
 
-Bio link: https://litkanna.github.io/Markett/
+Bio link: https://getyolko.com/
 
 ### WhatsApp status + broadcast
 
 > Eggs this Friday & Saturday at Flemington Markets. 30-egg tray $12.
-> Book here: https://litkanna.github.io/Markett/
+> Book here: https://getyolko.com/
 
 ## Weekly rhythm (1 hour per week)
 

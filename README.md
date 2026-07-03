@@ -31,7 +31,7 @@ Open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ## Live website
 
-**https://litkanna.github.io/Markett/**
+**https://getyolko.com/**
 
 ## Pickup schedule
 
