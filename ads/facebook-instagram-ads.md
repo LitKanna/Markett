@@ -14,7 +14,7 @@ from the same campaign.
 | Interests | Cooking, Baking, Farmers markets, Grocery shopping, Family |
 | Placements | Facebook Feed, Instagram Feed, Stories, Reels |
 | Destination | https://litkanna.github.io/Markett/ |
-| Image | assets/social-eggs.jpg (or a real photo of your trays — real photos often win) |
+| Image | assets/social-eggs-1080.jpg (or a real photo of your trays, real photos often win) |
 
 ## Ad 1 — Price lead
 
