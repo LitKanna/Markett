@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=21">
+  <link rel="stylesheet" href="styles.css?v=22">
 
   <script type="application/ld+json">
   {
@@ -220,37 +220,54 @@
         </div>
 
         <form id="order-form" class="order-form">
+          <fieldset class="picker">
+            <legend>Pick your bundle</legend>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="tray1">
+              <span class="bo-name">1 tray</span>
+              <span class="bo-eggs">30 eggs</span>
+              <span class="bo-price" id="bp-tray1">$12</span>
+            </label>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="tray2" checked>
+              <span class="bo-name">2 trays</span>
+              <span class="bo-eggs">60 eggs</span>
+              <span class="bo-price" id="bp-tray2">$23</span>
+            </label>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="box">
+              <span class="bo-name">Full box</span>
+              <span class="bo-eggs">180 eggs</span>
+              <span class="bo-price" id="bp-box">$66</span>
+            </label>
+          </fieldset>
+
           <div class="field-row">
             <div class="field">
-              <label for="bundle">Bundle</label>
-              <select id="bundle" name="bundle">
-                <option value="tray1">1 tray (30 eggs) $12</option>
-                <option value="tray2" selected>2 trays (60 eggs) $23</option>
-                <option value="box">Full box (180 eggs) $66</option>
-              </select>
+              <span class="field-label">How many?</span>
+              <div class="stepper">
+                <button type="button" class="step-btn" id="qty-minus" aria-label="Fewer">&minus;</button>
+                <output class="step-value" id="qty-value">1</output>
+                <button type="button" class="step-btn" id="qty-plus" aria-label="More">+</button>
+              </div>
+              <input type="hidden" id="quantity" name="quantity" value="1">
             </div>
-            <div class="field field-qty">
-              <label for="quantity">How many?</label>
-              <select id="quantity" name="quantity">
-                <option value="1" selected>1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="8">8</option>
-                <option value="10">10</option>
-              </select>
-            </div>
-          </div>
-          <p class="bulk-hint" id="bulk-hint" hidden></p>
 
-          <div class="field">
-            <label for="pickup-day">Pickup day</label>
-            <select id="pickup-day" name="pickupDay">
-              <option value="Friday">Friday · 10 AM – 4:30 PM</option>
-              <option value="Saturday" selected>Saturday · 6 AM – 2 PM</option>
-            </select>
+            <div class="field">
+              <span class="field-label">Pickup day</span>
+              <div class="seg" id="day-seg">
+                <label class="seg-opt">
+                  <input type="radio" name="pickupDay" value="Friday">
+                  <span class="seg-day">Friday</span>
+                  <span class="seg-hours" id="hours-Friday">10 AM – 4:30 PM</span>
+                </label>
+                <label class="seg-opt">
+                  <input type="radio" name="pickupDay" value="Saturday" checked>
+                  <span class="seg-day">Saturday</span>
+                  <span class="seg-hours" id="hours-Saturday">6 AM – 2 PM</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           <div class="field">
@@ -263,6 +280,8 @@
             <input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="04xx xxx xxx" autocomplete="tel" required>
             <p class="field-error" id="phone-error" hidden>Enter a valid Australian mobile, e.g. 0412 345 678</p>
           </div>
+
+          <p class="order-summary" id="order-summary">2 trays (60 eggs) &middot; Saturday pickup</p>
 
           <button type="submit" class="btn btn-solid btn-block" id="submit-btn">
             <span id="submit-label">Reserve my eggs</span>
@@ -374,7 +393,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=21"></script>
-  <script src="app.js?v=21"></script>
+  <script src="config.js?v=22"></script>
+  <script src="app.js?v=22"></script>
 </body>
 </html>
