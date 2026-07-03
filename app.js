@@ -11,7 +11,7 @@ form.addEventListener("submit", (event) => {
   const phone = String(data.get("phone") || "").trim();
   const trays = Number(data.get("trays") || 1);
   const pickupDay = String(data.get("pickupDay") || "Saturday");
-  const total = trays * 10;
+  const total = trays * 12;
 
   if (!name || !phone) {
     return;
