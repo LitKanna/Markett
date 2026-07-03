@@ -260,12 +260,12 @@ body { margin:0; font-family:"Plus Jakarta Sans",system-ui,sans-serif; backgroun
 }
 
 /* Desktop: dashboard layout, orders left, settings pinned right */
-@media (min-width:1140px) {
+@media (min-width:1024px) {
   .wrap { max-width:1200px; padding:32px 28px 90px; }
-  .cols { display:grid; grid-template-columns:1.6fr 1fr; gap:18px; align-items:start; }
+  .cols { display:grid; grid-template-columns:1.55fr 1fr; gap:18px; align-items:start; }
   .cols > .card { margin-bottom:0; }
   .cols > .card:last-child { position:sticky; top:18px; }
-  #orders { grid-template-columns:repeat(2, minmax(0,1fr)); }
+  #orders { grid-template-columns:repeat(auto-fill, minmax(265px,1fr)); }
   .top h1 { font-size:26px; }
   h2 { font-size:21px; }
 }
@@ -301,9 +301,9 @@ h2 { font-family:"Bricolage Grotesque",sans-serif; font-size:19px; font-weight:8
 .pill.paid { background:var(--green); color:#fff; }
 .pill.day { background:var(--cream2); color:var(--ink); }
 .o-actions { display:flex; flex-wrap:wrap; gap:8px; }
-.o-actions a, .o-actions button { flex:1; min-width:100px; }
+.o-actions a, .o-actions button { flex:1 1 auto; min-width:0; }
 
-button, .callbtn { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:9px 16px; border:0; border-radius:999px; font:inherit; font-weight:700; font-size:14px; cursor:pointer; background:var(--amber); color:#fff; text-decoration:none; transition:transform .15s ease; }
+button, .callbtn { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:9px 14px; border:0; border-radius:999px; font:inherit; font-weight:700; font-size:13.5px; white-space:nowrap; cursor:pointer; background:var(--amber); color:#fff; text-decoration:none; transition:transform .15s ease; }
 button:active, .callbtn:active { transform:scale(.97); }
 button.ghost { background:var(--cream2); color:var(--ink); }
 button.danger { background:var(--red-soft); color:var(--red); }
@@ -361,7 +361,7 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
         <div><label>2 trays ($)</label><input id="p2" type="number" min="1" step="0.5"></div>
         <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="0.5"></div>
         <div><label>Trays available</label><input id="stock" type="number" min="0" step="1"></div>
-        <div><label>Tray weight</label>
+        <div style="grid-column:1/-1"><label>Tray weight</label>
           <select id="tray-weight">
             <option value="1.5">1.5kg (Large)</option>
             <option value="1.75">1.75kg (Extra Large)</option>
