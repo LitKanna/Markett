@@ -368,27 +368,30 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
 .hours-row select { min-height:44px; }
 .hours-empty { margin:4px 0 10px; font-size:13.5px; color:var(--soft); }
 .b-sum { font-size:12.5px; font-weight:700; color:var(--soft); }
-.buyer { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line); }
-.buyer:last-child { border-bottom:0; padding-bottom:2px; }
-.b-rank { flex-shrink:0; width:30px; height:30px; display:grid; place-items:center; background:var(--cream2); border-radius:50%; font-weight:800; font-size:13px; color:var(--soft); margin-top:2px; }
+#buyers { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; }
+.buyer-card { border:1px solid var(--line); border-radius:14px; padding:14px 14px 12px; background:#fff; }
+.bc-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.b-rank { flex-shrink:0; width:26px; height:26px; display:grid; place-items:center; background:var(--cream2); border-radius:50%; font-weight:800; font-size:12px; color:var(--soft); }
 .b-rank.top { background:var(--yolk); color:var(--ink); }
-.b-main { flex:1; min-width:0; }
-.b-line { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
-.b-line b { font-size:15px; }
-.b-spend { font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:17px; color:var(--amber-d); }
-.b-bar { height:7px; background:var(--cream2); border-radius:999px; margin:7px 0 6px; overflow:hidden; }
-.b-bar i { display:block; height:100%; background:linear-gradient(90deg, var(--yolk), var(--amber)); border-radius:999px; }
-.b-meta { font-size:12.5px; color:var(--soft); }
-.b-meta a { color:var(--amber-d); font-weight:700; text-decoration:none; }
-.bb { display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; vertical-align:2px; }
+.bc-name { flex:1; min-width:0; }
+.bc-name b { display:block; font-size:14.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.b-spend { font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:18px; color:var(--amber-d); }
+.bb { display:inline-block; margin-right:4px; padding:1px 7px; border-radius:999px; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
 .bb.gold { background:#fdeecd; color:var(--amber-d); }
 .bb.green { background:var(--green-soft); color:var(--green); }
 .bb.blue { background:var(--blue-soft); color:var(--blue); }
-.b-insight { margin-top:5px; font-size:12.5px; font-weight:700; padding:6px 10px; border-radius:8px; }
+.spark { display:block; width:100%; height:38px; margin-bottom:10px; }
+.bc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
+.bc-grid > div { background:var(--cream2); border-radius:10px; padding:7px 4px; text-align:center; }
+.bc-grid b { display:block; font-size:13.5px; }
+.bc-grid span { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--soft); }
+.bc-foot { display:flex; align-items:center; gap:8px; }
+.b-insight { flex:1; font-size:11.5px; font-weight:700; padding:6px 9px; border-radius:8px; }
 .b-insight.warn { background:#fdeecd; color:var(--amber-d); }
 .b-insight.due { background:var(--blue-soft); color:var(--blue); }
 .b-insight.good { background:var(--green-soft); color:var(--green); }
 .b-insight.soft { background:var(--cream2); color:var(--soft); }
+.bc-call { flex-shrink:0; padding:6px 14px; background:var(--ink); color:var(--cream); border-radius:999px; font-size:12px; font-weight:700; text-decoration:none; }
 .dayrow { display:grid; grid-template-columns:96px 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px; }
 .chk { display:flex; align-items:center; gap:8px; font-size:14.5px; font-weight:800; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:12px; }
 .chk input { width:20px; height:20px; min-height:0; accent-color:var(--amber); }
@@ -613,16 +616,36 @@ function daysAgo(iso) {
   return days <= 0 ? "today" : days === 1 ? "yesterday" : days + " days ago";
 }
 
+function sparkline(history, maxV) {
+  // history: [{t, v}] sorted by time; renders an SVG line of purchases
+  const W = 100, H = 34, PAD = 5;
+  if (!history.length) return "";
+  const t0 = history[0].t, t1 = history[history.length - 1].t;
+  const span = Math.max(1, t1 - t0);
+  const pts = history.map(function(p) {
+    const x = history.length === 1 ? W / 2 : PAD + ((p.t - t0) / span) * (W - PAD * 2);
+    const y = H - PAD - (p.v / maxV) * (H - PAD * 2);
+    return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
+  });
+  const line = pts.map(function(p) { return p[0] + "," + p[1]; }).join(" ");
+  const area = "M" + pts[0][0] + "," + (H - 2) + " L" + pts.map(function(p) { return p[0] + "," + p[1]; }).join(" L") + " L" + pts[pts.length - 1][0] + "," + (H - 2) + " Z";
+  const dots = pts.map(function(p) { return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="2.4" fill="#b05f17"/>'; }).join("");
+  return '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+    '<path d="' + area + '" fill="rgba(246,181,43,.22)"/>' +
+    (pts.length > 1 ? '<polyline points="' + line + '" fill="none" stroke="#d97a29" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' : '') +
+    dots + '</svg>';
+}
+
 function renderBuyers(orders) {
   const active = orders.filter(function(o) { return o.status !== "cancelled"; });
   const map = {};
   active.forEach(function(o) {
-    const b = map[o.phone] = map[o.phone] || { name: o.name, phone: o.phone, orders: 0, trays: 0, spend: 0, paid: 0, dates: [], bundles: {}, days: {} };
+    const b = map[o.phone] = map[o.phone] || { name: o.name, phone: o.phone, orders: 0, trays: 0, spend: 0, paid: 0, history: [], bundles: {}, days: {} };
     b.orders++;
     b.trays += traysFor(o);
     b.spend += o.price || 0;
     if (o.paymentStatus === "paid") b.paid++;
-    b.dates.push(o.createdAt);
+    b.history.push({ t: new Date(o.createdAt).getTime(), v: o.price || 0 });
     b.bundles[o.bundle] = (b.bundles[o.bundle] || 0) + 1;
     b.days[o.pickupDay] = (b.days[o.pickupDay] || 0) + 1;
   });
@@ -639,66 +662,49 @@ function renderBuyers(orders) {
   }
 
   const BUNDLE_WORD = { tray1: "single trays", tray2: "2-tray packs", box: "full boxes" };
-  const maxSpend = buyers[0].spend || 1;
 
   $("buyers").innerHTML = buyers.map(function(b, i) {
-    b.dates.sort();
-    const newest = b.dates[b.dates.length - 1];
-    const daysSince = Math.max(0, Math.floor((Date.now() - new Date(newest).getTime()) / 86400000));
+    b.history.sort(function(x, y) { return x.t - y.t; });
+    const maxOrderV = Math.max.apply(null, b.history.map(function(p) { return p.v; })) || 1;
+    const newest = b.history[b.history.length - 1].t;
+    const daysSince = Math.max(0, Math.floor((Date.now() - newest) / 86400000));
 
-    // What and when they usually buy
     const favBundle = Object.keys(b.bundles).sort(function(x, y) { return b.bundles[y] - b.bundles[x]; })[0];
     const favDay = Object.keys(b.days).sort(function(x, y) { return b.days[y] - b.days[x]; })[0];
-    const avgTrays = Math.round(b.trays / b.orders * 10) / 10;
 
-    // Badges
     let badges = "";
-    if (i === 0 && buyers.length > 1) badges += '<span class="bb gold">top buyer</span>';
+    if (i === 0 && buyers.length > 1) badges += '<span class="bb gold">top</span>';
     if (b.orders >= 3) badges += '<span class="bb green">regular</span>';
-    if (b.paid === b.orders && b.orders > 0) badges += '<span class="bb green">always prepays</span>';
+    if (b.paid === b.orders && b.orders > 0) badges += '<span class="bb green">prepays</span>';
     if (b.orders === 1 && daysSince <= 10) badges += '<span class="bb blue">new</span>';
 
-    // Reorder prediction
-    let insight = "";
-    let insightClass = "soft";
+    let insight = "", insightClass = "soft";
     if (b.orders > 1) {
-      const spanDays = (new Date(newest) - new Date(b.dates[0])) / 86400000;
+      const spanDays = (newest - b.history[0].t) / 86400000;
       const gap = Math.max(1, Math.round(spanDays / (b.orders - 1)));
       const ratio = daysSince / gap;
-      if (ratio >= 1.4) {
-        insight = "Overdue — usually buys every " + gap + " days, quiet for " + daysSince + ". Worth a WhatsApp.";
-        insightClass = "warn";
-      } else if (ratio >= 0.75) {
-        insight = "Due about now — buys roughly every " + gap + " days.";
-        insightClass = "due";
-      } else {
-        const next = Math.max(1, gap - daysSince);
-        insight = "Stocked up — likely needs more in about " + next + (next === 1 ? " day." : " days.");
-        insightClass = "good";
-      }
-    } else if (daysSince <= 10) {
-      insight = "First order " + (daysSince === 0 ? "today" : daysSince + " days ago") + ". A follow-up message turns new buyers into regulars.";
-      insightClass = "due";
-    } else {
-      insight = "One order, " + daysSince + " days ago. Try a comeback message with this week's stock.";
-      insightClass = "soft";
-    }
+      if (ratio >= 1.4) { insight = "Overdue " + (daysSince - gap) + "d — worth a WhatsApp"; insightClass = "warn"; }
+      else if (ratio >= 0.75) { insight = "Due about now — every ~" + gap + " days"; insightClass = "due"; }
+      else { const next = Math.max(1, gap - daysSince); insight = "Next likely in ~" + next + (next === 1 ? " day" : " days"); insightClass = "good"; }
+    } else if (daysSince <= 10) { insight = "New — follow up to keep them"; insightClass = "due"; }
+    else { insight = "Quiet " + daysSince + "d — send a comeback"; insightClass = "soft"; }
 
-    const pct = Math.max(4, Math.round((b.spend / maxSpend) * 100));
-    return '<div class="buyer">' +
-      '<div class="b-rank' + (i === 0 ? " top" : "") + '">' + (i + 1) + '</div>' +
-      '<div class="b-main">' +
-        '<div class="b-line"><span><b>' + escapeHtml(b.name) + '</b>' + badges + '</span><span class="b-spend">$' + b.spend + '</span></div>' +
-        '<div class="b-bar"><i style="width:' + pct + '%"></i></div>' +
-        '<div class="b-meta">' +
-          b.orders + (b.orders === 1 ? " order" : " orders") +
-          ' · ' + b.trays + (b.trays === 1 ? " tray" : " trays") + ' total' +
-          (b.orders > 1 ? ' · ~' + avgTrays + ' trays a visit' : '') +
-          ' · usually ' + (BUNDLE_WORD[favBundle] || favBundle) +
-          ' on ' + favDay + 's' +
-          ' · <a href="tel:' + b.phone + '">' + fmtPhone(b.phone) + '</a>' +
-        '</div>' +
-        '<div class="b-insight ' + insightClass + '">' + insight + '</div>' +
+    return '<div class="buyer-card">' +
+      '<div class="bc-top">' +
+        '<span class="b-rank' + (i === 0 ? " top" : "") + '">' + (i + 1) + '</span>' +
+        '<div class="bc-name"><b>' + escapeHtml(b.name) + '</b><div>' + badges + '</div></div>' +
+        '<span class="b-spend">$' + b.spend + '</span>' +
+      '</div>' +
+      sparkline(b.history, maxOrderV) +
+      '<div class="bc-grid">' +
+        '<div><b>' + b.orders + '</b><span>' + (b.orders === 1 ? "order" : "orders") + '</span></div>' +
+        '<div><b>' + b.trays + '</b><span>' + (b.trays === 1 ? "tray" : "trays") + '</span></div>' +
+        '<div><b>' + favDay.slice(0, 3) + '</b><span>usual day</span></div>' +
+        '<div><b>' + (BUNDLE_WORD[favBundle] || favBundle).split(" ")[0].replace("single", "trays").replace("2-tray", "2-packs") + '</b><span>usually</span></div>' +
+      '</div>' +
+      '<div class="bc-foot">' +
+        '<span class="b-insight ' + insightClass + '">' + insight + '</span>' +
+        '<a class="bc-call" href="tel:' + b.phone + '" title="' + fmtPhone(b.phone) + '">Call</a>' +
       '</div>' +
     '</div>';
   }).join("");
