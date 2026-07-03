@@ -93,6 +93,7 @@ async function handleApi(request, env, url) {
     const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
     const bundle = ["tray1", "tray2", "box"].includes(body?.bundle) ? body.bundle : null;
     const pickupDay = ["Friday", "Saturday"].includes(body?.pickupDay) ? body.pickupDay : null;
+    const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
 
     if (!name || !/^04\d{8}$/.test(phone) || !bundle || !pickupDay) {
       return json({ error: "invalid order" }, 400);
@@ -109,8 +110,9 @@ async function handleApi(request, env, url) {
       name,
       phone,
       bundle,
+      quantity,
       pickupDay,
-      price: settings.prices[bundle],
+      price: settings.prices[bundle] * quantity,
       status: "new",
       createdAt: now.toISOString(),
     };
@@ -295,7 +297,7 @@ async function loadOrders() {
     "<td>" + fmtTime(o.createdAt) + "</td>" +
     "<td>" + escapeHtml(o.name) + "</td>" +
     "<td><a href='tel:" + o.phone + "'>" + o.phone.replace(/(\\d{4})(\\d{3})(\\d{3})/, "$1 $2 $3") + "</a></td>" +
-    "<td>" + (BUNDLE_LABELS[o.bundle] || o.bundle) + "</td>" +
+    "<td>" + ((o.quantity || 1) > 1 ? (o.quantity + " × ") : "") + (BUNDLE_LABELS[o.bundle] || o.bundle) + "</td>" +
     "<td class='hide-sm'>" + o.pickupDay + "</td>" +
     "<td><b>$" + o.price + "</b></td>" +
     "<td><span class='pill " + o.status + "'>" + o.status + "</span></td>" +
