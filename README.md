@@ -1,6 +1,23 @@
 # Markett - Flemington Fresh Eggs
 
-Simple one-page marketing site for selling **$12 egg trays** with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.
+One-page marketing site for selling fresh egg trays with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.
+
+## Bundles
+
+| Bundle | Eggs | Price |
+|---|---|---:|
+| 1 tray | 30 | $12 |
+| 2 trays | 60 | $23 |
+| Full box | 180 | $66 |
+
+## Configure (config.js)
+
+- `whatsappNumber` — enables a one-tap WhatsApp booking button
+- `stripeLinks` — Stripe Payment Links enable "Pay online now" buttons
+- `traysAvailableThisWeek` — limited-stock note under prices
+
+See `ads/setup-guide.md` for step-by-step setup, and `ads/` for
+ready-to-paste Facebook, Instagram, and Google ad campaigns.
 
 ## Preview locally (on your computer only)
 

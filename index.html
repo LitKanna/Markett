@@ -3,119 +3,292 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="30 fresh eggs for $12. Pick up Friday or Saturday at Paddy's Markets Flemington, Sydney Markets.">
-  <title>Fresh Eggs at Flemington Markets</title>
+  <title>Flemington Fresh Eggs — 30 Eggs $12, Pickup Fri & Sat</title>
+  <meta name="description" content="Fresh Pace Farm eggs at Flemington Markets. 30-egg tray $12, 2 trays $23, full box $66. Book online, pick up Friday or Saturday at Paddy's Markets Flemington.">
+
+  <!-- Social sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Fresh Eggs at Flemington Markets — 30 Eggs for $12">
+  <meta property="og:description" content="Book online, pick up Friday or Saturday at Paddy's Markets Flemington. 1 tray $12, 2 trays $23, full box $66.">
+  <meta property="og:image" content="https://litkanna.github.io/Markett/assets/social-eggs.jpg">
+  <meta property="og:url" content="https://litkanna.github.io/Markett/">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "Fresh Egg Tray (30 eggs)",
+    "description": "Tray of 30 fresh Pace Farm eggs for pickup at Paddy's Markets Flemington on Friday or Saturday.",
+    "image": "https://litkanna.github.io/Markett/assets/social-eggs.jpg",
+    "offers": {
+      "@type": "Offer",
+      "price": "12.00",
+      "priceCurrency": "AUD",
+      "availability": "https://schema.org/InStock",
+      "areaServed": "Flemington NSW 2129"
+    }
+  }
+  </script>
 </head>
 <body>
-  <main class="page">
-    <section class="hero" aria-labelledby="page-title">
-      <p class="kicker">Paddy's Markets Flemington</p>
-      <h1 id="page-title">Fresh eggs. Easy pickup.</h1>
-      <p class="lead">Get a tray of <strong>30 eggs for $12</strong>. Pick up on Friday or Saturday at Flemington Markets.</p>
 
-      <div class="price-card" aria-label="Main offer">
-        <span class="price">$12</span>
-        <span class="price-note">for 30 eggs</span>
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span>Fresh eggs every week</span><i>&#11044;</i>
+      <span>30 eggs — $12</span><i>&#11044;</i>
+      <span>Pickup Friday &amp; Saturday</span><i>&#11044;</i>
+      <span>Paddy's Markets Flemington</span><i>&#11044;</i>
+      <span>Fresh eggs every week</span><i>&#11044;</i>
+      <span>30 eggs — $12</span><i>&#11044;</i>
+      <span>Pickup Friday &amp; Saturday</span><i>&#11044;</i>
+      <span>Paddy's Markets Flemington</span><i>&#11044;</i>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true">🥚</span>
+        <span class="brand-name">Flemington<br>Fresh Eggs</span>
+      </a>
+      <nav class="topnav" aria-label="Main">
+        <a href="#prices">Prices</a>
+        <a href="#pickup">Pickup</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-solid btn-small" href="#order">Book now</a>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="pill">Paddy's Markets Flemington · Fri &amp; Sat</p>
+          <h1>Farm-fresh eggs,<br><em>market-day</em> prices.</h1>
+          <p class="hero-sub">A full tray of 30 Pace Farm eggs for <strong>$12</strong> — cheaper than the supermarket shelf. Book online, walk in, pick up, done.</p>
+
+          <div class="hero-cta">
+            <a class="btn btn-solid" href="#order">Book your tray</a>
+            <a class="btn btn-ghost" href="#prices">See prices</a>
+          </div>
+
+          <dl class="hero-stats">
+            <div><dt>$12</dt><dd>per 30-egg tray</dd></div>
+            <div><dt>40&cent;</dt><dd>per egg</dd></div>
+            <div><dt>2 days</dt><dd>Friday &amp; Saturday</dd></div>
+          </dl>
+        </div>
+
+        <figure class="hero-photo">
+          <img src="assets/hero-eggs.jpg" alt="Tray of 30 fresh brown eggs on a wooden market table" width="1400" height="933" fetchpriority="high">
+          <figcaption class="photo-badge">
+            <span class="badge-price">$12</span>
+            <span class="badge-note">30 eggs<br>this week</span>
+          </figcaption>
+        </figure>
       </div>
+    </section>
 
-      <div class="actions">
-        <a class="button primary" href="#order">Book your tray</a>
-        <a class="button secondary" href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets" target="_blank" rel="noopener noreferrer">Open map</a>
+    <!-- TRUST STRIP -->
+    <section class="trust">
+      <div class="wrap trust-row">
+        <p><strong>Pace Farm eggs</strong><span>Stamped &amp; sealed trays</span></p>
+        <p><strong>Book ahead</strong><span>Your tray is reserved</span></p>
+        <p><strong>Pay your way</strong><span>On pickup, or online</span></p>
+        <p><strong>Local pickup</strong><span>Flemington NSW 2129</span></p>
       </div>
-
-      <ul class="hero-points" aria-label="Quick details">
-        <li>30 eggs for $12</li>
-        <li>Friday or Saturday pickup</li>
-        <li>Pay when you collect</li>
-      </ul>
     </section>
 
-    <section class="section" aria-labelledby="pickup-title">
-      <h2 id="pickup-title">Come Friday or Saturday</h2>
-      <div class="pickup-grid">
-        <article class="pickup-card">
-          <span class="day">Friday</span>
-          <strong>10:00 AM - 4:30 PM</strong>
-          <p>Best to book by Thursday night.</p>
-        </article>
-        <article class="pickup-card">
-          <span class="day">Saturday</span>
-          <strong>6:00 AM - 2:00 PM</strong>
-          <p>Best to book by Friday night.</p>
-        </article>
+    <!-- PRICES -->
+    <section id="prices" class="prices">
+      <div class="wrap">
+        <header class="section-head">
+          <h2>Pick your bundle</h2>
+          <p>Same fresh eggs, better price when you take more.</p>
+        </header>
+
+        <div class="price-grid">
+          <article class="price-card">
+            <h3>Single tray</h3>
+            <p class="price-big">$12</p>
+            <p class="price-per">30 eggs · 40&cent; each</p>
+            <ul>
+              <li>Perfect for the week</li>
+              <li>Friday or Saturday pickup</li>
+            </ul>
+            <a class="btn btn-line btn-block" href="#order" data-bundle="tray1">Book 1 tray</a>
+          </article>
+
+          <article class="price-card featured">
+            <p class="flag">Most popular</p>
+            <h3>Double up</h3>
+            <p class="price-big">$23</p>
+            <p class="price-per">60 eggs · save $1</p>
+            <ul>
+              <li>Big families &amp; bakers</li>
+              <li>One pickup, two trays</li>
+            </ul>
+            <a class="btn btn-solid btn-block" href="#order" data-bundle="tray2">Book 2 trays</a>
+          </article>
+
+          <article class="price-card">
+            <h3>Full box</h3>
+            <p class="price-big">$66</p>
+            <p class="price-per">6 trays · 180 eggs</p>
+            <ul>
+              <li>Cafés, stalls &amp; bakers</li>
+              <li>Weekly supply welcome</li>
+            </ul>
+            <a class="btn btn-line btn-block" href="#order" data-bundle="box">Book a box</a>
+          </article>
+        </div>
+
+        <p class="stock-note" id="stock-note" hidden></p>
       </div>
-      <p class="location"><strong>Pickup place:</strong> Paddy's Markets Flemington, Building D, Sydney Markets, 250 Parramatta Road, Flemington NSW 2129.</p>
     </section>
 
-    <section class="section simple-steps" aria-labelledby="steps-title">
-      <h2 id="steps-title">How to buy</h2>
-      <ol>
-        <li>Choose Friday or Saturday.</li>
-        <li>Tell us how many trays you want.</li>
-        <li>We confirm your order by text or WhatsApp.</li>
-        <li>Pay when you pick up.</li>
-      </ol>
+    <!-- PICKUP -->
+    <section id="pickup" class="pickup">
+      <div class="wrap pickup-grid">
+        <div class="pickup-copy">
+          <header class="section-head left">
+            <h2>Pickup days</h2>
+            <p>Come to Paddy's Markets Flemington — Building D, Sydney Markets, 250 Parramatta Road, Flemington NSW 2129.</p>
+          </header>
+
+          <div class="day-cards">
+            <article class="day-card">
+              <p class="day-name">Friday</p>
+              <p class="day-time">10:00 AM – 4:30 PM</p>
+              <p class="day-note">Book by Thursday night</p>
+            </article>
+            <article class="day-card">
+              <p class="day-name">Saturday</p>
+              <p class="day-time">6:00 AM – 2:00 PM</p>
+              <p class="day-note">Book by Friday night</p>
+            </article>
+          </div>
+
+          <a class="btn btn-ghost" href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
+        </div>
+
+        <ol class="steps">
+          <li><span>1</span>Choose your bundle and pickup day</li>
+          <li><span>2</span>We confirm by text or WhatsApp</li>
+          <li><span>3</span>Pick up your eggs at the market</li>
+          <li><span>4</span>Pay on pickup — or pay online ahead</li>
+        </ol>
+      </div>
     </section>
 
-    <section class="section promotion" aria-labelledby="promotion-title">
-      <h2 id="promotion-title">Help people find the eggs</h2>
-      <p>Share this page with people near Flemington, Homebush, Strathfield, Lidcombe, and Auburn.</p>
-      <ul>
-        <li>Post the link in local Facebook groups.</li>
-        <li>Share photos and pickup times on Instagram.</li>
-        <li>Add the link to Google so people can search "eggs Flemington".</li>
-      </ul>
+    <!-- ORDER -->
+    <section id="order" class="order">
+      <div class="wrap order-grid">
+        <div class="order-copy">
+          <h2>Book your eggs</h2>
+          <p>Reserve now — trays run out most weeks. We'll confirm your booking the same day.</p>
+          <img class="order-photo" src="assets/social-eggs.jpg" alt="Close-up of fresh brown eggs in a tray" width="1080" height="720" loading="lazy">
+        </div>
+
+        <form id="order-form" class="order-form">
+          <div class="field">
+            <label for="bundle">Bundle</label>
+            <select id="bundle" name="bundle">
+              <option value="tray1">1 tray — 30 eggs — $12</option>
+              <option value="tray2" selected>2 trays — 60 eggs — $23</option>
+              <option value="box">Full box — 180 eggs — $66</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="pickup-day">Pickup day</label>
+            <select id="pickup-day" name="pickupDay">
+              <option value="Friday">Friday · 10 AM – 4:30 PM</option>
+              <option value="Saturday" selected>Saturday · 6 AM – 2 PM</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" name="name" type="text" placeholder="Full name" autocomplete="name" required>
+          </div>
+
+          <div class="field">
+            <label for="phone">Mobile</label>
+            <input id="phone" name="phone" type="tel" placeholder="04xx xxx xxx" autocomplete="tel" required>
+          </div>
+
+          <button type="submit" class="btn btn-solid btn-block">Reserve my eggs</button>
+          <p class="form-note">No payment needed now — pay on pickup. Online payment appears here once available.</p>
+        </form>
+      </div>
     </section>
 
-    <section id="order" class="section order-panel" aria-labelledby="order-title">
-      <h2 id="order-title">Book a tray</h2>
-      <p class="muted">Fill this in and copy the message. Send it by text or WhatsApp to book your eggs.</p>
+    <!-- CONFIRMATION -->
+    <section id="done" class="done" hidden aria-live="polite">
+      <div class="wrap">
+        <div class="done-card">
+          <p class="done-icon" aria-hidden="true">&#10003;</p>
+          <h2>Booking noted!</h2>
+          <p id="done-summary"></p>
 
-      <form id="order-form">
-        <label>
-          Name
-          <input id="name" name="name" type="text" placeholder="Your name" required>
-        </label>
+          <div class="done-actions">
+            <a id="whatsapp-send" class="btn btn-solid" target="_blank" rel="noopener noreferrer" hidden>Send via WhatsApp</a>
+            <a id="stripe-pay" class="btn btn-solid" target="_blank" rel="noopener noreferrer" hidden>Pay online now</a>
+            <button id="copy-message" class="btn btn-line" type="button">Copy order message</button>
+            <button id="again" class="btn btn-ghost" type="button">New booking</button>
+          </div>
 
-        <label>
-          Phone
-          <input id="phone" name="phone" type="tel" placeholder="04xx xxx xxx" required>
-        </label>
+          <pre id="order-message" class="order-message"></pre>
+        </div>
+      </div>
+    </section>
 
-        <label>
-          How many trays?
-          <select id="trays" name="trays">
-            <option value="1">1 tray - $12</option>
-            <option value="2">2 trays - $24</option>
-            <option value="3">3 trays - $36</option>
-            <option value="4">4 trays - $48</option>
-            <option value="5">5 trays - $60</option>
-          </select>
-        </label>
-
-        <label>
-          Pick up day
-          <select id="pickup-day" name="pickupDay">
-            <option value="Friday">Friday</option>
-            <option value="Saturday" selected>Saturday</option>
-          </select>
-        </label>
-
-        <button class="button primary full" type="submit">Show my message</button>
-      </form>
-
-      <div id="result" class="result" hidden>
-        <h3>Copy this message</h3>
-        <p id="message"></p>
-        <button id="copy-button" class="button secondary" type="button">Copy message</button>
+    <!-- FAQ -->
+    <section id="faq" class="faq">
+      <div class="wrap">
+        <header class="section-head">
+          <h2>Quick questions</h2>
+        </header>
+        <div class="faq-grid">
+          <details>
+            <summary>Where exactly do I pick up?</summary>
+            <p>Paddy's Markets Flemington — Building D at Sydney Markets, 250 Parramatta Road, Flemington NSW 2129. We send the exact meeting spot with your confirmation.</p>
+          </details>
+          <details>
+            <summary>How do I pay?</summary>
+            <p>Cash or card on pickup. Online payment before pickup is also available when the pay button shows on your booking.</p>
+          </details>
+          <details>
+            <summary>What eggs are they?</summary>
+            <p>Pace Farm eggs in sealed, stamped 30-egg trays — the same brand sold in major stores, at a better price.</p>
+          </details>
+          <details>
+            <summary>Can I order for my café or stall?</summary>
+            <p>Yes — full boxes (180 eggs) are made for small businesses. Book a box weekly and your stock is put aside first.</p>
+          </details>
+        </div>
       </div>
     </section>
   </main>
 
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <p><strong>Flemington Fresh Eggs</strong> — pickup Friday &amp; Saturday at Paddy's Markets Flemington.</p>
+      <p class="foot-small">Eggs sold subject to availability. NSW food business notification applies before trading.</p>
+    </div>
+  </footer>
+
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
