@@ -1067,6 +1067,28 @@ section { scroll-margin-top: 84px; }
   transition: border-color 0.18s ease;
 }
 
+/* Payment confirmation toast */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 20px);
+  z-index: 200;
+  max-width: min(92vw, 420px);
+  padding: 14px 22px;
+  background: var(--green);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 14.5px;
+  text-align: center;
+  border-radius: 14px;
+  box-shadow: 0 18px 44px rgba(36, 20, 7, 0.3);
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
