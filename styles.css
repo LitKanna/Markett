@@ -94,11 +94,12 @@ h1, h2, h3 {
   color: var(--ink);
 }
 
-.brand-mark { font-size: 26px; }
+.brand-mark { flex-shrink: 0; }
+
+.brand-text { display: flex; flex-direction: column; }
 
 .brand-name {
-  display: flex;
-  flex-direction: column;
+  display: block;
   font-family: var(--font-head);
   font-weight: 800;
   font-size: 21px;
@@ -107,8 +108,8 @@ h1, h2, h3 {
 }
 
 .brand-sub {
+  display: block;
   font-family: var(--font-body);
-  font-style: normal;
   font-weight: 700;
   font-size: 9.5px;
   letter-spacing: 0.14em;
@@ -217,6 +218,7 @@ h1, h2, h3 {
   font-style: normal;
   color: var(--amber);
   position: relative;
+  z-index: 0;
   white-space: nowrap;
 }
 
