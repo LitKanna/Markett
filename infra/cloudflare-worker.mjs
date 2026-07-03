@@ -57,6 +57,35 @@ function isAdmin(request, env) {
   return env.ADMIN_KEY && auth === `Bearer ${env.ADMIN_KEY}`;
 }
 
+// How many physical trays an order consumes
+function traysFor(order) {
+  const perUnit = order.bundle === "box" ? 6 : order.bundle === "tray2" ? 2 : 1;
+  return perUnit * (order.quantity || 1);
+}
+
+// Reserve or release stock as an order moves through statuses.
+// Confirmed and done orders hold stock; new and cancelled do not.
+async function syncStock(env, order, newStatus) {
+  const holds = ["confirmed", "done"].includes(newStatus);
+  let delta = 0;
+
+  if (holds && !order.stockTaken) {
+    delta = -traysFor(order);
+    order.stockTaken = true;
+  } else if (!holds && order.stockTaken) {
+    delta = traysFor(order);
+    order.stockTaken = false;
+  }
+
+  if (delta !== 0) {
+    const settings = await getSettings(env);
+    settings.traysAvailable = Math.max(0, settings.traysAvailable + delta);
+    await env.DATA.put("settings", JSON.stringify(settings));
+    return { delta, traysAvailable: settings.traysAvailable };
+  }
+  return { delta: 0, traysAvailable: (await getSettings(env)).traysAvailable };
+}
+
 async function getSettings(env) {
   const stored = (await env.DATA.get("settings", "json")) || {};
   return {
@@ -211,6 +240,7 @@ async function handleApi(request, env, url) {
       if (order && order.paymentStatus !== "paid") {
         order.paymentStatus = "paid";
         if (order.status === "new") order.status = "confirmed";
+        await syncStock(env, order, order.status);
         await env.DATA.put(orderId, JSON.stringify(order));
       }
     }
@@ -226,9 +256,10 @@ async function handleApi(request, env, url) {
     if (!id.startsWith("order:") || !status) return json({ error: "bad request" }, 400);
     const order = await env.DATA.get(id, "json");
     if (!order) return json({ error: "not found" }, 404);
+    const stock = await syncStock(env, order, status);
     order.status = status;
     await env.DATA.put(id, JSON.stringify(order));
-    return json({ ok: true });
+    return json({ ok: true, trays: traysFor(order), stockDelta: stock.delta, traysAvailable: stock.traysAvailable });
   }
 
   return json({ error: "not found" }, 404);
@@ -279,7 +310,12 @@ body { margin:0; font-family:"Plus Jakarta Sans",system-ui,sans-serif; backgroun
 .card { background:#fff; border:1px solid var(--line); border-radius:20px; padding:20px 18px; margin-bottom:16px; box-shadow:0 8px 24px rgba(36,20,7,.06); }
 h2 { font-family:"Bricolage Grotesque",sans-serif; font-size:19px; font-weight:800; margin:0 0 14px; letter-spacing:-.01em; }
 
-.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+.stats { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:16px; }
+@media (max-width:640px){ .stats { grid-template-columns:repeat(3,1fr); } }
+.stat.highlight { background:#e7f2ea; }
+.stat.highlight b { color:var(--green); }
+.toast { position:fixed; left:50%; bottom:22px; transform:translate(-50%,16px); z-index:300; max-width:90vw; padding:12px 20px; background:var(--green); color:#fff; font-weight:700; font-size:13.5px; border-radius:12px; box-shadow:0 14px 36px rgba(36,20,7,.3); opacity:0; transition:opacity .3s ease, transform .3s ease; }
+.toast.show { opacity:1; transform:translate(-50%,0); }
 .stat { background:var(--cream2); border-radius:14px; padding:10px 8px; text-align:center; }
 .stat b { display:block; font-family:"Bricolage Grotesque",sans-serif; font-size:20px; font-weight:800; }
 .stat span { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--soft); }
@@ -399,6 +435,19 @@ function describeOrder(bundle, qty) {
   return trays === 1 ? "1 tray (30 eggs)" : trays + " trays (" + (30 * trays).toLocaleString() + " eggs)";
 }
 
+function traysFor(o) {
+  return (o.bundle === "box" ? 6 : o.bundle === "tray2" ? 2 : 1) * (o.quantity || 1);
+}
+
+function toast(text) {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = text;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add("show"));
+  setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 350); }, 3200);
+}
+
 function authHeaders() { return { "Authorization": "Bearer " + KEY, "Content-Type": "application/json" }; }
 
 async function saveKey() {
@@ -438,6 +487,7 @@ async function loadOrders() {
   $("stats").innerHTML =
     '<div class="stat"><b>' + orders.length + '</b><span>orders</span></div>' +
     '<div class="stat"><b>' + pending + '</b><span>waiting</span></div>' +
+    '<div class="stat highlight"><b id="stat-stock">' + (window.TRAYS_LEFT ?? "–") + '</b><span>trays left</span></div>' +
     '<div class="stat"><b>$' + revenue + '</b><span>confirmed</span></div>' +
     '<div class="stat"><b>$' + paidOnline + '</b><span>paid online</span></div>';
 
@@ -449,6 +499,7 @@ async function loadOrders() {
       '<div class="o-what">' + describeOrder(o.bundle, o.quantity) + ' <span>· pickup ' + o.pickupDay + '</span></div>' +
       '<div class="o-tags">' +
         '<span class="pill ' + o.status + '">' + o.status + '</span>' +
+        '<span class="pill day">uses ' + traysFor(o) + (traysFor(o) === 1 ? ' tray' : ' trays') + '</span>' +
         (prio ? '<span class="pill paid">&#9889; paid · priority</span>' : '') +
       '</div>' +
       '<div class="o-actions">' +
@@ -468,7 +519,18 @@ function actionButtons(o) {
 }
 
 async function setStatus(id, status) {
-  await fetch("/api/order-status", { method: "POST", headers: authHeaders(), body: JSON.stringify({ id, status }) });
+  const res = await fetch("/api/order-status", { method: "POST", headers: authHeaders(), body: JSON.stringify({ id, status }) });
+  if (res.ok) {
+    const d = await res.json();
+    if (typeof d.traysAvailable === "number") {
+      window.TRAYS_LEFT = d.traysAvailable;
+      $("stock").value = d.traysAvailable;
+      const stat = $("stat-stock");
+      if (stat) stat.textContent = d.traysAvailable;
+      if (d.stockDelta < 0) toast(d.trays + (d.trays === 1 ? " tray" : " trays") + " allocated · " + d.traysAvailable + " left");
+      if (d.stockDelta > 0) toast(d.stockDelta + (d.stockDelta === 1 ? " tray" : " trays") + " returned · " + d.traysAvailable + " left");
+    }
+  }
   loadOrders();
 }
 
@@ -479,6 +541,9 @@ async function loadSettings() {
   $("p2").value = s.prices.tray2;
   $("p3").value = s.prices.box;
   $("stock").value = s.traysAvailable;
+  window.TRAYS_LEFT = s.traysAvailable;
+  const stat = $("stat-stock");
+  if (stat) stat.textContent = s.traysAvailable;
   $("tray-weight").value = s.trayWeight || "1.75";
   $("fri-on").checked = s.pickup.Friday.enabled;
   $("fri-open").value = s.pickup.Friday.open;
