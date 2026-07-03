@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
 
   <script type="application/ld+json">
   {
@@ -281,13 +281,20 @@
             <p class="field-error" id="phone-error" hidden>Enter a valid Australian mobile, e.g. 0412 345 678</p>
           </div>
 
-          <p class="order-summary" id="order-summary">2 trays (60 eggs) &middot; Saturday pickup</p>
+          <p class="order-summary" id="order-summary">2 trays (60 eggs) &middot; Saturday &middot; $23</p>
 
-          <button type="submit" class="btn btn-solid btn-block" id="submit-btn">
-            <span id="submit-label">Reserve my eggs</span>
-            <span class="submit-price" id="submit-price">$23</span>
-          </button>
-          <p class="form-note">No payment needed now. Pay on pickup, or online once available.</p>
+          <div class="cta-row">
+            <button type="submit" class="btn btn-reserve" id="submit-btn">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+              <span id="submit-label">Reserve</span>
+            </button>
+            <button type="button" class="btn btn-solid" id="buynow-btn">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+              <span id="buynow-label">Buy now</span>
+              <span class="submit-price" id="submit-price">$23</span>
+            </button>
+          </div>
+          <p class="form-note">Reserve and pay at pickup, or buy now for guaranteed priority stock.</p>
         </form>
       </div>
     </section>
@@ -339,7 +346,7 @@
                 Confirm on WhatsApp
               </a>
               <a id="stripe-pay" class="btn btn-solid btn-block" target="_blank" rel="noopener noreferrer" hidden>Pay online now</a>
-              <p class="pay-perk" id="pay-perk" hidden>&#9889; Prepaid orders are packed first and guaranteed, even if the week sells out.</p>
+              <p class="pay-perk" id="pay-perk" hidden>&#9889; Prepaid orders are packed first and guaranteed, even if the week sells out. Unpaid reservations can miss out on busy weeks.</p>
               <div class="done-row">
                 <button id="copy-message" class="btn btn-line" type="button">Copy order</button>
                 <button id="again" class="btn btn-ghost" type="button">New booking</button>
@@ -393,7 +400,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=22"></script>
-  <script src="app.js?v=22"></script>
+  <script src="config.js?v=23"></script>
+  <script src="app.js?v=23"></script>
 </body>
 </html>
