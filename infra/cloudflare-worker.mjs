@@ -3,6 +3,7 @@ const UPSTREAM = "https://litkanna.github.io/Markett";
 const DEFAULT_SETTINGS = {
   prices: { tray1: 12, tray2: 23, box: 66 },
   traysAvailable: 24,
+  trayWeight: "1.75",
   pickup: {
     Friday: { enabled: true, open: "10:00", close: "16:30" },
     Saturday: { enabled: true, open: "06:00", close: "14:00" },
@@ -77,6 +78,7 @@ async function handleApi(request, env, url) {
       traysAvailable: Number.isFinite(Number(body?.traysAvailable))
         ? Math.max(0, Math.floor(Number(body.traysAvailable)))
         : current.traysAvailable,
+      trayWeight: ["1.5", "1.75"].includes(body?.trayWeight) ? body.trayWeight : current.trayWeight,
       pickup: {
         Friday: cleanPickupDay((body?.pickup || {}).Friday, current.pickup.Friday),
         Saturday: cleanPickupDay((body?.pickup || {}).Saturday, current.pickup.Saturday),
@@ -271,8 +273,8 @@ button.danger { background:var(--red-soft); color:var(--red); }
 .callbtn { background:var(--ink); color:var(--cream); }
 
 label { display:block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--soft); margin-bottom:5px; }
-input { width:100%; min-height:46px; padding:10px 13px; border:2px solid var(--line); border-radius:12px; font:inherit; font-size:16px; background:var(--cream); }
-input:focus { outline:none; border-color:var(--yolk); background:#fff; }
+input, select { width:100%; min-height:46px; padding:10px 13px; border:2px solid var(--line); border-radius:12px; font:inherit; font-size:16px; background:var(--cream); }
+input:focus, select:focus { outline:none; border-color:var(--yolk); background:#fff; }
 .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
 .dayrow { display:grid; grid-template-columns:96px 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px; }
 .chk { display:flex; align-items:center; gap:8px; font-size:14.5px; font-weight:800; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:12px; }
@@ -318,6 +320,12 @@ input:focus { outline:none; border-color:var(--yolk); background:#fff; }
         <div><label>2 trays ($)</label><input id="p2" type="number" min="1" step="0.5"></div>
         <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="0.5"></div>
         <div><label>Trays available</label><input id="stock" type="number" min="0" step="1"></div>
+        <div><label>Tray weight</label>
+          <select id="tray-weight">
+            <option value="1.5">1.5kg (Large)</option>
+            <option value="1.75">1.75kg (Extra Large)</option>
+          </select>
+        </div>
       </div>
 
       <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
@@ -429,6 +437,7 @@ async function loadSettings() {
   $("p2").value = s.prices.tray2;
   $("p3").value = s.prices.box;
   $("stock").value = s.traysAvailable;
+  $("tray-weight").value = s.trayWeight || "1.75";
   $("fri-on").checked = s.pickup.Friday.enabled;
   $("fri-open").value = s.pickup.Friday.open;
   $("fri-close").value = s.pickup.Friday.close;
@@ -441,6 +450,7 @@ async function saveSettings() {
   const body = {
     prices: { tray1: +$("p1").value, tray2: +$("p2").value, box: +$("p3").value },
     traysAvailable: +$("stock").value,
+    trayWeight: $("tray-weight").value,
     pickup: {
       Friday: { enabled: $("fri-on").checked, open: $("fri-open").value, close: $("fri-close").value },
       Saturday: { enabled: $("sat-on").checked, open: $("sat-open").value, close: $("sat-close").value },

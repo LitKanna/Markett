@@ -242,6 +242,14 @@ function applySettings(settings) {
     }
   }
 
+  // Tray weight (1.5kg or 1.75kg)
+  const weight = settings.trayWeight === "1.5" ? "1.5" : "1.75";
+  const size = weight === "1.5" ? "Large" : "Extra Large";
+  const traySpec = document.getElementById("tray-spec");
+  if (traySpec) traySpec.textContent = `Stamped & sealed ${weight}kg trays`;
+  const faqEggs = document.getElementById("faq-eggs");
+  if (faqEggs) faqEggs.textContent = `Pace Farm ${size} eggs in sealed, stamped 30-egg trays (${weight}kg). The same brand sold in major stores, at a better price.`;
+
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
 }
