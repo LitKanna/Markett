@@ -531,6 +531,19 @@ h1, h2, h3 {
 
 .field { display: grid; gap: 7px; }
 
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 12px;
+}
+
+.bulk-hint {
+  margin: -6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yolk);
+}
+
 .field label {
   font-size: 13px;
   font-weight: 800;

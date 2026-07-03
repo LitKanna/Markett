@@ -96,16 +96,36 @@ function updateMobileCta() {
 /* ---------- Live price on the submit button ---------- */
 const submitBtn = document.getElementById("submit-btn");
 const submitPrice = document.getElementById("submit-price");
+const quantitySelect = document.getElementById("quantity");
+const bulkHint = document.getElementById("bulk-hint");
+
+function currentQuantity() {
+  return Math.max(1, parseInt(quantitySelect.value, 10) || 1);
+}
+
+function eggCount(bundleKey) {
+  return bundleKey === "box" ? 180 : bundleKey === "tray2" ? 60 : 30;
+}
 
 function refreshSubmitPrice() {
   const bundle = BUNDLES[bundleSelect.value] || BUNDLES.tray1;
-  submitPrice.textContent = `$${bundle.price}`;
+  const qty = currentQuantity();
+  submitPrice.textContent = `$${bundle.price * qty}`;
   submitBtn.classList.remove("bump");
   void submitBtn.offsetWidth;
   submitBtn.classList.add("bump");
+
+  const eggs = eggCount(bundleSelect.value) * qty;
+  if (qty > 1) {
+    bulkHint.textContent = `That's ${eggs} eggs in total.`;
+    bulkHint.hidden = false;
+  } else {
+    bulkHint.hidden = true;
+  }
 }
 
 bundleSelect.addEventListener("change", refreshSubmitPrice);
+quantitySelect.addEventListener("change", refreshSubmitPrice);
 
 /* ---------- Australian mobile handling ---------- */
 const phoneInput = document.getElementById("phone");
@@ -303,6 +323,11 @@ form.addEventListener("submit", (event) => {
   const bundleKey = String(data.get("bundle") || "tray1");
   const pickupDay = String(data.get("pickupDay") || "Saturday");
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
+  const quantity = currentQuantity();
+  const total = bundle.price * quantity;
+  const orderLabel = quantity > 1
+    ? `${quantity} × ${bundle.label} (${eggCount(bundleKey) * quantity} eggs)`
+    : bundle.label;
 
   if (!name) return flagInvalid(document.getElementById("name"));
   if (!isValidAuMobile(phoneDigits)) {
@@ -315,9 +340,9 @@ form.addEventListener("submit", (event) => {
     "Hi! I'd like to book eggs for pickup at Flemington.",
     `Name: ${name}`,
     `Phone: ${phone}`,
-    `Order: ${bundle.label}`,
+    `Order: ${orderLabel}`,
     `Pickup day: ${pickupDay}`,
-    `Total: $${bundle.price}`,
+    `Total: $${total}`,
   ].join("\n");
   lastOrderMessage = message;
 
@@ -325,15 +350,15 @@ form.addEventListener("submit", (event) => {
   fetch(`${API_BASE}/api/orders`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, phone: phoneDigits, bundle: bundleKey, pickupDay }),
+    body: JSON.stringify({ name, phone: phoneDigits, bundle: bundleKey, pickupDay, quantity }),
   }).catch(() => {});
 
   doneSummary.textContent = `Thanks ${name.split(" ")[0]}! Here are your pickup details.`;
   receipt.name.textContent = name;
   receipt.phone.textContent = phone;
-  receipt.order.textContent = bundle.label;
+  receipt.order.textContent = orderLabel;
   receipt.pickup.textContent = `${pickupDay} at Paddy's Markets Flemington`;
-  receipt.total.textContent = `$${bundle.price}`;
+  receipt.total.textContent = `$${total}`;
 
   // WhatsApp deep link when a number is configured
   const number = String(config.whatsappNumber || "").replace(/\D/g, "");
@@ -348,7 +373,9 @@ form.addEventListener("submit", (event) => {
   const stripeUrl = config.stripeLinks && config.stripeLinks[bundleKey];
   if (stripeUrl) {
     stripeLink.href = stripeUrl;
-    stripeLink.textContent = `Pay $${bundle.price} online now`;
+    stripeLink.textContent = quantity > 1
+      ? `Pay $${total} online (set quantity to ${quantity})`
+      : `Pay $${total} online now`;
     stripeLink.hidden = false;
   } else {
     stripeLink.hidden = true;

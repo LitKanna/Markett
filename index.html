@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
 
   <script type="application/ld+json">
   {
@@ -216,14 +216,30 @@
         </div>
 
         <form id="order-form" class="order-form">
-          <div class="field">
-            <label for="bundle">Bundle</label>
-            <select id="bundle" name="bundle">
-              <option value="tray1">1 tray (30 eggs) $12</option>
-              <option value="tray2" selected>2 trays (60 eggs) $23</option>
-              <option value="box">Full box (180 eggs) $66</option>
-            </select>
+          <div class="field-row">
+            <div class="field">
+              <label for="bundle">Bundle</label>
+              <select id="bundle" name="bundle">
+                <option value="tray1">1 tray (30 eggs) $12</option>
+                <option value="tray2" selected>2 trays (60 eggs) $23</option>
+                <option value="box">Full box (180 eggs) $66</option>
+              </select>
+            </div>
+            <div class="field field-qty">
+              <label for="quantity">How many?</label>
+              <select id="quantity" name="quantity">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+              </select>
+            </div>
           </div>
+          <p class="bulk-hint" id="bulk-hint" hidden></p>
 
           <div class="field">
             <label for="pickup-day">Pickup day</label>
@@ -330,8 +346,8 @@
             <p>Pace Farm eggs in sealed, stamped 30-egg trays. The same brand sold in major stores, at a better price.</p>
           </details>
           <details>
-            <summary>Can I order for my café or stall?</summary>
-            <p>Yes. Full boxes (180 eggs) are made for small businesses. Book a box weekly and your stock is put aside first.</p>
+            <summary>Can I order in bulk for my café or stall?</summary>
+            <p>Yes. Choose "Full box" and set how many you need, up to 10 boxes (1,800 eggs). Weekly business orders get their stock put aside first.</p>
           </details>
         </div>
       </div>
@@ -353,7 +369,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=14"></script>
-  <script src="app.js?v=14"></script>
+  <script src="config.js?v=15"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>
