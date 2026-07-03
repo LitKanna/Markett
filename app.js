@@ -157,7 +157,7 @@ function refreshSubmitPrice() {
   void submitBtn.offsetWidth;
   submitBtn.classList.add("bump");
 
-  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} pickup`;
+  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} &middot; $${bundle.price * qty}`;
 }
 
 document.querySelectorAll('input[name="bundle"], input[name="pickupDay"]').forEach((radio) => {
@@ -345,13 +345,11 @@ function applyPickup(pickup) {
   if (ctaSpan) ctaSpan.textContent = `Pickup ${dayText}`;
 
   // No pickup days: block the form politely
-  if (!enabledDays.length) {
-    submitBtn.disabled = true;
-    submitBtn.querySelector("#submit-label").textContent = "Bookings paused";
-  } else {
-    submitBtn.disabled = false;
-    submitBtn.querySelector("#submit-label").textContent = "Reserve my eggs";
-  }
+  const paused = !enabledDays.length;
+  const buyBtn = document.getElementById("buynow-btn");
+  submitBtn.disabled = paused;
+  if (buyBtn) buyBtn.disabled = paused;
+  submitBtn.querySelector("#submit-label").textContent = paused ? "Bookings paused" : "Reserve";
 }
 
 fetch(`${API_BASE}/api/settings`)
@@ -391,9 +389,8 @@ document.querySelectorAll("[data-bundle]").forEach((link) => {
   });
 });
 
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-
+// Validate the form and collect the booking; returns null after flagging errors
+function collectBooking() {
   const data = new FormData(form);
   const name = String(data.get("name") || "").trim();
   const phoneDigits = normaliseAuMobile(data.get("phone") || "");
@@ -401,46 +398,79 @@ form.addEventListener("submit", (event) => {
   const pickupDay = String(data.get("pickupDay") || "Saturday");
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const quantity = currentQuantity();
-  const total = bundle.price * quantity;
-  const orderLabel = describeOrder(bundleKey, quantity);
 
-  if (!name) return flagInvalid(document.getElementById("name"));
+  if (!name) {
+    flagInvalid(document.getElementById("name"));
+    return null;
+  }
   if (!isValidAuMobile(phoneDigits)) {
     phoneError.hidden = false;
-    return flagInvalid(phoneInput);
+    flagInvalid(phoneInput);
+    return null;
   }
-  const phone = formatAuMobile(phoneDigits);
 
+  return {
+    name,
+    phoneDigits,
+    phone: formatAuMobile(phoneDigits),
+    bundleKey,
+    pickupDay,
+    quantity,
+    total: bundle.price * quantity,
+    orderLabel: describeOrder(bundleKey, quantity),
+  };
+}
+
+function createOrder(b) {
+  return fetch(`${API_BASE}/api/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: b.name, phone: b.phoneDigits, bundle: b.bundleKey, pickupDay: b.pickupDay, quantity: b.quantity }),
+  })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => (d && d.id ? d.id : null))
+    .catch(() => null);
+}
+
+async function openCheckout(orderId, fallbackUrl) {
+  try {
+    if (!orderId) throw new Error("no order");
+    const res = await fetch(`${API_BASE}/api/checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId }),
+    });
+    const d = await res.json();
+    if (!d.url) throw new Error("checkout failed");
+    window.location.href = d.url;
+    return true;
+  } catch {
+    if (fallbackUrl) {
+      window.location.href = fallbackUrl;
+      return true;
+    }
+    return false;
+  }
+}
+
+function showConfirmation(b) {
   const message = [
     "Hi! I'd like to book eggs for pickup at Flemington.",
-    `Name: ${name}`,
-    `Phone: ${phone}`,
-    `Order: ${orderLabel}`,
-    `Pickup day: ${pickupDay}`,
-    `Total: $${total}`,
+    `Name: ${b.name}`,
+    `Phone: ${b.phone}`,
+    `Order: ${b.orderLabel}`,
+    `Pickup day: ${b.pickupDay}`,
+    `Total: $${b.total}`,
   ].join("\n");
   lastOrderMessage = message;
 
-  // Record the order so it shows in the admin dashboard,
-  // and remember its id for locked-amount online payment
-  lastOrderId = null;
-  fetch(`${API_BASE}/api/orders`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, phone: phoneDigits, bundle: bundleKey, pickupDay, quantity }),
-  })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((d) => { if (d && d.id) lastOrderId = d.id; })
-    .catch(() => {});
+  doneSummary.textContent = `Thanks ${b.name.split(" ")[0]}! Here are your pickup details.`;
+  receipt.name.textContent = b.name;
+  receipt.phone.textContent = b.phone;
+  receipt.order.textContent = b.orderLabel;
+  receipt.pickup.textContent = `${b.pickupDay} at Paddy's Markets Flemington`;
+  receipt.total.textContent = `$${b.total}`;
 
-  doneSummary.textContent = `Thanks ${name.split(" ")[0]}! Here are your pickup details.`;
-  receipt.name.textContent = name;
-  receipt.phone.textContent = phone;
-  receipt.order.textContent = orderLabel;
-  receipt.pickup.textContent = `${pickupDay} at Paddy's Markets Flemington`;
-  receipt.total.textContent = `$${total}`;
-
-  // WhatsApp deep link when a number is configured
   const number = String(config.whatsappNumber || "").replace(/\D/g, "");
   if (number) {
     whatsappLink.href = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
@@ -449,39 +479,56 @@ form.addEventListener("submit", (event) => {
     whatsappLink.hidden = true;
   }
 
-  // Online payment: locked-amount checkout created on demand,
-  // with the static payment link as fallback
-  const stripeUrl = config.stripeLinks && config.stripeLinks[bundleKey];
-  stripeLink.textContent = `Pay $${total} online now`;
+  const stripeUrl = config.stripeLinks && config.stripeLinks[b.bundleKey];
+  stripeLink.textContent = `Pay $${b.total} online for priority`;
   stripeLink.href = "#";
   stripeLink.hidden = false;
   document.getElementById("pay-perk").hidden = false;
   stripeLink.onclick = async (e) => {
     e.preventDefault();
     stripeLink.textContent = "Opening secure checkout…";
-    try {
-      if (!lastOrderId) throw new Error("no order id yet");
-      const res = await fetch(`${API_BASE}/api/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: lastOrderId }),
-      });
-      const d = await res.json();
-      if (!d.url) throw new Error("checkout failed");
-      window.location.href = d.url;
-    } catch {
-      if (stripeUrl) {
-        window.location.href = stripeUrl;
-      } else {
-        stripeLink.textContent = "Payment unavailable, pay on pickup";
-      }
-    }
+    const ok = await openCheckout(lastOrderId, stripeUrl);
+    if (!ok) stripeLink.textContent = "Payment unavailable, pay on pickup";
   };
 
   orderSection.hidden = true;
   doneSection.hidden = false;
   mobileCta.classList.remove("show");
   doneSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+}
+
+// Reserve: book now, pay at pickup
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const booking = collectBooking();
+  if (!booking) return;
+
+  lastOrderId = null;
+  createOrder(booking).then((id) => { lastOrderId = id; });
+  showConfirmation(booking);
+});
+
+// Buy now: book and go straight to payment
+const buynowBtn = document.getElementById("buynow-btn");
+const buynowLabel = document.getElementById("buynow-label");
+
+buynowBtn.addEventListener("click", async () => {
+  const booking = collectBooking();
+  if (!booking) return;
+
+  buynowBtn.disabled = true;
+  buynowLabel.textContent = "Opening checkout…";
+
+  const orderId = await createOrder(booking);
+  lastOrderId = orderId;
+  const fallback = config.stripeLinks && config.stripeLinks[booking.bundleKey];
+  const ok = await openCheckout(orderId, fallback);
+
+  if (!ok) {
+    buynowBtn.disabled = false;
+    buynowLabel.textContent = "Buy now";
+    showConfirmation(booking);
+  }
 });
 
 copyButton.addEventListener("click", async () => {

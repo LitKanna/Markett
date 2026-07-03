@@ -690,6 +690,26 @@ h1, h2, h3 {
   color: rgba(253, 248, 239, 0.85);
 }
 
+/* Reserve / Buy now actions */
+.cta-row {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 10px;
+}
+
+.cta-row .btn { gap: 8px; padding-inline: 14px; }
+
+.btn-reserve {
+  background: rgba(253, 248, 239, 0.1);
+  color: var(--cream);
+  border-color: rgba(253, 248, 239, 0.35);
+}
+
+.btn-reserve:hover {
+  background: rgba(253, 248, 239, 0.16);
+  border-color: var(--yolk);
+}
+
 .field label {
   font-size: 13px;
   font-weight: 800;
