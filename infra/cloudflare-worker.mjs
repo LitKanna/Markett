@@ -578,7 +578,8 @@ async function loadOrders() {
 function actionButtons(o) {
   const btn = (status, label, cls) => '<button class="' + cls + '" onclick="setStatus(\\'' + o.id + '\\',\\'' + status + '\\')">' + label + '</button>';
   if (o.status === "new") return btn("confirmed", "Confirm", "") + btn("cancelled", "Cancel", "danger");
-  if (o.status === "confirmed") return btn("done", "Picked up", "") + btn("cancelled", "Cancel", "danger");
+  if (o.status === "confirmed") return btn("done", "Picked up", "") + btn("new", "Unconfirm", "ghost") + btn("cancelled", "Cancel", "danger");
+  if (o.status === "done") return btn("confirmed", "Undo pickup", "ghost") + btn("cancelled", "Cancel", "danger");
   return btn("new", "Reopen", "ghost");
 }
 
