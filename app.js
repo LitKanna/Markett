@@ -152,7 +152,7 @@ function refreshSubmitPrice() {
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const qty = currentQuantity();
 
-  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} &middot; $${bundle.price * qty}`;
+  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} ${nextPickupDate(currentPickupDay())} &middot; $${bundle.price * qty}`;
   orderSummary.classList.remove("bump");
   void orderSummary.offsetWidth;
   orderSummary.classList.add("bump");
@@ -291,6 +291,19 @@ function formatTime(hhmm) {
 }
 
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAY_INDEX = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// Next pickup date for a weekday, Sydney time, always at least tomorrow.
+// Booking today for today isn't possible; orders roll to the next market day.
+function nextPickupDate(dayName) {
+  const sydneyNow = new Date(Date.now() + 10 * 3600 * 1000);
+  const todayIdx = sydneyNow.getUTCDay();
+  let ahead = (DAY_INDEX[dayName] - todayIdx + 7) % 7;
+  if (ahead === 0) ahead = 7;
+  const d = new Date(sydneyNow.getTime() + ahead * 86400 * 1000);
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+}
 const DAY_BEFORE = {
   Monday: "Sunday", Tuesday: "Monday", Wednesday: "Tuesday", Thursday: "Wednesday",
   Friday: "Thursday", Saturday: "Friday", Sunday: "Saturday",
@@ -304,20 +317,20 @@ function applyPickup(pickup) {
   const enabledDays = WEEK_DAYS.filter((d) => pickup[d]?.enabled);
   const previousChoice = currentPickupDay();
 
-  // Day cards in the pickup section
+  // Day cards in the pickup section, with the actual next date
   const cardsBox = document.querySelector(".day-cards");
   if (cardsBox) {
     cardsBox.innerHTML = enabledDays.map((day) => {
       const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
       return `<article class="day-card">
-        <p class="day-name">${day}</p>
+        <p class="day-name">${day} ${nextPickupDate(day)}</p>
         <p class="day-time">${hours}</p>
         <p class="day-note">Book by ${DAY_BEFORE[day]} night</p>
       </article>`;
     }).join("") || `<article class="day-card"><p class="day-name">Paused</p><p class="day-time">Back soon</p><p class="day-note">Check again Wednesday</p></article>`;
   }
 
-  // Booking form day segments
+  // Booking form day segments, dated
   const seg = document.getElementById("day-seg");
   if (seg) {
     const pick = enabledDays.includes(previousChoice) ? previousChoice : enabledDays[enabledDays.length - 1];
@@ -325,7 +338,7 @@ function applyPickup(pickup) {
       const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
       return `<label class="seg-opt">
         <input type="radio" name="pickupDay" value="${day}"${day === pick ? " checked" : ""}>
-        <span class="seg-day">${day}</span>
+        <span class="seg-day">${day} ${nextPickupDate(day)}</span>
         <span class="seg-hours">${hours}</span>
       </label>`;
     }).join("");
@@ -433,6 +446,7 @@ function collectBooking() {
     phone: formatAuMobile(phoneDigits),
     bundleKey,
     pickupDay,
+    pickupDate: nextPickupDate(pickupDay),
     quantity,
     total: bundle.price * quantity,
     orderLabel: describeOrder(bundleKey, quantity),
@@ -443,7 +457,7 @@ function createOrder(b) {
   return fetch(`${API_BASE}/api/orders`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: b.name, phone: b.phoneDigits, bundle: b.bundleKey, pickupDay: b.pickupDay, quantity: b.quantity }),
+    body: JSON.stringify({ name: b.name, phone: b.phoneDigits, bundle: b.bundleKey, pickupDay: b.pickupDay, pickupDate: b.pickupDate, quantity: b.quantity }),
   })
     .then((r) => (r.ok ? r.json() : null))
     .then((d) => (d && d.id ? d.id : null))
@@ -477,7 +491,7 @@ function showConfirmation(b) {
     `Name: ${b.name}`,
     `Phone: ${b.phone}`,
     `Order: ${b.orderLabel}`,
-    `Pickup day: ${b.pickupDay}`,
+    `Pickup: ${b.pickupDay} ${b.pickupDate}`,
     `Total: $${b.total}`,
   ].join("\n");
   lastOrderMessage = message;
@@ -486,7 +500,7 @@ function showConfirmation(b) {
   receipt.name.textContent = b.name;
   receipt.phone.textContent = b.phone;
   receipt.order.textContent = b.orderLabel;
-  receipt.pickup.textContent = `${b.pickupDay} at Paddy's Markets Flemington`;
+  receipt.pickup.textContent = `${b.pickupDay} ${b.pickupDate} at Paddy's Markets Flemington`;
   receipt.total.textContent = `$${b.total}`;
 
   const number = String(config.whatsappNumber || "").replace(/\D/g, "");
