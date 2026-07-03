@@ -97,10 +97,24 @@ h1, h2, h3 {
 .brand-mark { font-size: 26px; }
 
 .brand-name {
+  display: flex;
+  flex-direction: column;
   font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 21px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+.brand-sub {
+  font-family: var(--font-body);
+  font-style: normal;
   font-weight: 700;
-  font-size: 15px;
-  line-height: 1.05;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amber-dark);
+  margin-top: 3px;
 }
 
 .topnav { display: flex; gap: 22px; margin-left: auto; }

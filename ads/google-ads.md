@@ -53,7 +53,7 @@ easter, chocolate, recipe, benedict, protein powder, incubator, chicken coop
 Before paying for ads, create a free Google Business Profile
 (business.google.com):
 
-- Name: Flemington Eggs
+- Name: YOLKO
 - Category: Food products supplier
 - Area: Flemington NSW and surrounds
 - Hours: Friday 10:00–16:30, Saturday 06:00–14:00
