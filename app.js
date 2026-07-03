@@ -108,6 +108,18 @@ function eggCount(bundleKey) {
   return bundleKey === "box" ? 180 : bundleKey === "tray2" ? 60 : 30;
 }
 
+// Human-clear order description: "20 trays (600 eggs)", "3 full boxes (540 eggs)"
+function describeOrder(bundleKey, qty) {
+  const eggs = (eggCount(bundleKey) * qty).toLocaleString("en-AU");
+  if (bundleKey === "box") {
+    return qty === 1
+      ? `Full box (6 trays, 180 eggs)`
+      : `${qty} full boxes (${eggs} eggs)`;
+  }
+  const trays = (bundleKey === "tray2" ? 2 : 1) * qty;
+  return trays === 1 ? `1 tray (30 eggs)` : `${trays} trays (${eggs} eggs)`;
+}
+
 function refreshSubmitPrice() {
   const bundle = BUNDLES[bundleSelect.value] || BUNDLES.tray1;
   const qty = currentQuantity();
@@ -116,9 +128,8 @@ function refreshSubmitPrice() {
   void submitBtn.offsetWidth;
   submitBtn.classList.add("bump");
 
-  const eggs = eggCount(bundleSelect.value) * qty;
   if (qty > 1) {
-    bulkHint.textContent = `That's ${eggs} eggs in total.`;
+    bulkHint.textContent = `That's ${describeOrder(bundleSelect.value, qty)}.`;
     bulkHint.hidden = false;
   } else {
     bulkHint.hidden = true;
@@ -351,9 +362,7 @@ form.addEventListener("submit", (event) => {
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const quantity = currentQuantity();
   const total = bundle.price * quantity;
-  const orderLabel = quantity > 1
-    ? `${quantity} × ${bundle.label} (${eggCount(bundleKey) * quantity} eggs)`
-    : bundle.label;
+  const orderLabel = describeOrder(bundleKey, quantity);
 
   if (!name) return flagInvalid(document.getElementById("name"));
   if (!isValidAuMobile(phoneDigits)) {

@@ -320,7 +320,14 @@ tr:last-child td { border-bottom:0; }
 const $ = (id) => document.getElementById(id);
 let KEY = localStorage.getItem("yolko_admin_key") || "";
 
-const BUNDLE_LABELS = { tray1: "1 tray (30)", tray2: "2 trays (60)", box: "Box (180)" };
+function describeOrder(bundle, qty) {
+  qty = qty || 1;
+  if (bundle === "box") {
+    return qty === 1 ? "1 box (180 eggs)" : qty + " boxes (" + (180 * qty).toLocaleString() + " eggs)";
+  }
+  const trays = (bundle === "tray2" ? 2 : 1) * qty;
+  return trays === 1 ? "1 tray (30 eggs)" : trays + " trays (" + (30 * trays).toLocaleString() + " eggs)";
+}
 
 function authHeaders() { return { "Authorization": "Bearer " + KEY, "Content-Type": "application/json" }; }
 
@@ -367,7 +374,7 @@ async function loadOrders() {
     "<td>" + fmtTime(o.createdAt) + "</td>" +
     "<td>" + escapeHtml(o.name) + "</td>" +
     "<td><a href='tel:" + o.phone + "'>" + o.phone.replace(/(\\d{4})(\\d{3})(\\d{3})/, "$1 $2 $3") + "</a></td>" +
-    "<td>" + ((o.quantity || 1) > 1 ? (o.quantity + " × ") : "") + (BUNDLE_LABELS[o.bundle] || o.bundle) + "</td>" +
+    "<td>" + describeOrder(o.bundle, o.quantity) + "</td>" +
     "<td class='hide-sm'>" + o.pickupDay + "</td>" +
     "<td><b>$" + o.price + "</b></td>" +
     "<td><span class='pill " + o.status + "'>" + o.status + "</span>" + (o.paymentStatus === "paid" ? " <span class='pill done'>💳 paid</span>" : "") + "</td>" +
