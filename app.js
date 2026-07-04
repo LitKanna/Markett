@@ -252,7 +252,7 @@ function applyTrayImages(weight) {
   const tag = weight === "1.5" ? "150" : "175";
   const sizeLabel = weight === "1.5" ? "1.5kg large" : "1.75kg extra large";
   const base = `pace-tray-${tag}kg`;
-  const alt = `Pace Farm ${sizeLabel} cage egg tray — 30 eggs, sealed and labelled`;
+  const alt = `Pace Farm ${sizeLabel} cage egg tray — 30 eggs in a 6×5 tray, sealed and labelled`;
 
   const heroImg = document.querySelector(".hero-photo img");
   const heroWebp = document.querySelector(".hero-photo source");
