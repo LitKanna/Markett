@@ -10,7 +10,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="YOLKO: 30 Eggs for $12 at Flemington Markets">
   <meta property="og:description" content="Book online, pick up Friday or Saturday at Paddy's Markets Flemington. 1 tray $12, 2 trays $23, full box $66.">
-  <meta property="og:image" content="https://getyolko.com/assets/market-sign.png?v=47">
+  <meta property="og:image" content="https://getyolko.com/assets/market-sign.png?v=48">
   <meta property="og:url" content="https://getyolko.com/">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=47">
+  <link rel="stylesheet" href="styles.css?v=48">
 
   <script type="application/ld+json">
   {
@@ -34,7 +34,7 @@
         "description": "Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.",
         "url": "https://getyolko.com/",
         "telephone": "+61433975055",
-        "image": "https://getyolko.com/assets/market-sign.png?v=47",
+        "image": "https://getyolko.com/assets/market-sign.png?v=48",
         "priceRange": "$$",
         "address": {
           "@type": "PostalAddress",
@@ -79,7 +79,7 @@
         "name": "Fresh Egg Tray (30 eggs)",
         "brand": { "@type": "Brand", "name": "Pace Farm" },
         "description": "Tray of 30 fresh Pace Farm eggs for pickup at Paddy's Markets Flemington on Friday or Saturday.",
-        "image": "https://getyolko.com/assets/market-sign.png?v=47",
+        "image": "https://getyolko.com/assets/market-sign.png?v=48",
         "offers": {
           "@type": "Offer",
           "price": "12.00",
@@ -201,17 +201,41 @@
                 <span class="tray-head-brand">YOLKO</span>
                 <span class="tray-head-pickup">Flemington · Fri &amp; Sat</span>
               </header>
-              <div class="tray-grid" aria-hidden="true">
-                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
-                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
-                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
-                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
-                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+              <div class="tray-body">
+                <div class="tray-grid" id="hero-tray-grid"></div>
+                <aside class="tray-label" aria-label="Tray label">
+                  <div class="tray-label-top">
+                    <span class="tray-label-brand">YOLKO</span>
+                    <span class="tray-label-origin">Product of Australia</span>
+                  </div>
+                  <div class="tray-label-product">
+                    <p class="tray-label-title">30 XL CAGE EGGS</p>
+                    <p class="tray-label-weight">Min <span id="tray-label-weight">1.75</span>kg net · 6&times;5 tray</p>
+                  </div>
+                  <div class="tray-label-nutri">
+                    <p class="nutri-head">Nutrition information</p>
+                    <p class="nutri-meta">Servings per package: 30 · Serving size: 52g (1 egg)</p>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col"></th>
+                          <th scope="col">Per serve</th>
+                          <th scope="col">Per 100g</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><th scope="row">Energy</th><td>336kJ</td><td>647kJ</td></tr>
+                        <tr><th scope="row">Protein</th><td>6.6g</td><td>12.7g</td></tr>
+                        <tr><th scope="row">Fat, total</th><td>5.8g</td><td>11.2g</td></tr>
+                        <tr><th scope="row">– saturated</th><td>1.6g</td><td>3.3g</td></tr>
+                        <tr><th scope="row">Carbohydrate</th><td>0.2g</td><td>0.7g</td></tr>
+                        <tr><th scope="row">Sodium</th><td>70mg</td><td>134mg</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="tray-label-foot">Pace Farm · Fresh wholesale tray · getyolko.com</p>
+                </aside>
               </div>
-              <footer class="tray-foot">
-                <span class="tray-count">30</span>
-                <span class="tray-foot-text">fresh XL eggs · Pace Farm · <span id="tray-label-weight">1.75kg</span></span>
-              </footer>
             </div>
           </div>
           <figcaption class="photo-badge">
@@ -331,14 +355,8 @@
           <h2>Book your eggs</h2>
           <p>Reserve now, trays run out most weeks. We'll confirm your booking the same day.</p>
           <div class="order-tray-note">
-            <div class="order-tray-mini" aria-hidden="true">
-              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
-              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
-              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
-              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
-              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
-            </div>
-            <p><strong>30 eggs</strong> per tray · sealed Pace Farm wholesale tray</p>
+            <div class="order-tray-mini" id="order-tray-grid" aria-hidden="true"></div>
+            <p><strong>30 eggs</strong> per tray · 6&times;5 sealed Pace Farm wholesale tray</p>
           </div>
         </div>
 

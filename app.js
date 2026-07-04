@@ -6,6 +6,28 @@ const BUNDLES = {
 
 const config = typeof SITE_CONFIG === "object" && SITE_CONFIG !== null ? SITE_CONFIG : {};
 
+const TRAY_EGG_COUNT = 30;
+const TRAY_COLS = 6;
+const TRAY_ROWS = 5;
+
+function buildTrayGrid(container) {
+  if (!container || container.dataset.built === "true") return;
+  container.replaceChildren();
+  for (let i = 0; i < TRAY_EGG_COUNT; i++) {
+    const egg = document.createElement("span");
+    egg.className = "egg";
+    container.appendChild(egg);
+  }
+  container.dataset.built = "true";
+}
+
+function initTrayGrids() {
+  buildTrayGrid(document.getElementById("hero-tray-grid"));
+  buildTrayGrid(document.getElementById("order-tray-grid"));
+}
+
+initTrayGrids();
+
 const form = document.getElementById("order-form");
 const doneSection = document.getElementById("done");
 const doneSummary = document.getElementById("done-summary");
@@ -250,7 +272,7 @@ const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://gety
 
 function applyTraySpec(weight) {
   const label = document.getElementById("tray-label-weight");
-  if (label) label.textContent = `${weight}kg`;
+  if (label) label.textContent = weight;
 }
 
 function applySettings(settings) {

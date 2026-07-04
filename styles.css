@@ -287,7 +287,6 @@ h1, h2, h3 {
 .hero-tray:hover .tray-visual { transform: rotate(0deg) scale(1.01); }
 
 .tray-frame {
-  background: linear-gradient(165deg, #f8fbfd 0%, #e8eef4 55%, #d4dde8 100%);
   border: 2px solid rgba(36, 20, 7, 0.08);
   border-radius: var(--r-lg);
   overflow: hidden;
@@ -319,11 +318,17 @@ h1, h2, h3 {
   opacity: 0.72;
 }
 
+.tray-body {
+  position: relative;
+  padding: 16px 14px 18px;
+  background: linear-gradient(165deg, #f8fbfd 0%, #e8eef4 55%, #d4dde8 100%);
+}
+
 .tray-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 7px;
-  padding: 18px 16px 14px;
+  grid-template-rows: repeat(5, 1fr);
+  gap: 6px;
 }
 
 .tray-grid .egg {
@@ -337,36 +342,140 @@ h1, h2, h3 {
     0 2px 5px rgba(36, 20, 7, 0.1);
 }
 
-.tray-foot {
+.tray-label {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  transform: translate(-50%, -50%);
+  width: min(84%, 292px);
+  background: var(--white);
+  border-radius: 12px;
+  border: 1px solid rgba(36, 20, 7, 0.1);
+  box-shadow:
+    0 10px 32px rgba(36, 20, 7, 0.16),
+    0 2px 6px rgba(36, 20, 7, 0.08);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.tray-label-top {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 18px 16px;
-  background: var(--white);
-  border-top: 1px solid var(--line);
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--ink);
+  color: var(--cream);
 }
 
-.tray-count {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: var(--amber);
-  color: var(--white);
+.tray-label-brand {
   font-family: var(--font-head);
-  font-size: 28px;
+  font-size: 17px;
   font-weight: 800;
-  line-height: 1;
-  box-shadow: 0 4px 14px rgba(217, 122, 41, 0.35);
+  letter-spacing: 0.06em;
+  color: var(--yolk);
 }
 
-.tray-foot-text {
-  font-size: 14px;
+.tray-label-origin {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  text-align: right;
+  line-height: 1.25;
+}
+
+.tray-label-product {
+  padding: 12px 14px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.tray-label-title {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.tray-label-weight {
+  margin: 4px 0 0;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--ink-soft);
+  letter-spacing: 0.02em;
+}
+
+.tray-label-nutri {
+  padding: 10px 14px 8px;
+}
+
+.nutri-head {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.nutri-meta {
+  margin: 0 0 8px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--ink-soft);
   line-height: 1.35;
+}
+
+.tray-label-nutri table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+.tray-label-nutri th,
+.tray-label-nutri td {
+  padding: 2px 0;
+  text-align: left;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.tray-label-nutri thead th {
+  font-size: 8.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+
+.tray-label-nutri thead th:not(:first-child),
+.tray-label-nutri tbody td {
+  text-align: right;
+  width: 26%;
+}
+
+.tray-label-nutri tbody th {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.tray-label-foot {
+  margin: 0;
+  padding: 8px 14px 10px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-align: center;
+  color: var(--ink-soft);
+  background: var(--cream-2);
+  border-top: 1px solid var(--line);
 }
 
 .order-tray-note {
@@ -376,6 +485,7 @@ h1, h2, h3 {
 .order-tray-mini {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(5, 1fr);
   gap: 4px;
   max-width: 220px;
   margin-bottom: 14px;
@@ -1497,4 +1607,10 @@ section { scroll-margin-top: 84px; }
   .day-cards { grid-template-columns: 1fr; }
   .hero-cta .btn { width: 100%; }
   .done-actions .btn { width: 100%; }
+
+  .tray-label { width: min(88%, 268px); }
+  .tray-label-title { font-size: 16px; }
+  .tray-label-nutri table { font-size: 8px; }
+  .tray-body { padding: 12px 10px 14px; }
+  .tray-grid { gap: 4px; }
 }
