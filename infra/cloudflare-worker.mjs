@@ -826,7 +826,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=300, must-revalidate",
-        "X-Yolko-Build": "52",
+        "X-Yolko-Build": "54",
       },
     });
   },
