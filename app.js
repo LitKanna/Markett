@@ -248,6 +248,35 @@ if (Number.isFinite(traysLeft) && traysLeft > 0) {
 /* ---------- Live prices and stock from the shop API ---------- */
 const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://getyolko.com";
 
+function applyTrayImages(weight) {
+  const tag = weight === "1.5" ? "150" : "175";
+  const sizeLabel = weight === "1.5" ? "1.5kg large" : "1.75kg extra large";
+  const base = `pace-tray-${tag}kg`;
+  const alt = `Pace Farm sealed ${sizeLabel} tray — 30 eggs, labelled`;
+
+  const heroImg = document.querySelector(".hero-photo img");
+  const heroWebp = document.querySelector(".hero-photo source");
+  if (heroImg) {
+    heroImg.src = `assets/${base}-1400.jpg`;
+    heroImg.srcset = `assets/${base}-700.jpg 700w, assets/${base}-1400.jpg 1400w`;
+    heroImg.alt = alt;
+  }
+  if (heroWebp) {
+    heroWebp.srcset = `assets/${base}-700.webp 700w, assets/${base}-1400.webp 1400w`;
+  }
+
+  const orderImg = document.querySelector(".order-photo");
+  const orderWebp = orderImg?.closest("picture")?.querySelector("source");
+  if (orderImg) {
+    orderImg.src = `assets/${base}-1080.jpg`;
+    orderImg.srcset = `assets/${base}-540.jpg 540w, assets/${base}-1080.jpg 1080w`;
+    orderImg.alt = alt;
+  }
+  if (orderWebp) {
+    orderWebp.srcset = `assets/${base}-540.webp 540w, assets/${base}-1080.webp 1080w`;
+  }
+}
+
 function applySettings(settings) {
   const p = settings.prices || {};
   if (p.tray1) BUNDLES.tray1.price = p.tray1;
@@ -313,6 +342,7 @@ function applySettings(settings) {
   if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
   if (faqEggs) faqEggs.textContent = `Pace Farm ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
+  applyTrayImages(weight);
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);

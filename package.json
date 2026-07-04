@@ -1,0 +1,23 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "One-page marketing site for selling fresh egg trays with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LitKanna/Markett.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LitKanna/Markett/issues"
+  },
+  "homepage": "https://github.com/LitKanna/Markett#readme",
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}
