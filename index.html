@@ -16,6 +16,7 @@
 
   <meta name="theme-color" content="#fdf8ef">
   <link rel="canonical" href="https://getyolko.com/">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,17 +26,108 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Product",
-    "name": "Fresh Egg Tray (30 eggs)",
-    "description": "Tray of 30 fresh Pace Farm eggs for pickup at Paddy's Markets Flemington on Friday or Saturday.",
-    "image": "https://getyolko.com/assets/pace-tray-175kg-1080.jpg",
-    "offers": {
-      "@type": "Offer",
-      "price": "12.00",
-      "priceCurrency": "AUD",
-      "availability": "https://schema.org/InStock",
-      "areaServed": "Flemington NSW 2129"
-    }
+    "@graph": [
+      {
+        "@type": "LocalBusiness",
+        "@id": "https://getyolko.com/#business",
+        "name": "YOLKO",
+        "description": "Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.",
+        "url": "https://getyolko.com/",
+        "telephone": "+61433975055",
+        "image": "https://getyolko.com/assets/pace-tray-175kg-1080.jpg",
+        "priceRange": "$$",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Building D, Sydney Markets, 250 Parramatta Road",
+          "addressLocality": "Flemington",
+          "addressRegion": "NSW",
+          "postalCode": "2129",
+          "addressCountry": "AU"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": -33.8686,
+          "longitude": 151.0695
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": "Friday",
+            "opens": "10:00",
+            "closes": "16:30"
+          },
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": "Saturday",
+            "opens": "06:00",
+            "closes": "14:00"
+          }
+        ],
+        "areaServed": {
+          "@type": "GeoCircle",
+          "geoMidpoint": {
+            "@type": "GeoCoordinates",
+            "latitude": -33.8686,
+            "longitude": 151.0695
+          },
+          "geoRadius": "15000"
+        }
+      },
+      {
+        "@type": "Product",
+        "@id": "https://getyolko.com/#product-tray",
+        "name": "Fresh Egg Tray (30 eggs)",
+        "brand": { "@type": "Brand", "name": "Pace Farm" },
+        "description": "Tray of 30 fresh Pace Farm eggs for pickup at Paddy's Markets Flemington on Friday or Saturday.",
+        "image": "https://getyolko.com/assets/pace-tray-175kg-1080.jpg",
+        "offers": {
+          "@type": "Offer",
+          "price": "12.00",
+          "priceCurrency": "AUD",
+          "availability": "https://schema.org/InStock",
+          "url": "https://getyolko.com/#order",
+          "areaServed": "Flemington NSW 2129"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://getyolko.com/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Where exactly do I pick up?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Paddy's Markets Flemington, Building D at Sydney Markets, 250 Parramatta Road, Flemington NSW 2129. We send the exact meeting spot with your confirmation."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I pay?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Cash or card on pickup, or pay online when you book. Prepaid orders get priority: they're packed first and guaranteed even on sold-out weeks."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What eggs are they?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Pace Farm extra large eggs, 30 to a tray (1.75kg). Same brand as the big shops, better price."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I order in bulk for my café or stall?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Choose Full box and set how many you need, up to 10 boxes (1,800 eggs). Weekly business orders get their stock put aside first."
+            }
+          }
+        ]
+      }
+    ]
   }
   </script>
 </head>
@@ -416,7 +508,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=38"></script>
-  <script src="app.js?v=38"></script>
+  <script src="config.js?v=39"></script>
+  <script src="app.js?v=39"></script>
 </body>
 </html>
