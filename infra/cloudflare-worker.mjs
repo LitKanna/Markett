@@ -1,6 +1,6 @@
-// Serve the site straight from the repository's main branch so the domain
-// never depends on GitHub Pages deployments.
-const UPSTREAM = "https://raw.githubusercontent.com/LitKanna/Markett/main";
+// HTML/CSS/JS from jsDelivr (fresh within minutes); binary assets from GitHub raw.
+const UPSTREAM_LIVE = "https://cdn.jsdelivr.net/gh/LitKanna/Markett@main";
+const UPSTREAM_ASSETS = "https://raw.githubusercontent.com/LitKanna/Markett/main";
 
 const MIME = {
   html: "text/html; charset=utf-8",
@@ -810,9 +810,11 @@ export default {
     const ext = path.includes(".") ? path.split(".").pop().toLowerCase() : "html";
     if (!path.includes(".")) path += ".html";
 
-    const upstreamResp = await fetch(UPSTREAM + path, {
+    const live = ext === "html" || ext === "css" || ext === "js";
+    const upstreamBase = live ? UPSTREAM_LIVE : UPSTREAM_ASSETS;
+    const upstreamResp = await fetch(upstreamBase + path, {
       headers: { "User-Agent": "yolko-edge" },
-      cf: { cacheTtl: 60, cacheEverything: true },
+      cf: live ? { cacheTtl: 0 } : { cacheTtl: 300, cacheEverything: true },
     });
 
     if (!upstreamResp.ok) {
@@ -824,6 +826,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=300, must-revalidate",
+        "X-Yolko-Build": "51",
       },
     });
   },
