@@ -248,11 +248,6 @@ if (Number.isFinite(traysLeft) && traysLeft > 0) {
 /* ---------- Live prices and stock from the shop API ---------- */
 const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://getyolko.com";
 
-function applyTraySpec(weight) {
-  const label = document.getElementById("tray-label-weight");
-  if (label) label.textContent = weight;
-}
-
 function applySettings(settings) {
   const p = settings.prices || {};
   if (p.tray1) BUNDLES.tray1.price = p.tray1;
@@ -318,7 +313,6 @@ function applySettings(settings) {
   if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
   if (faqEggs) faqEggs.textContent = `Pace Farm cage ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
-  applyTraySpec(weight);
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
