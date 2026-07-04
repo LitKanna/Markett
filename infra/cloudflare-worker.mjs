@@ -812,7 +812,8 @@ export default {
 
     const live = ext === "html" || ext === "css" || ext === "js";
     const upstreamBase = live ? UPSTREAM_LIVE : UPSTREAM_ASSETS;
-    const upstreamResp = await fetch(upstreamBase + path, {
+    const bust = live ? `?_${Date.now()}` : "";
+    const upstreamResp = await fetch(upstreamBase + path + bust, {
       headers: { "User-Agent": "yolko-edge" },
       cf: { cacheTtl: 0 },
     });
