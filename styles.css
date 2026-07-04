@@ -284,13 +284,23 @@ h1, h2, h3 {
   transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
   will-change: transform;
   overflow: hidden;
+  background: var(--white);
+  border: 2px solid var(--line);
 }
 
-.tray-photo,
-.tray-photo img {
+.tray-photo {
   display: block;
   width: 100%;
   border-radius: var(--r-lg);
+}
+
+.tray-caption {
+  margin: 12px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-align: center;
+  letter-spacing: 0.02em;
 }
 
 .hero-tray:hover .tray-visual { transform: rotate(0deg) scale(1.01); }
@@ -301,18 +311,15 @@ h1, h2, h3 {
 
 .order-tray-photo {
   display: block;
+  width: 100%;
   max-width: 220px;
+  height: auto;
   margin-bottom: 14px;
   border-radius: var(--r-md);
-  overflow: hidden;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   box-shadow: var(--shadow-sm);
   transform: rotate(-1.4deg);
-}
-
-.order-tray-photo img {
-  display: block;
-  width: 100%;
+  background: var(--white);
 }
 
 .order-tray-note p {
