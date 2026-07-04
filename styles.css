@@ -279,20 +279,24 @@ h1, h2, h3 {
   position: relative;
   border-radius: var(--r-lg);
   overflow: hidden;
-  background: var(--cream-2);
+  background: #c4722a;
   box-shadow:
-    0 0 0 1px rgba(217, 122, 41, 0.14),
-    0 28px 64px rgba(36, 20, 7, 0.12);
+    0 0 0 1px rgba(217, 122, 41, 0.22),
+    0 28px 64px rgba(36, 20, 7, 0.16);
 }
 
 .showcase-photo {
   display: block;
   margin: 0;
+  line-height: 0;
 }
 
 .showcase-photo img {
   width: 100%;
   display: block;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  object-position: center 46%;
 }
 
 .showcase-price {
