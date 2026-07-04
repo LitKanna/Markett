@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Export responsive tray images from the creative modern-label hero master."""
+"""Export responsive tray images from the Farm Fresh modern-label hero master.
+
+Label reference (researched Jul 2026):
+- Pace Farm "Farm Fresh" line: red/yellow label, purple panel, 30 XL CAGE EGGS, 1.75kg
+- Woolworths SKU 92940 (12 XL caged) shows current retail branding
+- NOT the older white "the enjoyable egg" / poached-egg 1.5kg sticker (SKU 701985)
+"""
 
 from __future__ import annotations
 
@@ -19,11 +25,6 @@ DIMENSIONS = {
 }
 
 
-def save_pair(img: Image.Image, base: Path) -> None:
-    img.save(base.with_suffix(".jpg"), "JPEG", quality=90, optimize=True, progressive=True)
-    img.save(base.with_suffix(".webp"), "WEBP", quality=86, method=6)
-
-
 def fit(img: Image.Image, size: tuple[int, int]) -> Image.Image:
     tw, th = size
     scale = max(tw / img.width, th / img.height)
@@ -31,6 +32,11 @@ def fit(img: Image.Image, size: tuple[int, int]) -> Image.Image:
     left = (resized.width - tw) // 2
     top = (resized.height - th) // 2
     return resized.crop((left, top, left + tw, top + th))
+
+
+def save_pair(img: Image.Image, base: Path) -> None:
+    img.save(base.with_suffix(".jpg"), "JPEG", quality=92, optimize=True, progressive=True)
+    img.save(base.with_suffix(".webp"), "WEBP", quality=88, method=6)
 
 
 def main() -> None:
