@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Clean product shots: real wholesale tray on warm cream — no compositing hacks."""
+"""Clean product shots: real wholesale tray on warm cream — label patched to 1.75kg."""
 
 from __future__ import annotations
 
+import random
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
 SRC = ASSETS / "references" / "wool-701985-alt.jpg"
+FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
 SIZES = {
     "1400": (1400, 933),
@@ -17,6 +19,63 @@ SIZES = {
     "700": (700, 467),
     "540": (540, 360),
 }
+
+
+def sample_label_white(img: Image.Image, y0: int, y1: int) -> tuple[int, int, int]:
+    w, _ = img.size
+    pts: list[tuple[int, int, int]] = []
+    for x in range(int(w * 0.40), int(w * 0.62)):
+        for y in range(y0 - 12, y1 + 12):
+            if y < 0:
+                continue
+            r, g, b = img.getpixel((x, y))
+            if r > 200 and g > 198 and b > 193 and abs(r - g) < 8:
+                pts.append((r, g, b))
+    if not pts:
+        return (248, 246, 242)
+    return tuple(int(sum(p[i] for p in pts) / len(pts)) for i in range(3))
+
+
+def patch_label_175kg(img: Image.Image) -> Image.Image:
+    """Replace min 1.5kg with min 1.75kg on the wholesale label."""
+    w, h = img.size
+    px0 = int(w * 0.518)
+    px1 = int(w * 0.638)
+    py0 = int(h * 0.792)
+    py1 = int(h * 0.836)
+    pw, ph = px1 - px0, py1 - py0
+
+    bg = sample_label_white(img, py0, py1)
+    patch = Image.new("RGB", (pw, ph), bg)
+    px = patch.load()
+    r0, g0, b0 = bg
+    random.seed(11)
+    for y in range(ph):
+        for x in range(pw):
+            d = random.randint(-2, 2)
+            px[x, y] = (
+                max(0, min(255, r0 + d)),
+                max(0, min(255, g0 + d)),
+                max(0, min(255, b0 + d)),
+            )
+
+    mask = Image.new("L", (pw, ph), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, pw, ph), radius=4, fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(2))
+
+    out = img.copy()
+    out.paste(patch, (px0, py0), mask)
+
+    draw = ImageDraw.Draw(out)
+    size = max(12, int(w * 0.0182))
+    font = ImageFont.truetype(FONT, size)
+    text = "min 1.75kg"
+    bbox = draw.textbbox((0, 0), text, font=font)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    tx = px1 - tw - int(w * 0.005)
+    ty = py0 + (ph - th) // 2
+    draw.text((tx, ty), text, fill=(48, 48, 48), font=font)
+    return out
 
 
 def warm_canvas(w: int, h: int) -> Image.Image:
@@ -47,10 +106,10 @@ def save_pair(img: Image.Image, base: Path) -> None:
 
 
 def main() -> None:
-    src = Image.open(SRC).convert("RGB")
+    src = patch_label_175kg(Image.open(SRC).convert("RGB"))
     for name, size in SIZES.items():
         save_pair(fit_tray(src, size), ASSETS / f"tray-product-{name}")
-    print("exported tray-product-* (real wholesale photo, no composite)")
+    print("exported tray-product-* (real wholesale photo, 1.75kg label)")
 
 
 if __name__ == "__main__":
