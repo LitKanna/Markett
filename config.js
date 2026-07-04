@@ -3,7 +3,7 @@
 
 const SITE_CONFIG = {
   // Bump when site assets change — forces browsers to fetch fresh files.
-  assetVersion: "57",
+  assetVersion: "58",
 
   // Your WhatsApp number in international format, digits only.
   // Example for an Australian mobile 0412 345 678: "61412345678"
