@@ -334,23 +334,28 @@ h1, h2, h3 {
   letter-spacing: 0.01em;
 }
 
-.order-tray-note { margin-top: 4px; }
+.order-tray-note {
+  margin-top: 8px;
+  display: grid;
+  gap: 14px;
+}
 
 .order-tray-photo {
   display: block;
-  width: fit-content;
-  max-width: 260px;
-  margin-bottom: 14px;
+  width: min(360px, 100%);
+  margin: 0;
   border-radius: var(--r-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  line-height: 0;
 }
 
 .order-tray-photo img {
   display: block;
-  width: 260px;
-  max-width: 100%;
+  width: 100%;
   height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
 }
 
 .order-tray-note p {

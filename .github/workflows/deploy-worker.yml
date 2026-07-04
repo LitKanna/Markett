@@ -1,0 +1,38 @@
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "infra/cloudflare-worker.mjs"
+      - "wrangler.toml"
+      - "index.html"
+      - "styles.css"
+      - "app.js"
+      - "config.js"
+      - "assets/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npm run deploy
