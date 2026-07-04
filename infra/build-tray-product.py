@@ -20,6 +20,9 @@ SIZES = {
     "540": (540, 360),
 }
 
+# Square crops for inline thumbnails (landscape hero assets letterbox the tray)
+ORDER_SIZES = (320, 400)
+
 
 def sample_label_white(img: Image.Image, y0: int, y1: int) -> tuple[int, int, int]:
     w, _ = img.size
@@ -100,6 +103,18 @@ def fit_tray(src: Image.Image, size: tuple[int, int]) -> Image.Image:
     return canvas
 
 
+def fit_tray_square(src: Image.Image, size: int) -> Image.Image:
+    canvas = warm_canvas(size, size)
+    pad = int(size * 0.04)
+    max_dim = size - pad * 2
+    scale = max_dim / max(src.width, src.height)
+    resized = src.resize((int(src.width * scale), int(src.height * scale)), Image.Resampling.LANCZOS)
+    x = (size - resized.width) // 2
+    y = (size - resized.height) // 2
+    canvas.paste(resized, (x, y))
+    return canvas
+
+
 def save_pair(img: Image.Image, base: Path) -> None:
     img.save(base.with_suffix(".jpg"), "JPEG", quality=91, optimize=True, progressive=True)
     img.save(base.with_suffix(".webp"), "WEBP", quality=86, method=6)
@@ -109,7 +124,9 @@ def main() -> None:
     src = patch_label_175kg(Image.open(SRC).convert("RGB"))
     for name, size in SIZES.items():
         save_pair(fit_tray(src, size), ASSETS / f"tray-product-{name}")
-    print("exported tray-product-* (real wholesale photo, 1.75kg label)")
+    for size in ORDER_SIZES:
+        save_pair(fit_tray_square(src, size), ASSETS / f"tray-order-{size}")
+    print("exported tray-product-* and tray-order-* (real wholesale photo, 1.75kg label)")
 
 
 if __name__ == "__main__":
