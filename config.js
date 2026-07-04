@@ -3,7 +3,10 @@
 
 const SITE_CONFIG = {
   // Bump when tray/hero images change — forces browsers to fetch fresh photos.
-  assetVersion: "45",
+  assetVersion: "46",
+
+  // Tray hero variant: "c" orange market 30-egg (default), "a" real retail composite, "orange" legacy
+  trayVariant: "c",
 
   // Your WhatsApp number in international format, digits only.
   // Example for an Australian mobile 0412 345 678: "61412345678"
