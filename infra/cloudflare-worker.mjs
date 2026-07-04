@@ -1,6 +1,7 @@
-// HTML/CSS/JS/assets from jsDelivr (purge via purge.jsdelivr.net after deploy).
-const UPSTREAM_LIVE = "https://cdn.jsdelivr.net/gh/LitKanna/Markett@main";
-const UPSTREAM_ASSETS = "https://cdn.jsdelivr.net/gh/LitKanna/Markett@main";
+// Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
+const DEPLOY_SHA = "4afead9";
+const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
+const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
 const MIME = {
   html: "text/html; charset=utf-8",
