@@ -814,7 +814,7 @@ export default {
     const upstreamBase = live ? UPSTREAM_LIVE : UPSTREAM_ASSETS;
     const upstreamResp = await fetch(upstreamBase + path, {
       headers: { "User-Agent": "yolko-edge" },
-      cf: live ? { cacheTtl: 0 } : { cacheTtl: 300, cacheEverything: true },
+      cf: { cacheTtl: 0 },
     });
 
     if (!upstreamResp.ok) {
@@ -825,8 +825,8 @@ export default {
       status: 200,
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
-        "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=300, must-revalidate",
-        "X-Yolko-Build": "54",
+        "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
+        "X-Yolko-Build": "57",
       },
     });
   },
