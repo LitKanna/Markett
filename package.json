@@ -20,5 +20,8 @@
   "homepage": "https://github.com/LitKanna/Markett#readme",
   "dependencies": {
     "playwright": "^1.61.1"
+  },
+  "devDependencies": {
+    "wrangler": "^4.107.0"
   }
 }
