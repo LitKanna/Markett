@@ -10,7 +10,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="YOLKO: 30 Eggs for $12 at Flemington Markets">
   <meta property="og:description" content="Book online, pick up Friday or Saturday at Paddy's Markets Flemington. 1 tray $12, 2 trays $23, full box $66.">
-  <meta property="og:image" content="https://getyolko.com/assets/pace-tray-175kg-1080.jpg?v=46">
+  <meta property="og:image" content="https://getyolko.com/assets/market-sign.png?v=47">
   <meta property="og:url" content="https://getyolko.com/">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=46">
+  <link rel="stylesheet" href="styles.css?v=47">
 
   <script type="application/ld+json">
   {
@@ -34,7 +34,7 @@
         "description": "Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.",
         "url": "https://getyolko.com/",
         "telephone": "+61433975055",
-        "image": "https://getyolko.com/assets/pace-tray-175kg-1080.jpg?v=46",
+        "image": "https://getyolko.com/assets/market-sign.png?v=47",
         "priceRange": "$$",
         "address": {
           "@type": "PostalAddress",
@@ -79,7 +79,7 @@
         "name": "Fresh Egg Tray (30 eggs)",
         "brand": { "@type": "Brand", "name": "Pace Farm" },
         "description": "Tray of 30 fresh Pace Farm eggs for pickup at Paddy's Markets Flemington on Friday or Saturday.",
-        "image": "https://getyolko.com/assets/pace-tray-175kg-1080.jpg?v=46",
+        "image": "https://getyolko.com/assets/market-sign.png?v=47",
         "offers": {
           "@type": "Offer",
           "price": "12.00",
@@ -194,11 +194,26 @@
           </dl>
         </div>
 
-        <figure class="hero-photo">
-          <picture>
-            <source type="image/webp" srcset="assets/pace-tray-175kg-700.webp?v=46 700w, assets/pace-tray-175kg-1400.webp?v=46 1400w" sizes="(max-width: 940px) 92vw, 520px">
-            <img src="assets/pace-tray-175kg-1400.jpg?v=46" srcset="assets/pace-tray-175kg-700.jpg?v=46 700w, assets/pace-tray-175kg-1400.jpg?v=46 1400w" sizes="(max-width: 940px) 92vw, 520px" alt="Pace Farm 1.75kg cage egg tray — 30 XL eggs, orange market pickup" width="1400" height="933" fetchpriority="high" decoding="async">
-          </picture>
+        <figure class="hero-tray" aria-label="Full tray of 30 extra large Pace Farm eggs">
+          <div class="tray-visual">
+            <div class="tray-frame">
+              <header class="tray-head">
+                <span class="tray-head-brand">YOLKO</span>
+                <span class="tray-head-pickup">Flemington · Fri &amp; Sat</span>
+              </header>
+              <div class="tray-grid" aria-hidden="true">
+                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+                <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+              </div>
+              <footer class="tray-foot">
+                <span class="tray-count">30</span>
+                <span class="tray-foot-text">fresh XL eggs · Pace Farm · <span id="tray-label-weight">1.75kg</span></span>
+              </footer>
+            </div>
+          </div>
           <figcaption class="photo-badge">
             <span class="badge-price">$12</span>
             <span class="badge-note">30 eggs<br>this week</span>
@@ -315,10 +330,16 @@
         <div class="order-copy">
           <h2>Book your eggs</h2>
           <p>Reserve now, trays run out most weeks. We'll confirm your booking the same day.</p>
-          <picture>
-            <source type="image/webp" srcset="assets/pace-tray-175kg-540.webp?v=46 540w, assets/pace-tray-175kg-1080.webp?v=46 1080w" sizes="(max-width: 940px) 92vw, 520px">
-            <img class="order-photo" src="assets/pace-tray-175kg-1080.jpg?v=46" srcset="assets/pace-tray-175kg-540.jpg?v=46 540w, assets/pace-tray-175kg-1080.jpg?v=46 1080w" sizes="(max-width: 940px) 92vw, 520px" alt="Pace Farm 1.75kg cage egg tray — 30 XL eggs, orange market pickup" width="1080" height="720" loading="lazy" decoding="async">
-          </picture>
+          <div class="order-tray-note">
+            <div class="order-tray-mini" aria-hidden="true">
+              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+              <span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span><span class="egg"></span>
+            </div>
+            <p><strong>30 eggs</strong> per tray · sealed Pace Farm wholesale tray</p>
+          </div>
         </div>
 
         <form id="order-form" class="order-form">

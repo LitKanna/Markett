@@ -248,34 +248,9 @@ if (Number.isFinite(traysLeft) && traysLeft > 0) {
 /* ---------- Live prices and stock from the shop API ---------- */
 const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://getyolko.com";
 
-function applyTrayImages(weight) {
-  const tag = weight === "1.5" ? "150" : "175";
-  const sizeLabel = weight === "1.5" ? "1.5kg large" : "1.75kg extra large";
-  const base = `pace-tray-${tag}kg`;
-  const v = config.assetVersion ? `?v=${config.assetVersion}` : "";
-  const alt = `Pace Farm ${sizeLabel} cage egg tray — 30 XL eggs, 1.75kg, sealed and labelled`;
-
-  const heroImg = document.querySelector(".hero-photo img");
-  const heroWebp = document.querySelector(".hero-photo source");
-  if (heroImg) {
-    heroImg.src = `assets/${base}-1400.jpg${v}`;
-    heroImg.srcset = `assets/${base}-700.jpg${v} 700w, assets/${base}-1400.jpg${v} 1400w`;
-    heroImg.alt = alt;
-  }
-  if (heroWebp) {
-    heroWebp.srcset = `assets/${base}-700.webp${v} 700w, assets/${base}-1400.webp${v} 1400w`;
-  }
-
-  const orderImg = document.querySelector(".order-photo");
-  const orderWebp = orderImg?.closest("picture")?.querySelector("source");
-  if (orderImg) {
-    orderImg.src = `assets/${base}-1080.jpg${v}`;
-    orderImg.srcset = `assets/${base}-540.jpg${v} 540w, assets/${base}-1080.jpg${v} 1080w`;
-    orderImg.alt = alt;
-  }
-  if (orderWebp) {
-    orderWebp.srcset = `assets/${base}-540.webp${v} 540w, assets/${base}-1080.webp${v} 1080w`;
-  }
+function applyTraySpec(weight) {
+  const label = document.getElementById("tray-label-weight");
+  if (label) label.textContent = `${weight}kg`;
 }
 
 function applySettings(settings) {
@@ -343,7 +318,7 @@ function applySettings(settings) {
   if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
   if (faqEggs) faqEggs.textContent = `Pace Farm cage ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
-  applyTrayImages(weight);
+  applyTraySpec(weight);
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
