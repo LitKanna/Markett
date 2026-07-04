@@ -1,5 +1,5 @@
-// HTML/CSS/JS from jsDelivr (fresh within minutes); binary assets from GitHub raw.
-const UPSTREAM_LIVE = "https://cdn.jsdelivr.net/gh/LitKanna/Markett@main";
+// HTML/CSS/JS from GitHub raw (updates immediately on push); assets from same.
+const UPSTREAM_LIVE = "https://raw.githubusercontent.com/LitKanna/Markett/main";
 const UPSTREAM_ASSETS = "https://raw.githubusercontent.com/LitKanna/Markett/main";
 
 const MIME = {
