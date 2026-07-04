@@ -252,7 +252,7 @@ function applyTrayImages(weight) {
   const tag = weight === "1.5" ? "150" : "175";
   const sizeLabel = weight === "1.5" ? "1.5kg large" : "1.75kg extra large";
   const base = `pace-tray-${tag}kg`;
-  const alt = `Pace Farm sealed ${sizeLabel} tray — 30 eggs, labelled`;
+  const alt = `Pace Farm ${sizeLabel} cage egg tray — 30 eggs, sealed and labelled`;
 
   const heroImg = document.querySelector(".hero-photo img");
   const heroWebp = document.querySelector(".hero-photo source");
@@ -341,7 +341,7 @@ function applySettings(settings) {
   const traySpec = document.getElementById("tray-spec");
   if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
-  if (faqEggs) faqEggs.textContent = `Pace Farm ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
+  if (faqEggs) faqEggs.textContent = `Pace Farm cage ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
   applyTrayImages(weight);
 
   // Pickup days and hours
