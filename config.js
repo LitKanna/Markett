@@ -2,6 +2,9 @@
 // The site works without them: orders fall back to a copy-and-send message.
 
 const SITE_CONFIG = {
+  // Bump when tray/hero images change — forces browsers to fetch fresh photos.
+  assetVersion: "43",
+
   // Your WhatsApp number in international format, digits only.
   // Example for an Australian mobile 0412 345 678: "61412345678"
   whatsappNumber: "61433975055",
