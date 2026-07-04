@@ -823,7 +823,7 @@ export default {
       status: 200,
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
-        "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=300",
+        "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=300, must-revalidate",
       },
     });
   },

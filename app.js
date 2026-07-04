@@ -252,28 +252,29 @@ function applyTrayImages(weight) {
   const tag = weight === "1.5" ? "150" : "175";
   const sizeLabel = weight === "1.5" ? "1.5kg large" : "1.75kg extra large";
   const base = `pace-tray-${tag}kg`;
-  const alt = `Pace Farm ${sizeLabel} cage egg tray — 30 eggs, sealed and labelled`;
+  const v = config.assetVersion ? `?v=${config.assetVersion}` : "";
+  const alt = `Pace Farm ${sizeLabel} cage egg tray — 30 eggs, modern retail label, sealed and labelled`;
 
   const heroImg = document.querySelector(".hero-photo img");
   const heroWebp = document.querySelector(".hero-photo source");
   if (heroImg) {
-    heroImg.src = `assets/${base}-1400.jpg`;
-    heroImg.srcset = `assets/${base}-700.jpg 700w, assets/${base}-1400.jpg 1400w`;
+    heroImg.src = `assets/${base}-1400.jpg${v}`;
+    heroImg.srcset = `assets/${base}-700.jpg${v} 700w, assets/${base}-1400.jpg${v} 1400w`;
     heroImg.alt = alt;
   }
   if (heroWebp) {
-    heroWebp.srcset = `assets/${base}-700.webp 700w, assets/${base}-1400.webp 1400w`;
+    heroWebp.srcset = `assets/${base}-700.webp${v} 700w, assets/${base}-1400.webp${v} 1400w`;
   }
 
   const orderImg = document.querySelector(".order-photo");
   const orderWebp = orderImg?.closest("picture")?.querySelector("source");
   if (orderImg) {
-    orderImg.src = `assets/${base}-1080.jpg`;
-    orderImg.srcset = `assets/${base}-540.jpg 540w, assets/${base}-1080.jpg 1080w`;
+    orderImg.src = `assets/${base}-1080.jpg${v}`;
+    orderImg.srcset = `assets/${base}-540.jpg${v} 540w, assets/${base}-1080.jpg${v} 1080w`;
     orderImg.alt = alt;
   }
   if (orderWebp) {
-    orderWebp.srcset = `assets/${base}-540.webp 540w, assets/${base}-1080.webp 1080w`;
+    orderWebp.srcset = `assets/${base}-540.webp${v} 540w, assets/${base}-1080.webp${v} 1080w`;
   }
 }
 
