@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Export responsive tray images from the Farm Fresh modern-label hero master.
-
-Label reference (researched Jul 2026):
-- Pace Farm "Farm Fresh" line: red/yellow label, purple panel, 30 XL CAGE EGGS, 1.75kg
-- Woolworths SKU 92940 (12 XL caged) shows current retail branding
-- NOT the older white "the enjoyable egg" / poached-egg 1.5kg sticker (SKU 701985)
-"""
+"""Export responsive tray images from the hero master PNG."""
 
 from __future__ import annotations
 
@@ -44,13 +38,9 @@ def main() -> None:
         raise SystemExit(f"Missing master: {MASTER}")
 
     src = Image.open(MASTER).convert("RGB")
-
     for tag in ("150", "175"):
         for name, size in DIMENSIONS.items():
-            out = ASSETS / f"pace-tray-{tag}kg-{name}"
-            save_pair(fit(src, size), out)
-            print(f"{out.name} {size}")
-
+            save_pair(fit(src, size), ASSETS / f"pace-tray-{tag}kg-{name}")
     save_pair(fit(src, (1400, 933)), ASSETS / "hero-eggs-1400")
     save_pair(fit(src, (700, 467)), ASSETS / "hero-eggs-700")
     save_pair(fit(src, (1080, 720)), ASSETS / "social-eggs-1080")
