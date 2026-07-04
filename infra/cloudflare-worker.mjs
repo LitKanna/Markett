@@ -1,6 +1,6 @@
-// HTML/CSS/JS from GitHub raw (updates immediately on push); assets from same.
-const UPSTREAM_LIVE = "https://raw.githubusercontent.com/LitKanna/Markett/main";
-const UPSTREAM_ASSETS = "https://raw.githubusercontent.com/LitKanna/Markett/main";
+// HTML/CSS/JS/assets from jsDelivr (purge via purge.jsdelivr.net after deploy).
+const UPSTREAM_LIVE = "https://cdn.jsdelivr.net/gh/LitKanna/Markett@main";
+const UPSTREAM_ASSETS = "https://cdn.jsdelivr.net/gh/LitKanna/Markett@main";
 
 const MIME = {
   html: "text/html; charset=utf-8",
