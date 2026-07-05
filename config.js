@@ -3,7 +3,10 @@
 
 const SITE_CONFIG = {
   // Bump when site assets change — forces browsers to fetch fresh files.
-  assetVersion: "69",
+  assetVersion: "90",
+
+  // Hero background image (Higgsfield mockup) — file in assets/
+  heroBackground: "assets/hf_20260705_074510_b1118495-1104-4327-81c5-3c00c5b364ff (1).png",
 
   // Your WhatsApp number in international format, digits only.
   // Example for an Australian mobile 0412 345 678: "61412345678"
