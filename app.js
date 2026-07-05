@@ -6,6 +6,16 @@ const BUNDLES = {
 
 const config = typeof SITE_CONFIG === "object" && SITE_CONFIG !== null ? SITE_CONFIG : {};
 
+const heroSection = document.querySelector(".store-hero");
+if (heroSection && config.heroBackground) {
+  const v = config.assetVersion || "88";
+  const path = config.heroBackground
+    .split("/")
+    .map((part) => encodeURIComponent(part))
+    .join("/");
+  heroSection.style.setProperty("--hero-bg", `url("${path}?v=${v}")`);
+}
+
 const form = document.getElementById("order-form");
 const doneSection = document.getElementById("done");
 const doneSummary = document.getElementById("done-summary");
@@ -119,7 +129,6 @@ if (!reducedMotion && window.matchMedia("(hover: hover)").matches) {
 
 /* ---------- Sticky mobile booking bar ---------- */
 const mobileCta = document.getElementById("mobile-cta");
-const heroSection = document.querySelector(".store-hero");
 
 function updateMobileCta() {
   if (!mobileCta || !heroSection) return;
