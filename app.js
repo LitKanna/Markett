@@ -65,11 +65,11 @@ window.addEventListener("resize", () => {
 });
 
 /* ---------- Scroll effects, throttled to one update per frame ---------- */
-const topbar = document.querySelector(".store-header.site-header");
+const topbar = document.querySelector(".topbar");
 let scrollTicking = false;
 
 function onScrollFrame() {
-  if (topbar) topbar.classList.toggle("scrolled", window.scrollY > 8);
+  topbar.classList.toggle("scrolled", window.scrollY > 8);
   updateMobileCta();
   scrollTicking = false;
 }
@@ -83,7 +83,7 @@ window.addEventListener("scroll", () => {
 
 /* ---------- Scroll reveal ---------- */
 const revealTargets = document.querySelectorAll(
-  ".section-head, .price-card, .day-card, .steps, .store-features article, .order-copy, .order-form, .faq details, .stock-note"
+  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .faq details, .stock-note"
 );
 
 revealTargets.forEach((el, i) => {
@@ -119,11 +119,10 @@ if (!reducedMotion && window.matchMedia("(hover: hover)").matches) {
 
 /* ---------- Sticky mobile booking bar ---------- */
 const mobileCta = document.getElementById("mobile-cta");
-const heroSection = document.querySelector(".store-hero");
+const heroSection = document.querySelector(".hero");
 
 function updateMobileCta() {
-  if (!mobileCta || !heroSection) return;
-  const pastHero = window.scrollY > heroSection.offsetHeight * 0.55;
+  const pastHero = window.scrollY > heroSection.offsetHeight * 0.7;
   const orderRect = orderSection.getBoundingClientRect();
   const doneVisible = !doneSection.hidden;
   const orderOnScreen = orderRect.top < window.innerHeight && orderRect.bottom > 0;
@@ -309,11 +308,11 @@ function applySettings(settings) {
 
   // Tray weight (1.5kg or 1.75kg)
   const weight = settings.trayWeight === "1.5" ? "1.5" : "1.75";
-  const size = "large";
+  const size = weight === "1.5" ? "large" : "extra large";
   const traySpec = document.getElementById("tray-spec");
   if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
-  if (faqEggs) faqEggs.textContent = `Pace Farm ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
+  if (faqEggs) faqEggs.textContent = `Pace Farm cage ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
