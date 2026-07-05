@@ -320,7 +320,7 @@ h1, h2, h3 {
 .store-hero {
   position: relative;
   overflow: hidden;
-  --hero-bg: url("assets/hf_20260705_074510_b1118495-1104-4327-81c5-3c00c5b364ff%20(1).png?v=89");
+  --hero-bg: url("assets/hf_20260705_074510_b1118495-1104-4327-81c5-3c00c5b364ff%20(1).png?v=90");
   min-height: clamp(520px, 78vh, 760px);
   padding: 48px 0 64px;
   background-color: #0b2f5e;
