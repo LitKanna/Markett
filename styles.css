@@ -195,8 +195,8 @@ h1, h2, h3 {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 1.08fr 0.78fr;
-  gap: 48px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 1.15fr);
+  gap: clamp(32px, 4vw, 56px);
   align-items: center;
 }
 
@@ -275,7 +275,7 @@ h1, h2, h3 {
   position: relative;
   margin: 0 0 0 auto;
   width: 100%;
-  max-width: 320px;
+  max-width: min(100%, 620px);
   border-radius: var(--r-lg);
   overflow: visible;
 }
@@ -284,7 +284,7 @@ h1, h2, h3 {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(58vh, 440px);
+  aspect-ratio: 3312 / 2480;
   object-fit: contain;
   object-position: center;
   border-radius: var(--r-lg);
@@ -331,7 +331,7 @@ h1, h2, h3 {
 
 .order-tray-photo {
   display: block;
-  width: min(360px, 100%);
+  width: min(480px, 100%);
   margin: 0;
   border-radius: var(--r-md);
   overflow: hidden;
@@ -343,8 +343,9 @@ h1, h2, h3 {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
+  aspect-ratio: 3312 / 2480;
+  object-fit: cover;
+  object-position: center;
 }
 
 .order-tray-note p {
@@ -1395,10 +1396,9 @@ section { scroll-margin-top: 84px; }
   .order-grid,
   .pickup-grid { grid-template-columns: 1fr; gap: 36px; }
 
-  .hero-photo { max-width: min(100%, 340px); margin-inline: auto; }
+  .hero-photo { max-width: min(100%, 540px); margin-inline: auto; }
 
   .hero-photo img {
-    max-height: min(46vh, 360px);
     transform: rotate(0.8deg);
   }
 
@@ -1424,9 +1424,8 @@ section { scroll-margin-top: 84px; }
   .bo-price { font-size: 17px; }
   .hero { padding: 38px 0 52px; }
   .hero-stats { gap: 22px; }
-  .hero-photo { max-width: min(100%, 260px); }
+  .hero-photo { max-width: 100%; }
   .hero-photo img {
-    max-height: min(40vh, 300px);
     transform: none;
   }
   .photo-badge {
