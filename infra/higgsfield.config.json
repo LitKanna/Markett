@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "assetsDir": "assets/generated/higgsfield",
+  "jobs": [
+    {
+      "id": "hero-geometric-field",
+      "description": "Colorful geometric flat-lay background for the storefront hero (no product tray).",
+      "endpoint": "flux-pro/kontext/max/text-to-image",
+      "output": "hero-geometric-field.png",
+      "enabled": false,
+      "input": {
+        "aspect_ratio": "4:5",
+        "prompt": "Top-down flat-lay graphic design background for a premium egg brand hero. Bold geometric color blocks in cobalt blue, warm orange, cherry red, and fresh green. Clean modern layout with empty center space for a product cutout. No eggs, no food, no text, no logos. High-end grocery brand aesthetic.",
+        "safety_tolerance": 2
+      }
+    },
+    {
+      "id": "social-square",
+      "description": "Instagram/Facebook square promo graphic (background only).",
+      "endpoint": "flux-pro/kontext/max/text-to-image",
+      "output": "social-square.png",
+      "enabled": false,
+      "input": {
+        "aspect_ratio": "1:1",
+        "prompt": "Bright cheerful social media background for a local fresh egg pickup brand. Warm kitchen tones, subtle geometric accents, lots of negative space for text overlay. No eggs, no people, no logos, no text.",
+        "safety_tolerance": 2
+      }
+    }
+  ]
+}

@@ -69,7 +69,7 @@ const topbar = document.querySelector(".topbar");
 let scrollTicking = false;
 
 function onScrollFrame() {
-  topbar.classList.toggle("scrolled", window.scrollY > 8);
+  if (topbar) topbar.classList.toggle("scrolled", window.scrollY > 8);
   updateMobileCta();
   scrollTicking = false;
 }
@@ -83,7 +83,7 @@ window.addEventListener("scroll", () => {
 
 /* ---------- Scroll reveal ---------- */
 const revealTargets = document.querySelectorAll(
-  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .faq details, .stock-note"
+  ".section-head, .price-card, .day-card, .steps, .store-features article, .order-copy, .order-form, .faq details, .stock-note"
 );
 
 revealTargets.forEach((el, i) => {
