@@ -290,43 +290,7 @@ h1, h2, h3 {
   overflow: hidden;
   min-height: clamp(620px, 88vh, 820px);
   padding: 108px 0 72px;
-  background:
-    linear-gradient(135deg, var(--store-blue-deep) 0%, var(--store-blue) 42%, #2569ad 100%);
-}
-
-.store-shapes span {
-  position: absolute;
-  pointer-events: none;
-}
-
-.shape-orange {
-  top: -8%;
-  right: 18%;
-  width: 58%;
-  height: 72%;
-  background: var(--store-orange);
-  clip-path: polygon(18% 0, 100% 0, 100% 100%, 0 72%);
-  opacity: 0.96;
-}
-
-.shape-red {
-  right: -4%;
-  bottom: -18%;
-  width: 52%;
-  height: 58%;
-  background: var(--store-red);
-  clip-path: polygon(28% 0, 100% 18%, 100% 100%, 0 100%);
-  opacity: 0.94;
-}
-
-.shape-green {
-  right: 8%;
-  bottom: -10%;
-  width: 34%;
-  height: 42%;
-  background: var(--store-green);
-  clip-path: polygon(0 18%, 100% 0, 100% 100%, 18% 100%);
-  opacity: 0.95;
+  background: linear-gradient(90deg, #0b2f5e 0%, #0b2f5e 46%, #123f72 100%);
 }
 
 .store-hero-grid {
@@ -419,17 +383,39 @@ h1, h2, h3 {
 }
 
 .store-hero-photo {
+  position: relative;
   margin: 0;
   justify-self: end;
-  width: min(100%, 420px);
+  width: min(100%, 440px);
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+}
+
+.store-hero-field {
+  position: absolute;
+  inset: 4% 0 6%;
+  z-index: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 28px 56px rgba(0, 0, 0, 0.28);
+  background:
+    linear-gradient(135deg, #0c7fd4 0 50%, transparent 50%),
+    linear-gradient(225deg, #f0781a 0 50%, transparent 50%),
+    linear-gradient(45deg, #e43b3b 0 50%, transparent 50%),
+    linear-gradient(315deg, #0a8347 0 50%, transparent 50%);
+  background-color: #0c7fd4;
 }
 
 .store-hero-photo img {
-  width: 100%;
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 86%;
   height: auto;
-  max-height: min(72vh, 620px);
+  max-height: min(72vh, 580px);
   object-fit: contain;
-  filter: drop-shadow(0 28px 48px rgba(0, 0, 0, 0.28));
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.22));
 }
 
 .store-trust-band {
@@ -1722,10 +1708,11 @@ section { scroll-margin-top: 84px; }
 
   .store-hero-photo {
     justify-self: center;
-    width: min(100%, 300px);
+    width: min(100%, 320px);
+    min-height: 360px;
   }
 
-  .store-hero-photo img { max-height: 420px; }
+  .store-hero-photo img { max-height: 400px; width: 84%; }
 
   .store-badges { justify-content: center; }
 
