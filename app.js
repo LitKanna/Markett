@@ -8,7 +8,7 @@ const config = typeof SITE_CONFIG === "object" && SITE_CONFIG !== null ? SITE_CO
 
 const heroSection = document.querySelector(".store-hero");
 if (heroSection && config.heroBackground) {
-  const v = config.assetVersion || "88";
+  const v = config.assetVersion || "89";
   const path = config.heroBackground
     .split("/")
     .map((part) => encodeURIComponent(part))

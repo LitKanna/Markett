@@ -320,15 +320,15 @@ h1, h2, h3 {
 .store-hero {
   position: relative;
   overflow: hidden;
-  --hero-bg: url("assets/hf_20260705_074510_b1118495-1104-4327-81c5-3c00c5b364ff%20(1).png?v=88");
+  --hero-bg: url("assets/hf_20260705_074510_b1118495-1104-4327-81c5-3c00c5b364ff%20(1).png?v=89");
   min-height: clamp(520px, 78vh, 760px);
   padding: 48px 0 64px;
   background-color: #0b2f5e;
   background-image:
-    linear-gradient(90deg, rgba(11, 47, 94, 0.9) 0%, rgba(11, 47, 94, 0.68) 30%, rgba(11, 47, 94, 0.28) 50%, rgba(11, 47, 94, 0.08) 68%, transparent 100%),
+    linear-gradient(90deg, rgba(11, 47, 94, 0.82) 0%, rgba(11, 47, 94, 0.52) 28%, rgba(11, 47, 94, 0.12) 48%, transparent 62%),
     var(--hero-bg);
   background-size: cover;
-  background-position: center center;
+  background-position: 58% center;
   background-repeat: no-repeat;
 }
 
