@@ -7,6 +7,14 @@ const BUNDLES = {
 const config = typeof SITE_CONFIG === "object" && SITE_CONFIG !== null ? SITE_CONFIG : {};
 
 const heroSection = document.querySelector(".store-hero");
+if (heroSection && config.heroBackground) {
+  const v = config.assetVersion || "92";
+  const path = config.heroBackground
+    .split("/")
+    .map((part) => encodeURIComponent(part))
+    .join("/");
+  heroSection.style.setProperty("--hero-bg", `url("${path}?v=${v}")`);
+}
 
 const form = document.getElementById("order-form");
 const doneSection = document.getElementById("done");
@@ -260,13 +268,14 @@ function applySettings(settings) {
   const perEgg = Math.round((p1 / 30) * 100);
   const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
 
-  // Hero stats
-  const heroPrice = document.getElementById("hero-price");
-  const heroBadge = document.getElementById("hero-badge-price");
-  const heroPerEgg = document.getElementById("hero-per-egg");
-  if (heroPrice) heroPrice.textContent = `$${p1}`;
-  if (heroBadge) heroBadge.textContent = `$${p1}`;
-  if (heroPerEgg) heroPerEgg.innerHTML = `${perEgg}&cent;`;
+  // Hero
+  const badge = document.querySelector(".badge-price");
+  if (badge) badge.textContent = `$${p1}`;
+  const stats = document.querySelectorAll(".hero-stats dt");
+  if (stats[0]) stats[0].textContent = `$${p1}`;
+  if (stats[1]) stats[1].innerHTML = `${perEgg}&cent;`;
+  const leadStrong = document.querySelector(".hero-sub strong");
+  if (leadStrong) leadStrong.textContent = `$${p1}`;
 
   // Ticker and mobile bar
   TICKER_ITEMS[1] = `30 eggs for $${p1}`;
@@ -398,8 +407,11 @@ function applyPickup(pickup) {
       `Open ${enabledDays.length} days a week`;
   }
 
-  const heroDays = document.getElementById("hero-days");
-  if (heroDays) heroDays.textContent = dayText;
+  const stats = document.querySelectorAll(".hero-stats div");
+  if (stats[2]) {
+    stats[2].querySelector("dt").textContent = enabledDays.length ? `${enabledDays.length} day${enabledDays.length > 1 ? "s" : ""}` : "Paused";
+    stats[2].querySelector("dd").textContent = dayText;
+  }
 
   TICKER_ITEMS[2] = `Pickup ${dayText}`;
   renderTicker();
