@@ -7,6 +7,8 @@
     "seo:indexnow": "node infra/seo-indexnow.mjs",
     "seo:google": "node infra/seo-google-search-console.mjs",
     "seo:ping": "npm run seo:indexnow && npm run seo:google",
+    "higgsfield:sync": "node infra/higgsfield-sync.mjs",
+    "higgsfield:list": "node infra/higgsfield-sync.mjs --list",
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "wrangler deploy",
     "preview": "wrangler dev"
@@ -26,6 +28,7 @@
     "playwright": "^1.61.1"
   },
   "devDependencies": {
+    "@higgsfield/client": "^0.2.1",
     "google-auth-library": "^10.9.0",
     "wrangler": "^4.107.0"
   }

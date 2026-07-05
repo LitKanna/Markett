@@ -19,6 +19,23 @@ One-page marketing site for selling fresh egg trays with **Friday** and **Saturd
 See `ads/setup-guide.md` for step-by-step setup, and `ads/` for
 ready-to-paste Facebook, Instagram, and Google ad campaigns.
 
+## Higgsfield (design assets)
+
+Generate mockup backgrounds and social graphics via [Higgsfield Cloud](https://cloud.higgsfield.ai/api-keys). Real product photos in `assets/references/` are kept separate — generated files land in `assets/generated/higgsfield/`.
+
+```bash
+# List configured jobs
+npm run higgsfield:list
+
+# Run enabled jobs (set HF_CREDENTIALS or HF_API_KEY + HF_API_SECRET)
+npm run higgsfield:sync
+
+# Run one job
+npm run higgsfield:sync -- --job hero-geometric-field
+```
+
+Enable jobs in `infra/higgsfield.config.json`, or trigger a manual sync from GitHub Actions (**Higgsfield asset sync**) after adding `HF_API_KEY` and `HF_API_SECRET` repository secrets.
+
 ## Preview locally (on your computer only)
 
 ```bash

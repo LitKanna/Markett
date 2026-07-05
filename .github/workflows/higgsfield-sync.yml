@@ -1,0 +1,64 @@
+name: Higgsfield asset sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Job id from infra/higgsfield.config.json (leave blank for all enabled jobs)"
+        required: false
+        type: string
+      dry_run:
+        description: "Print jobs without calling the API"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: List Higgsfield jobs
+        if: ${{ inputs.dry_run }}
+        run: npm run higgsfield:sync -- --list
+
+      - name: Sync Higgsfield assets
+        env:
+          HF_API_KEY: ${{ secrets.HF_API_KEY }}
+          HF_API_SECRET: ${{ secrets.HF_API_SECRET }}
+        run: |
+          ARGS=""
+          if [ -n "${{ inputs.job }}" ]; then
+            ARGS="--job ${{ inputs.job }}"
+          fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          npm run higgsfield:sync -- $ARGS
+
+      - name: Commit generated assets
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/generated/higgsfield/
+          if git diff --staged --quiet; then
+            echo "No new Higgsfield assets to commit."
+          else
+            git commit -m "chore: sync Higgsfield generated assets"
+            git push
+          fi
