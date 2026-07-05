@@ -308,11 +308,11 @@ function applySettings(settings) {
 
   // Tray weight (1.5kg or 1.75kg)
   const weight = settings.trayWeight === "1.5" ? "1.5" : "1.75";
-  const size = weight === "1.5" ? "large" : "extra large";
+  const size = "large";
   const traySpec = document.getElementById("tray-spec");
   if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
-  if (faqEggs) faqEggs.textContent = `Pace Farm cage ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
+  if (faqEggs) faqEggs.textContent = `Pace Farm ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
