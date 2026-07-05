@@ -65,7 +65,7 @@ window.addEventListener("resize", () => {
 });
 
 /* ---------- Scroll effects, throttled to one update per frame ---------- */
-const topbar = document.querySelector(".topbar");
+const topbar = document.querySelector(".store-header.site-header");
 let scrollTicking = false;
 
 function onScrollFrame() {
@@ -119,10 +119,11 @@ if (!reducedMotion && window.matchMedia("(hover: hover)").matches) {
 
 /* ---------- Sticky mobile booking bar ---------- */
 const mobileCta = document.getElementById("mobile-cta");
-const heroSection = document.querySelector(".hero");
+const heroSection = document.querySelector(".store-hero");
 
 function updateMobileCta() {
-  const pastHero = window.scrollY > heroSection.offsetHeight * 0.7;
+  if (!mobileCta || !heroSection) return;
+  const pastHero = window.scrollY > heroSection.offsetHeight * 0.55;
   const orderRect = orderSection.getBoundingClientRect();
   const doneVisible = !doneSection.hidden;
   const orderOnScreen = orderRect.top < window.innerHeight && orderRect.bottom > 0;
