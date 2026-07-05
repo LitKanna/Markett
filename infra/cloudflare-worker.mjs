@@ -823,6 +823,22 @@ export default {
       return new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain" } });
     }
 
+    if (ext === "html" && env.GOOGLE_SITE_VERIFICATION) {
+      let html = await upstreamResp.text();
+      const verifyTag = `<meta name="google-site-verification" content="${env.GOOGLE_SITE_VERIFICATION}">`;
+      if (!html.includes("google-site-verification")) {
+        html = html.replace("<head>", `<head>\n  ${verifyTag}`);
+      }
+      return new Response(html, {
+        status: 200,
+        headers: {
+          "Content-Type": MIME.html,
+          "Cache-Control": "no-cache",
+          "X-Yolko-Build": "83",
+        },
+      });
+    }
+
     return new Response(upstreamResp.body, {
       status: 200,
       headers: {
