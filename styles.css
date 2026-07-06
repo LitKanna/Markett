@@ -28,18 +28,22 @@ body {
   color: var(--ink);
   background: var(--cream);
   line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-head);
+  line-height: 1.12;
+  margin: 0;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 img { max-width: 100%; height: auto; display: block; }
 
 .wrap { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
-
-h1, h2, h3 {
-  font-family: var(--font-head);
-  line-height: 1.06;
-  margin: 0;
-  letter-spacing: -0.025em;
-}
 
 /* ---------- Ticker ---------- */
 .ticker {
@@ -111,15 +115,15 @@ h1, h2, h3 {
   font-weight: 800;
   font-size: 21px;
   line-height: 1;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
 }
 
 .brand-sub {
   display: block;
   font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--amber-dark);
   margin-top: 3px;
@@ -218,8 +222,8 @@ h1, h2, h3 {
 .hero h1 {
   font-size: clamp(40px, 6vw, 64px);
   font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.02;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
   margin-bottom: 20px;
 }
 
@@ -309,7 +313,7 @@ h1, h2, h3 {
 .badge-price {
   font-family: var(--font-head);
   font-size: 34px;
-  font-weight: 750;
+  font-weight: 800;
   color: var(--amber-dark);
   line-height: 1;
 }
@@ -770,7 +774,7 @@ h1, h2, h3 {
 }
 
 .seg-day { font-weight: 800; font-size: 14px; color: var(--cream); }
-.seg-hours { font-size: 10.5px; font-weight: 600; color: rgba(253, 248, 239, 0.6); }
+.seg-hours { font-size: 11.5px; font-weight: 600; color: rgba(253, 248, 239, 0.72); }
 .seg-opt:has(input:checked) .seg-day { color: var(--ink); }
 .seg-opt:has(input:checked) .seg-hours { color: var(--ink-soft); }
 .seg-opt.off { opacity: 0.35; pointer-events: none; }
@@ -1052,30 +1056,15 @@ section { scroll-margin-top: 84px; }
 /* Ticker pauses when inspected */
 .ticker:hover .ticker-track { animation-play-state: paused; }
 
-/* Scroll reveal: transform + opacity only, GPU composited */
+/* Scroll reveal: opacity only — no text shifting */
 .reveal {
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
-              transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
-  transition-delay: var(--reveal-delay, 0ms);
-  will-change: opacity, transform;
+  opacity: 1;
+  transform: none;
 }
 
 .reveal.in { opacity: 1; transform: none; }
 
-/* Hero enters immediately with a soft rise */
-.hero-copy > * {
-  animation: rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
-}
-
-.hero-copy > *:nth-child(1) { animation-delay: 0.04s; }
-.hero-copy > *:nth-child(2) { animation-delay: 0.1s; }
-.hero-copy > *:nth-child(3) { animation-delay: 0.16s; }
-.hero-copy > *:nth-child(4) { animation-delay: 0.22s; }
-.hero-copy > *:nth-child(5) { animation-delay: 0.28s; }
-
-.hero-photo { animation: rise 0.55s 0.18s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.hero-photo { animation: none; }
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(16px); }
@@ -1120,12 +1109,8 @@ section { scroll-margin-top: 84px; }
 .btn:active { transform: scale(0.985); }
 
 /* Live price chip inside submit button */
-/* Order summary pulses gently when the total changes */
-.order-summary.bump { animation: bump 0.35s ease; }
-
-@keyframes bump {
-  40% { transform: scale(1.06); }
-}
+/* Order summary updates without scaling text */
+.order-summary.bump { animation: none; }
 
 /* Invalid field shake */
 .field.error input { border-color: #d64545; }
@@ -1309,8 +1294,8 @@ section { scroll-margin-top: 84px; }
 }
 
 /* Price inside card nudges up */
-.price-big { transition: transform 0.25s ease; }
-.price-card:hover .price-big { transform: translateY(-2px) scale(1.03); }
+.price-big { transition: none; }
+.price-card:hover .price-big { transform: none; }
 
 /* Day cards: time glows amber */
 .day-time { transition: color 0.25s ease; }
@@ -1333,8 +1318,8 @@ section { scroll-margin-top: 84px; }
 }
 
 /* Trust strip items brighten */
-.trust-row p { transition: opacity 0.25s ease, transform 0.25s ease; opacity: 0.92; }
-.trust-row p:hover { opacity: 1; transform: translateY(-2px); }
+.trust-row p { transition: opacity 0.25s ease; opacity: 0.92; }
+.trust-row p:hover { opacity: 1; }
 
 /* Receipt rows highlight softly */
 .receipt > div { transition: background 0.2s ease; }
