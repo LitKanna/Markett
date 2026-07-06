@@ -56,8 +56,6 @@ function renderTicker() {
   track.style.animationDuration = `${Math.round(track.firstElementChild.scrollWidth / speed)}s`;
 }
 
-renderTicker();
-
 let tickerResizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(tickerResizeTimer);
@@ -80,31 +78,6 @@ window.addEventListener("scroll", () => {
     requestAnimationFrame(onScrollFrame);
   }
 }, { passive: true });
-
-/* ---------- Scroll reveal ---------- */
-const revealTargets = document.querySelectorAll(
-  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .faq details, .stock-note"
-);
-
-revealTargets.forEach((el, i) => {
-  el.classList.add("reveal");
-  el.style.setProperty("--reveal-delay", `${(i % 4) * 70}ms`);
-});
-
-if (!reducedMotion && "IntersectionObserver" in window) {
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("in");
-        io.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
-
-  revealTargets.forEach((el) => io.observe(el));
-} else {
-  revealTargets.forEach((el) => el.classList.add("in"));
-}
 
 /* ---------- Cursor-following glow on price cards ---------- */
 if (!reducedMotion && window.matchMedia("(hover: hover)").matches) {
@@ -188,10 +161,7 @@ function refreshSubmitPrice() {
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const qty = currentQuantity();
 
-  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} ${nextPickupDate(currentPickupDay())} &middot; $${bundle.price * qty}`;
-  orderSummary.classList.remove("bump");
-  void orderSummary.offsetWidth;
-  orderSummary.classList.add("bump");
+  orderSummary.textContent = `${describeOrder(bundleKey, qty)} · ${currentPickupDay()} ${nextPickupDate(currentPickupDay())} · $${bundle.price * qty}`;
 }
 
 document.querySelectorAll('input[name="bundle"]').forEach((radio) => {
@@ -298,11 +268,9 @@ function applySettings(settings) {
     if (stock > 0) {
       stockNote.textContent = `Only ${stock} trays available this week. Book early.`;
       stockNote.hidden = false;
-      stockNote.classList.add("in");
     } else {
       stockNote.textContent = "Sold out this week. Check back Wednesday.";
       stockNote.hidden = false;
-      stockNote.classList.add("in");
     }
   }
 
