@@ -1,5 +1,5 @@
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "717de81cabe5f9eff5aaadfdf0c14ab81fbde5e4";
+const DEPLOY_SHA = "8bc57bda164a2a83fd71eef892951b88ba2945e7";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
@@ -834,7 +834,7 @@ export default {
         headers: {
           "Content-Type": MIME.html,
           "Cache-Control": "no-cache",
-          "X-Yolko-Build": "96",
+          "X-Yolko-Build": "97",
         },
       });
     }
@@ -844,7 +844,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "96",
+        "X-Yolko-Build": "97",
       },
     });
   },
