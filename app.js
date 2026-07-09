@@ -29,13 +29,11 @@ let lastOrderId = null;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- Scroll effects, throttled to one update per frame ---------- */
-const topbar = document.querySelector(".topbar") || document.querySelector(".card-nav");
+const topbar = document.querySelector(".topbar");
 let scrollTicking = false;
 
 function onScrollFrame() {
-  if (topbar && topbar.classList.contains("topbar")) {
-    topbar.classList.toggle("scrolled", window.scrollY > 8);
-  }
+  if (topbar) topbar.classList.toggle("scrolled", window.scrollY > 8);
   updateMobileCta();
   scrollTicking = false;
 }
@@ -198,7 +196,7 @@ function applySettings(settings) {
   const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
 
   // Hero
-  const badge = document.querySelector(".starburst strong");
+  const badge = document.querySelector(".price-chip strong") || document.querySelector(".badge-price");
   if (badge) badge.textContent = `$${p1}`;
   const leadStrong = document.querySelector(".lede strong");
   if (leadStrong) leadStrong.textContent = `$${p1}`;
