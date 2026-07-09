@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v109)
+# YOLKO Design System — locked (v110)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
@@ -10,15 +10,15 @@
 Book a Pace Farm tray for Friday or Saturday pickup at Flemington.
 
 ## Signature (only one)
-Clean studio tray beside one offer line: yolk **$12** + “for 30 large eggs” in type — brand larger than price. No stickers, floating eggs, or icon bars.
+Clean studio tray beside a clear offer: yolk **$12** + “for 30 large eggs”. Brand lives in the nav — hero uses a statement, not a second YOLKO wordmark.
 
 ## Hero copy (locked)
 ```
-YOLKO
+Fresh eggs for Flemington
 $12 for 30 large eggs
-Book online. Pick up Friday or Saturday at Flemington.
+Book online. Pick up Friday or Saturday at the markets.
 ```
-Do not stack brand / bare price / product fragment as three competing lines.
+Do not repeat YOLKO as the hero headline. Do not stack bare price as a competing shout.
 
 ## Tokens
 | Token | Hex | Role |
@@ -42,7 +42,7 @@ Do not stack brand / bare price / product fragment as three competing lines.
 
 ## Layout rules
 - Asymmetric split hero (copy left, product right)
-- Hero budget: brand + price + one line + CTA group + product
+- Hero budget: statement headline + offer line + lede + CTA group + product
 - Proof = text strip, no icons
 - Cards only on pricing + booking form
 - Featured bundle = Double up ($23), but prices bound by `data-bundle` never DOM index

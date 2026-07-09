@@ -168,23 +168,26 @@ img { max-width: 100%; height: auto; display: block; }
 
 .hero-copy { animation: rise 0.7s var(--ease) both; }
 
-.brand-hero {
-  margin: 0 0 0.55rem;
-  font-size: clamp(3.5rem, 10vw, 6rem);
+.hero-line {
+  margin: 0 0 0.7rem;
+  font-size: clamp(2.55rem, 6.8vw, 4rem);
   font-weight: 800;
-  letter-spacing: -0.065em;
-  line-height: 0.88;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
   color: var(--ink);
+  max-width: 11ch;
+  text-wrap: balance;
+  animation: rise 0.7s var(--ease) both;
 }
 
 .offer {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.45rem 0.7rem;
+  gap: 0.4rem 0.65rem;
   margin: 0 0 0.85rem;
   max-width: 18rem;
-  font-size: clamp(1.35rem, 2.8vw, 1.65rem);
+  font-size: clamp(1.2rem, 2.4vw, 1.45rem);
   font-weight: 650;
   letter-spacing: -0.03em;
   line-height: 1.15;
@@ -192,7 +195,7 @@ img { max-width: 100%; height: auto; display: block; }
   animation: rise 0.8s var(--ease) 0.06s both;
 }
 .offer .badge-price {
-  font-size: clamp(2.35rem, 5.5vw, 3.15rem);
+  font-size: clamp(2.1rem, 4.8vw, 2.75rem);
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 0.95;
@@ -796,9 +799,9 @@ details p {
 
 @media (max-width: 640px) {
   .wrap { width: min(100% - 1.5rem, 1120px); }
-  .brand-hero { font-size: 3.25rem; }
+  .hero-line { font-size: 2.55rem; max-width: 12ch; }
   .offer { max-width: 16rem; }
-  .offer .badge-price { font-size: 2.5rem; }
+  .offer .badge-price { font-size: 2.25rem; }
   .day-row { grid-template-columns: 1fr; }
   .day-name { grid-row: auto; }
   .cta-row,
