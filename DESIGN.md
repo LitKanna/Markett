@@ -1,44 +1,49 @@
-# YOLKO Design Plan (skill-led)
+# YOLKO Design Plan — Market Price Board (creative pass)
 
-**Design read:** Consumer local-food landing for Sydney market shoppers, premium-playful product language, Hero-Centric + Organic Biophilic — not SaaS blue card, not cream/terracotta AI default.
+**Design read:** Flemington market stall poster for hungry locals. Loud, physical, handmade-commerce energy. Not a SaaS landing. Not a polite green brochure.
 
-**Dials:** VARIANCE 7 · MOTION 5 · DENSITY 3
+**Why the last pass felt flat:** VARIANCE was too low. I optimized for "correct" and killed the risk. Skills say spend boldness in ONE place — this time the signature is extreme.
+
+**Dials:** VARIANCE **9** · MOTION **7** · DENSITY **4**
+
+## Signature (the one thing you remember)
+A **giant yolk disc** with a market-board **$12** that owns the first viewport. The Pace Farm tray collages on top of it, stamped with FRI / SAT / 30 EGGS like a stall chalkboard.
 
 ## Tokens
 | Token | Hex | Role |
 |-------|-----|------|
-| ink | #14201A | text / brand |
-| leaf | #1F6B3A | primary action |
-| yolk | #E5A012 | accent / price energy |
-| paper | #FBF7F0 | page ground |
-| mist | #E7F0E4 | soft panels |
-| line | #D7E0D2 | borders |
+| ink | #101910 | chalk / board text |
+| leaf | #146B34 | stall canopy / primary |
+| yolk | #F0B429 | price disc (the signature) |
+| chalk | #F4EFE3 | board paper |
+| stamp | #C43C1B | rubber-stamp red |
+| mist | #DCE8D8 | soft panels |
 
 ## Type
-- Display: **Outfit** 700/800 (geometric, market-board presence)
-- Body: **Work Sans** 400/500/600
-- Utility: Work Sans tabular for prices
+- Display: **Archivo Black** (market board shout)
+- Body: **DM Sans**
+- Utility stamps: Archivo Black tracking-wide uppercase
 
-## Layout
+## Layout (asymmetric collage)
 ```
-[ full paper ground ]
-[ top: YOLKO · nav · Book ]
-[ HERO asymmetric ]
-  LEFT: eyebrow · huge "Fresh eggs." · sub · CTA row
-  RIGHT: tray photo as the signature (no white card frame, soft leaf/yolk wash behind)
-[ thin trust line — 4 facts, not icon cards ]
-[ prices 3-up ]
-[ pickup + how it works ]
-[ order form ]
+[ leaf canopy topbar ]
+[ HERO: chalk board field ]
+  LEFT 40%: YOLKO wordmark · "EGGS." shout · 2 lines of stall copy · ticket CTA
+  RIGHT 60%: giant yolk $12 disc · tray overlapping · stamp cluster
+[ torn-ticket price row ]
+[ pickup chalkboard ]
+[ order form as order pad ]
 [ faq ]
 ```
 
-## Signature (one thing)
-The **real Pace Farm tray** sitting in a soft organic wash (leaf + yolk), slightly tilted — product is the brand, not a floating SaaS mockup card.
+## Motion
+1. Yolk disc scales in on load
+2. Tray slides/rotates into the disc
+3. Stamps pop with stagger
+4. CTA ticket lifts on hover
 
-## Anti-slop checklist
-- No purple gradients, no Inter/Roboto, no 3 equal glass cards in hero
-- No navy corporate card-on-blue Pace Farm clone
-- No cream + terracotta default
-- One accent (yolk), one action color (leaf)
-- Motion: page-load tray + CTA hover only
+## Anti-safe rules for this pass
+- Do NOT center a polite headline + soft wash
+- Do NOT use equal 3-column "feature cards" in the hero
+- DO let $12 be bigger than the logo
+- DO overlap, tilt, stamp, and break the grid
