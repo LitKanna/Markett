@@ -170,12 +170,12 @@ img { max-width: 100%; height: auto; display: block; }
 
 .hero-line {
   margin: 0 0 0.7rem;
-  font-size: clamp(2.55rem, 6.8vw, 4rem);
+  font-size: clamp(2.35rem, 5.8vw, 3.55rem);
   font-weight: 800;
-  letter-spacing: -0.055em;
-  line-height: 0.98;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
   color: var(--ink);
-  max-width: 11ch;
+  max-width: 13ch;
   text-wrap: balance;
   animation: rise 0.7s var(--ease) both;
 }
@@ -799,7 +799,7 @@ details p {
 
 @media (max-width: 640px) {
   .wrap { width: min(100% - 1.5rem, 1120px); }
-  .hero-line { font-size: 2.55rem; max-width: 12ch; }
+  .hero-line { font-size: 2.35rem; max-width: 13ch; }
   .offer { max-width: 16rem; }
   .offer .badge-price { font-size: 2.25rem; }
   .day-row { grid-template-columns: 1fr; }
