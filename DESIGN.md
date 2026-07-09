@@ -1,4 +1,4 @@
-# YOLKO Design Plan — Modern creative (v105)
+# YOLKO Design Plan - Modern creative (v105)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, modern DTC creative language (Allbirds / Glossier clarity + market product proof), not craft-cream editorial.
 

@@ -236,7 +236,7 @@ function applySettings(settings) {
     }
   }
 
-  // Tray weight (1.5kg or 1.75kg) — label says LARGE eggs
+  // Tray weight (1.5kg or 1.75kg) - label says LARGE eggs
   const weight = settings.trayWeight === "1.5" ? "1.5" : "1.75";
   const traySpec = document.getElementById("tray-spec");
   if (traySpec) traySpec.textContent = `Large, ${weight}kg a tray`;
@@ -285,7 +285,7 @@ function applyPickup(pickup) {
   const daysBox = document.querySelector(".day-list");
   if (daysBox) {
     daysBox.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
+      const hours = `${formatTime(pickup[day].open)} - ${formatTime(pickup[day].close)}`;
       return `<div class="day-row">
         <p class="day-name">${day} ${nextPickupDate(day)}</p>
         <p class="day-time">${hours}</p>
@@ -299,7 +299,7 @@ function applyPickup(pickup) {
   if (seg) {
     const pick = enabledDays.includes(previousChoice) ? previousChoice : enabledDays[enabledDays.length - 1];
     seg.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
+      const hours = `${formatTime(pickup[day].open)} - ${formatTime(pickup[day].close)}`;
       return `<label class="seg-opt">
         <input type="radio" name="pickupDay" value="${day}"${day === pick ? " checked" : ""}>
         <span class="seg-day">${day} ${nextPickupDate(day)}</span>
