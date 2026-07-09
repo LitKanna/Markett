@@ -2,7 +2,16 @@ name = "yolko-site"
 main = "infra/cloudflare-worker.mjs"
 compatibility_date = "2026-06-01"
 account_id = "3af91e3294583af96a50ed10fef9c3b3"
+workers_dev = true
 
 [[kv_namespaces]]
 binding = "DATA"
 id = "98fb94415ceb4012b3de2e5adcf253a5"
+
+[[routes]]
+pattern = "getyolko.com/*"
+zone_name = "getyolko.com"
+
+[[routes]]
+pattern = "www.getyolko.com/*"
+zone_name = "getyolko.com"
