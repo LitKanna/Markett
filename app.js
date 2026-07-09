@@ -195,8 +195,8 @@ function applySettings(settings) {
   const perEgg = Math.round((p1 / 30) * 100);
   const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
 
-  // Hero signature price
-  const badge = document.querySelector(".badge-price") || document.querySelector(".price-line strong");
+  // Hero burst price + any lede strong
+  const badge = document.querySelector(".badge-price") || document.querySelector(".burst strong");
   if (badge) badge.textContent = `$${p1}`;
   const leadStrong = document.querySelector(".lede strong");
   if (leadStrong) leadStrong.textContent = `$${p1}`;
