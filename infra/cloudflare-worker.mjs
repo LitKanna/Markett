@@ -1,7 +1,528 @@
-// Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
+// Pin to commit SHA so CDN/raw serves the exact deploy (update on each push).
 const DEPLOY_SHA = "c9fc01c9d98a8d74d8f7b46ca56c37c8d43e0488";
-const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
-const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
+const UPSTREAMS = [
+  `https://cdn.jsdelivr.net/gh/LitKanna/Markett@${DEPLOY_SHA}`,
+  `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`,
+];
+
+const FALLBACK_INDEX = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YOLKO | 30 Eggs $12, Pickup Fri & Sat at Flemington Markets</title>
+  <meta name="description" content="Fresh Pace Farm eggs at Flemington Markets. 30-egg tray $12, 2 trays $23, full box $66. Book online, pick up Friday or Saturday at Paddy's Markets Flemington.">
+
+  <!-- Social sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="YOLKO: 30 Eggs for $12 at Flemington Markets">
+  <meta property="og:description" content="Book online, pick up Friday or Saturday at Paddy's Markets Flemington. 1 tray $12, 2 trays $23, full box $66.">
+  <meta property="og:image" content="https://getyolko.com/assets/hf_2.jpg?v=99">
+  <meta property="og:url" content="https://getyolko.com/">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <meta name="theme-color" content="#0b2a5b">
+  <link rel="canonical" href="https://getyolko.com/">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=99">
+  <link rel="preload" as="image" href="assets/hf_2.webp?v=99" type="image/webp">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "LocalBusiness",
+        "@id": "https://getyolko.com/#business",
+        "name": "YOLKO",
+        "description": "Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.",
+        "url": "https://getyolko.com/",
+        "telephone": "+61433975055",
+        "image": "https://getyolko.com/assets/hf_2.jpg?v=99",
+        "priceRange": "$$",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Building D, Sydney Markets, 250 Parramatta Road",
+          "addressLocality": "Flemington",
+          "addressRegion": "NSW",
+          "postalCode": "2129",
+          "addressCountry": "AU"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": -33.8686,
+          "longitude": 151.0695
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": "Friday",
+            "opens": "10:00",
+            "closes": "16:30"
+          },
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": "Saturday",
+            "opens": "06:00",
+            "closes": "14:00"
+          }
+        ],
+        "areaServed": {
+          "@type": "GeoCircle",
+          "geoMidpoint": {
+            "@type": "GeoCoordinates",
+            "latitude": -33.8686,
+            "longitude": 151.0695
+          },
+          "geoRadius": "15000"
+        }
+      },
+      {
+        "@type": "Product",
+        "@id": "https://getyolko.com/#product-tray",
+        "name": "Fresh Egg Tray (30 eggs)",
+        "description": "Pace Farm large eggs, 30 to a tray (1.75kg). Pickup Friday or Saturday at Flemington Markets.",
+        "image": "https://getyolko.com/assets/hf_2.jpg?v=99",
+        "brand": { "@type": "Brand", "name": "Pace Farm" },
+        "offers": {
+          "@type": "Offer",
+          "url": "https://getyolko.com/#order",
+          "priceCurrency": "AUD",
+          "price": "12.00",
+          "availability": "https://schema.org/InStock"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Where exactly do I pick up?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Paddy's Markets Flemington, Building D at Sydney Markets, 250 Parramatta Road, Flemington NSW 2129. We send the exact meeting spot with your confirmation."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I pay?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Cash or card on pickup, or pay online when you book. Prepaid orders get priority: they're packed first and guaranteed even on sold-out weeks."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What eggs are they?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Pace Farm large eggs, 30 to a tray (1.75kg). Same brand as the big shops, better price."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I order in bulk for my café or stall?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Choose Full box and set how many you need, up to 10 boxes (1,800 eggs). Weekly business orders get their stock put aside first."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top">
+        <svg class="brand-mark" viewBox="0 0 32 40" width="26" height="32" aria-hidden="true">
+          <path d="M16 2C9 2 2 16 2 26a14 14 0 0 0 28 0C30 16 23 2 16 2Z" fill="#f4b23a"/>
+          <path d="M16 2C9 2 2 16 2 26a14 14 0 0 0 14 14V2Z" fill="#e08a2a"/>
+          <circle cx="16" cy="26" r="6.5" fill="#f7f4ee"/>
+        </svg>
+        <span class="brand-text">
+          <span class="brand-name">YOLKO</span>
+          <span class="brand-sub">Flemington Markets</span>
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Main">
+        <a href="#prices">Prices</a>
+        <a href="#pickup">Pickup</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-solid btn-small" href="#order">Book now</a>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-stage">
+          <div class="hero-copy">
+            <p class="pill">Paddy's Markets Flemington · Fri &amp; Sat</p>
+            <h1>Good eggs.<br>Great price.<br><em>Every week.</em></h1>
+            <p class="hero-sub">30 Pace Farm large eggs for <strong>$12</strong> a tray. Book online, pick up Friday or Saturday at Flemington Markets.</p>
+
+            <div class="hero-cta">
+              <a class="btn btn-solid" href="#order">Book your tray <span aria-hidden="true">→</span></a>
+              <a class="btn btn-ghost" href="#pickup">See pickup times</a>
+            </div>
+
+            <dl class="hero-stats">
+              <div><dt>$12</dt><dd>per 30-egg tray</dd></div>
+              <div><dt>40&cent;</dt><dd>per egg</dd></div>
+              <div><dt>2 days</dt><dd>Friday &amp; Saturday</dd></div>
+            </dl>
+          </div>
+
+          <div class="hero-visual" aria-hidden="false">
+            <div class="blob blob-a"></div>
+            <div class="blob blob-b"></div>
+            <div class="blob blob-c"></div>
+            <span class="float-egg egg-1"></span>
+            <span class="float-egg egg-2"></span>
+            <span class="float-egg egg-3"></span>
+            <figure class="hero-photo">
+              <picture>
+                <source srcset="assets/hf_2.webp?v=99" type="image/webp">
+                <img src="assets/hf_2.jpg?v=99" alt="Pace Farm 30 large cage eggs tray with eggs for everyone label, 1.75kg" width="1400" height="1048" fetchpriority="high" decoding="async">
+              </picture>
+              <figcaption class="photo-badge">
+                <span class="badge-price">$12</span>
+                <span class="badge-note">30 eggs<br>this week</span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="trust">
+          <div class="trust-row">
+            <p>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3c-2 4-6 6-6 10a6 6 0 0 0 12 0c0-4-4-6-6-10z"/></svg>
+              <strong>Pace Farm eggs</strong>
+              <span id="tray-spec">Large, 1.75kg a tray</span>
+            </p>
+            <p>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <strong>Book ahead</strong>
+              <span>Your tray is reserved</span>
+            </p>
+            <p>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-4.5-7-10a7 7 0 1 1 14 0c0 5.5-7 10-7 10z"/><circle cx="12" cy="11" r="2.5"/></svg>
+              <strong>Local pickup</strong>
+              <span>Flemington NSW 2129</span>
+            </p>
+            <p>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+              <strong>Prepay for priority</strong>
+              <span>Paid orders packed first</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICES -->
+    <section id="prices" class="prices">
+      <div class="wrap">
+        <header class="section-head">
+          <h2>Pick your bundle</h2>
+          <p>Same fresh eggs, better price when you take more.</p>
+        </header>
+
+        <div class="price-grid">
+          <article class="price-card">
+            <h3>Single tray</h3>
+            <p class="price-big">$12</p>
+            <p class="price-per">30 eggs · 40&cent; each</p>
+            <ul>
+              <li>Perfect for the week</li>
+              <li>Friday or Saturday pickup</li>
+            </ul>
+            <a class="btn btn-line btn-block" href="#order" data-bundle="tray1">Book 1 tray</a>
+          </article>
+
+          <article class="price-card featured">
+            <p class="flag">Most popular</p>
+            <h3>Double up</h3>
+            <p class="price-big">$23</p>
+            <p class="price-per">60 eggs · save $1</p>
+            <ul>
+              <li>Big families &amp; bakers</li>
+              <li>One pickup, two trays</li>
+            </ul>
+            <a class="btn btn-solid btn-block" href="#order" data-bundle="tray2">Book 2 trays</a>
+          </article>
+
+          <article class="price-card">
+            <h3>Full box</h3>
+            <p class="price-big">$66</p>
+            <p class="price-per">6 trays · 180 eggs</p>
+            <ul>
+              <li>Cafés, stalls &amp; bakers</li>
+              <li>Weekly supply welcome</li>
+            </ul>
+            <a class="btn btn-line btn-block" href="#order" data-bundle="box">Book a box</a>
+          </article>
+        </div>
+
+        <p class="stock-note" id="stock-note" hidden></p>
+      </div>
+    </section>
+
+    <!-- PICKUP -->
+    <section id="pickup" class="pickup">
+      <div class="wrap pickup-grid">
+        <div class="pickup-copy">
+          <header class="section-head left">
+            <h2 id="pickup-title">Come Friday or Saturday</h2>
+            <p>Two market mornings a week. Book ahead, walk in, walk out with your eggs.</p>
+          </header>
+
+          <div class="day-cards">
+            <article class="day-card">
+              <p class="day-name">Friday</p>
+              <p class="day-time">10:00 AM – 4:30 PM</p>
+              <p class="day-note">Book by Thursday night</p>
+            </article>
+            <article class="day-card">
+              <p class="day-name">Saturday</p>
+              <p class="day-time">6:00 AM – 2:00 PM</p>
+              <p class="day-note">Book by Friday night</p>
+            </article>
+          </div>
+
+          <div class="loc-card">
+            <svg class="loc-pin" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div class="loc-text">
+              <strong>Paddy's Markets Flemington</strong>
+              <span>Building D, Sydney Markets, 250 Parramatta Rd, Flemington NSW 2129</span>
+            </div>
+            <a class="btn btn-ghost btn-small" href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets" target="_blank" rel="noopener noreferrer">Maps</a>
+          </div>
+        </div>
+
+        <div class="steps-card">
+          <p class="steps-title">How it works</p>
+          <ol class="steps">
+            <li><span>1</span>Choose your bundle and pickup day</li>
+            <li><span>2</span>We confirm by text or WhatsApp</li>
+            <li><span>3</span>Pick up your eggs at the market</li>
+            <li><span>4</span>Pay on pickup, or prepay online for priority</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ORDER -->
+    <section id="order" class="order">
+      <div class="wrap order-grid">
+        <div class="order-copy">
+          <h2>Book your eggs</h2>
+          <p>Reserve now, trays run out most weeks. We'll confirm your booking the same day.</p>
+          <div class="order-tray-note">
+            <div class="order-tray-photo">
+              <picture>
+                <source srcset="assets/hf_2-order.webp?v=99" type="image/webp">
+                <img src="assets/hf_2-order.jpg?v=99" alt="Pace Farm 30 large cage eggs tray with eggs for everyone label, 1.75kg" width="800" height="599" loading="lazy" decoding="async">
+              </picture>
+            </div>
+            <p><strong>30 large eggs</strong> per tray · Pace Farm · Flemington pickup</p>
+          </div>
+        </div>
+
+        <form id="order-form" class="order-form">
+          <fieldset class="picker">
+            <legend>Pick your bundle</legend>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="tray1">
+              <span class="bo-name">1 tray</span>
+              <span class="bo-eggs">30 eggs</span>
+              <span class="bo-price" id="bp-tray1">$12</span>
+            </label>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="tray2" checked>
+              <span class="bo-name">2 trays</span>
+              <span class="bo-eggs">60 eggs</span>
+              <span class="bo-price" id="bp-tray2">$23</span>
+            </label>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="box">
+              <span class="bo-name">Full box</span>
+              <span class="bo-eggs">180 eggs</span>
+              <span class="bo-price" id="bp-box">$66</span>
+            </label>
+          </fieldset>
+
+          <div class="field-row">
+            <div class="field">
+              <span class="field-label">How many?</span>
+              <div class="stepper">
+                <button type="button" class="step-btn" id="qty-minus" aria-label="Fewer">&minus;</button>
+                <output class="step-value" id="qty-value">1</output>
+                <button type="button" class="step-btn" id="qty-plus" aria-label="More">+</button>
+              </div>
+              <input type="hidden" id="quantity" name="quantity" value="1">
+            </div>
+
+            <div class="field">
+              <span class="field-label">Pickup day</span>
+              <div class="seg" id="day-seg">
+                <label class="seg-opt">
+                  <input type="radio" name="pickupDay" value="Friday">
+                  <span class="seg-day">Friday</span>
+                  <span class="seg-hours" id="hours-Friday">10 AM – 4:30 PM</span>
+                </label>
+                <label class="seg-opt">
+                  <input type="radio" name="pickupDay" value="Saturday" checked>
+                  <span class="seg-day">Saturday</span>
+                  <span class="seg-hours" id="hours-Saturday">6 AM – 2 PM</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" name="name" type="text" placeholder="Full name" autocomplete="name" required>
+          </div>
+
+          <div class="field">
+            <label for="phone">Mobile (Australian)</label>
+            <input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="04xx xxx xxx" autocomplete="tel" required>
+            <p class="field-error" id="phone-error" hidden>Enter a valid Australian mobile, e.g. 0412 345 678</p>
+          </div>
+
+          <p class="order-summary" id="order-summary">2 trays (60 eggs) &middot; Saturday &middot; $23</p>
+
+          <div class="cta-row">
+            <button type="submit" class="btn btn-reserve" id="submit-btn">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+              <span id="submit-label">Reserve</span>
+            </button>
+            <button type="button" class="btn btn-solid" id="buynow-btn">
+              <span id="buynow-label">Buy now</span>
+            </button>
+          </div>
+          <p class="form-note">Reserve and pay at pickup, or buy now for guaranteed priority stock.</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- CONFIRMATION -->
+    <section id="done" class="done" hidden aria-live="polite">
+      <div class="wrap">
+        <div class="done-card">
+          <div class="done-side">
+            <svg class="done-art" viewBox="0 0 320 210" role="img" aria-label="Booked egg illustration" width="320" height="210">
+              <circle cx="160" cy="104" r="82" fill="#e8f0fb"/>
+              <path d="M92 44l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#f4b23a"/>
+              <path d="M236 36l2.2 6 6 2.2-6 2.2-2.2 6-2.2-6-6-2.2 6-2.2z" fill="#f4b23a" opacity="0.85"/>
+              <circle cx="70" cy="120" r="4" fill="#e08a2a" opacity="0.8"/>
+              <circle cx="250" cy="92" r="4.5" fill="#7db3e8"/>
+              <path d="M160 40c-24 0-42 32-42 66 0 30 18 50 42 50s42-20 42-50c0-34-18-66-42-66z" fill="#e0985c"/>
+              <path d="M160 40c-24 0-42 32-42 66 0 30 18 50 42 50V40z" fill="#d88a48"/>
+              <ellipse cx="144" cy="82" rx="8" ry="13" fill="#f2c291" opacity="0.85"/>
+              <ellipse cx="160" cy="168" rx="46" ry="7" fill="#9bb8d9" opacity="0.35"/>
+              <circle cx="212" cy="142" r="31" fill="#f7f4ee"/>
+              <circle cx="212" cy="142" r="26" fill="#1f6b45"/>
+              <path d="M200 142l9 9 16-18" stroke="#f7f4ee" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            <h2>You're booked in!</h2>
+            <p id="done-summary">We'll confirm your pickup shortly.</p>
+            <p class="done-hint">Show this screen when you arrive at the market.</p>
+          </div>
+
+          <div class="done-detail">
+            <dl class="receipt">
+              <div><dt>Name</dt><dd id="r-name"></dd></div>
+              <div><dt>Mobile</dt><dd id="r-phone"></dd></div>
+              <div><dt>Order</dt><dd id="r-order"></dd></div>
+              <div><dt>Pickup</dt><dd id="r-pickup"></dd></div>
+              <div class="receipt-total"><dt>Total on pickup</dt><dd id="r-total"></dd></div>
+            </dl>
+
+            <div class="done-actions">
+              <a id="whatsapp-send" class="btn btn-wa btn-block" target="_blank" rel="noopener noreferrer" hidden>
+                Confirm on WhatsApp
+              </a>
+              <a id="stripe-pay" class="btn btn-solid btn-block" target="_blank" rel="noopener noreferrer" hidden>Pay online now</a>
+              <p class="pay-perk" id="pay-perk" hidden>&#9889; Prepaid orders are packed first and guaranteed, even if the week sells out. Unpaid reservations can miss out on busy weeks.</p>
+              <div class="done-row">
+                <button id="copy-message" class="btn btn-line" type="button">Copy order</button>
+                <button id="again" class="btn btn-ghost" type="button">New booking</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="faq">
+      <div class="wrap">
+        <header class="section-head">
+          <h2>Quick questions</h2>
+        </header>
+        <div class="faq-grid">
+          <details>
+            <summary>Where exactly do I pick up?</summary>
+            <p>Paddy's Markets Flemington, Building D at Sydney Markets, 250 Parramatta Road, Flemington NSW 2129. We send the exact meeting spot with your confirmation.</p>
+          </details>
+          <details>
+            <summary>How do I pay?</summary>
+            <p>Cash or card on pickup, or pay online when you book. Prepaid orders get priority: they're packed first and guaranteed even on sold-out weeks.</p>
+          </details>
+          <details>
+            <summary>What eggs are they?</summary>
+            <p id="faq-eggs">Pace Farm large eggs, 30 to a tray (1.75kg). Same brand as the big shops, better price.</p>
+          </details>
+          <details>
+            <summary>Can I order in bulk for my café or stall?</summary>
+            <p>Yes. Choose "Full box" and set how many you need, up to 10 boxes (1,800 eggs). Weekly business orders get their stock put aside first.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+    <div class="mobile-cta-text">
+      <strong>30 eggs · $12</strong>
+      <span>Pickup Fri &amp; Sat</span>
+    </div>
+    <a class="btn btn-solid btn-small" href="#order">Book now</a>
+  </div>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <a class="foot-brand" href="#top" aria-label="Back to top">
+        <svg viewBox="0 0 32 40" width="22" height="28" aria-hidden="true">
+          <path d="M16 2C9 2 2 16 2 26a14 14 0 0 0 28 0C30 16 23 2 16 2Z" fill="#f4b23a"/>
+          <path d="M16 2C9 2 2 16 2 26a14 14 0 0 0 14 14V2Z" fill="#e08a2a"/>
+          <circle cx="16" cy="26" r="6.5" fill="#f7f4ee"/>
+        </svg>
+        <span>YOLKO</span>
+      </a>
+      <p class="foot-line">Fresh eggs, every Friday &amp; Saturday.</p>
+      <p class="foot-copy">&copy; 2026 YOLKO</p>
+    </div>
+  </footer>
+
+  <script src="config.js?v=99"></script>
+  <script src="app.js?v=99"></script>
+</body>
+</html>
+`;
 
 const MIME = {
   html: "text/html; charset=utf-8",
@@ -811,16 +1332,42 @@ export default {
     const ext = path.includes(".") ? path.split(".").pop().toLowerCase() : "html";
     if (!path.includes(".")) path += ".html";
 
-    const live = ext === "html" || ext === "css" || ext === "js";
-    const upstreamBase = live ? UPSTREAM_LIVE : UPSTREAM_ASSETS;
-    const bust = live ? `?_${Date.now()}` : "";
-    const upstreamResp = await fetch(upstreamBase + path + bust, {
-      headers: { "User-Agent": "yolko-edge" },
-      cf: { cacheTtl: 0 },
-    });
+    // Prefer jsDelivr (stable), fall back to GitHub raw if needed.
+    let upstreamResp = null;
+    let lastStatus = 0;
+    for (const base of UPSTREAMS) {
+      try {
+        const resp = await fetch(base + path, {
+          headers: { "User-Agent": "yolko-edge", Accept: "*/*" },
+          cf: { cacheTtl: 60 },
+        });
+        lastStatus = resp.status;
+        if (resp.ok) {
+          upstreamResp = resp;
+          break;
+        }
+      } catch {
+        lastStatus = 502;
+      }
+    }
 
-    if (!upstreamResp.ok) {
-      return new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain" } });
+    if (!upstreamResp) {
+      // Never blank the homepage if GitHub/CDN blips — serve the embedded copy.
+      if (ext === "html" && (path === "/index.html" || path === "/")) {
+        return new Response(FALLBACK_INDEX, {
+          status: 200,
+          headers: {
+            "Content-Type": MIME.html,
+            "Cache-Control": "no-cache",
+            "X-Yolko-Build": "100",
+            "X-Yolko-Source": "fallback",
+          },
+        });
+      }
+      return new Response(`Not found (${path}, upstream ${lastStatus})`, {
+        status: 404,
+        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "100" },
+      });
     }
 
     if (ext === "html" && env.GOOGLE_SITE_VERIFICATION) {
@@ -834,7 +1381,7 @@ export default {
         headers: {
           "Content-Type": MIME.html,
           "Cache-Control": "no-cache",
-          "X-Yolko-Build": "99",
+          "X-Yolko-Build": "100",
         },
       });
     }
@@ -844,7 +1391,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "99",
+        "X-Yolko-Build": "100",
       },
     });
   },
