@@ -169,46 +169,46 @@ img { max-width: 100%; height: auto; display: block; }
 .hero-copy { animation: rise 0.7s var(--ease) both; }
 
 .brand-hero {
-  margin: 0 0 1rem;
-  font-size: clamp(3.25rem, 9vw, 5.5rem);
+  margin: 0 0 0.55rem;
+  font-size: clamp(3.5rem, 10vw, 6rem);
   font-weight: 800;
   letter-spacing: -0.065em;
-  line-height: 0.9;
+  line-height: 0.88;
   color: var(--ink);
 }
 
-.price-line {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: end;
-  column-gap: 0.85rem;
-  margin: 0 0 0.9rem;
-  max-width: 22rem;
-}
-.price-line .badge-price,
-.price-line strong {
-  font-size: clamp(3.75rem, 9vw, 5.75rem);
-  font-weight: 800;
-  letter-spacing: -0.06em;
-  line-height: 0.88;
-  color: var(--yolk);
-  font-variant-numeric: tabular-nums;
+.offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.7rem;
+  margin: 0 0 0.85rem;
+  max-width: 18rem;
+  font-size: clamp(1.35rem, 2.8vw, 1.65rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--ink);
   animation: rise 0.8s var(--ease) 0.06s both;
 }
-.price-line span {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--soft);
-  padding-bottom: 0.45rem;
-  max-width: 11ch;
-  line-height: 1.25;
+.offer .badge-price {
+  font-size: clamp(2.35rem, 5.5vw, 3.15rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  color: var(--yolk);
+  font-variant-numeric: tabular-nums;
+}
+.offer-rest {
+  color: var(--ink);
+  font-weight: 650;
 }
 
 .lede {
   margin: 0 0 1.4rem;
   font-size: 1.0625rem;
   color: var(--soft);
-  max-width: 30ch;
+  max-width: 28ch;
   text-wrap: pretty;
 }
 
@@ -796,9 +796,9 @@ details p {
 
 @media (max-width: 640px) {
   .wrap { width: min(100% - 1.5rem, 1120px); }
-  .brand-hero { font-size: 3.1rem; }
-  .price-line .badge-price,
-  .price-line strong { font-size: 3.4rem; }
+  .brand-hero { font-size: 3.25rem; }
+  .offer { max-width: 16rem; }
+  .offer .badge-price { font-size: 2.5rem; }
   .day-row { grid-template-columns: 1fr; }
   .day-name { grid-row: auto; }
   .cta-row,

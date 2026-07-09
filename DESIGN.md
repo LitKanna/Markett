@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v108)
+# YOLKO Design System — locked (v109)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
@@ -10,7 +10,15 @@
 Book a Pace Farm tray for Friday or Saturday pickup at Flemington.
 
 ## Signature (only one)
-Clean studio tray beside a clear yolk **$12** set in type — no stickers, no floating cartoon eggs, no icon bars.
+Clean studio tray beside one offer line: yolk **$12** + “for 30 large eggs” in type — brand larger than price. No stickers, floating eggs, or icon bars.
+
+## Hero copy (locked)
+```
+YOLKO
+$12 for 30 large eggs
+Book online. Pick up Friday or Saturday at Flemington.
+```
+Do not stack brand / bare price / product fragment as three competing lines.
 
 ## Tokens
 | Token | Hex | Role |

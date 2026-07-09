@@ -17,7 +17,7 @@ const FALLBACK_INDEX = `
   <meta property="og:type" content="website">
   <meta property="og:title" content="YOLKO: 30 Eggs for $12 at Flemington Markets">
   <meta property="og:description" content="Book online, pick up Friday or Saturday at Paddy's Markets Flemington. 1 tray $12, 2 trays $23, full box $66.">
-  <meta property="og:image" content="https://getyolko.com/assets/tray-studio.jpg?v=108">
+  <meta property="og:image" content="https://getyolko.com/assets/tray-studio.jpg?v=109">
   <meta property="og:url" content="https://getyolko.com/">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -28,8 +28,8 @@ const FALLBACK_INDEX = `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=108">
-  <link rel="preload" as="image" href="assets/tray-studio.webp?v=108" type="image/webp">
+  <link rel="stylesheet" href="styles.css?v=109">
+  <link rel="preload" as="image" href="assets/tray-studio.webp?v=109" type="image/webp">
 
   <script type="application/ld+json">
   {
@@ -42,7 +42,7 @@ const FALLBACK_INDEX = `
         "description": "Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.",
         "url": "https://getyolko.com/",
         "telephone": "+61433975055",
-        "image": "https://getyolko.com/assets/tray-studio.jpg?v=108",
+        "image": "https://getyolko.com/assets/tray-studio.jpg?v=109",
         "priceRange": "$$",
         "address": {
           "@type": "PostalAddress",
@@ -62,7 +62,7 @@ const FALLBACK_INDEX = `
         "@type": "Product",
         "@id": "https://getyolko.com/#product-tray",
         "name": "Fresh Egg Tray (30 eggs)",
-        "image": "https://getyolko.com/assets/tray-studio.jpg?v=108",
+        "image": "https://getyolko.com/assets/tray-studio.jpg?v=109",
         "brand": { "@type": "Brand", "name": "Pace Farm" },
         "offers": {
           "@type": "Offer",
@@ -101,10 +101,10 @@ const FALLBACK_INDEX = `
       <div class="wrap hero-split">
         <div class="hero-copy">
           <p class="brand-hero">YOLKO</p>
-          <p class="price-line">
-            <strong class="badge-price">$12</strong>
-            <span>30 Pace Farm large eggs</span>
-          </p>
+          <h1 class="offer">
+            <span class="badge-price">$12</span>
+            <span class="offer-rest">for 30 large eggs</span>
+          </h1>
           <p class="lede">Book online. Pick up Friday or Saturday at Flemington.</p>
           <div class="hero-actions">
             <a class="btn btn-ink" href="#order">Book your tray</a>
@@ -113,8 +113,8 @@ const FALLBACK_INDEX = `
         </div>
         <div class="hero-visual">
           <picture class="hero-tray">
-            <source srcset="assets/tray-studio.webp?v=108" type="image/webp">
-            <img src="assets/tray-studio.jpg?v=108" alt="Pace Farm 30 large eggs tray" width="1536" height="1024" fetchpriority="high" decoding="async">
+            <source srcset="assets/tray-studio.webp?v=109" type="image/webp">
+            <img src="assets/tray-studio.jpg?v=109" alt="Pace Farm 30 large eggs tray" width="1536" height="1024" fetchpriority="high" decoding="async">
           </picture>
         </div>
       </div>
@@ -220,8 +220,8 @@ const FALLBACK_INDEX = `
           <p>Reserve now. Trays run out most weeks. We confirm the same day.</p>
           <div class="order-tray">
             <picture>
-              <source srcset="assets/tray-studio.webp?v=108" type="image/webp">
-              <img src="assets/tray-studio.jpg?v=108" alt="Pace Farm 30 large eggs tray" width="1536" height="1024" loading="lazy" decoding="async">
+              <source srcset="assets/tray-studio.webp?v=109" type="image/webp">
+              <img src="assets/tray-studio.jpg?v=109" alt="Pace Farm 30 large eggs tray" width="1536" height="1024" loading="lazy" decoding="async">
             </picture>
             <p><strong>30 large eggs</strong> per tray · Pace Farm · Flemington pickup</p>
           </div>
@@ -375,8 +375,8 @@ const FALLBACK_INDEX = `
     </div>
   </footer>
 
-  <script src="config.js?v=108"></script>
-  <script src="app.js?v=108"></script>
+  <script src="config.js?v=109"></script>
+  <script src="app.js?v=109"></script>
 </body>
 </html>
 `;
@@ -1216,14 +1216,14 @@ export default {
           headers: {
             "Content-Type": MIME.html,
             "Cache-Control": "no-cache",
-            "X-Yolko-Build": "108",
+            "X-Yolko-Build": "109",
             "X-Yolko-Source": "fallback",
           },
         });
       }
       return new Response(`Not found (${path}, upstream ${lastStatus})`, {
         status: 404,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "108" },
+        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "109" },
       });
     }
 
@@ -1238,7 +1238,7 @@ export default {
         headers: {
           "Content-Type": MIME.html,
           "Cache-Control": "no-cache",
-          "X-Yolko-Build": "108",
+          "X-Yolko-Build": "109",
         },
       });
     }
@@ -1248,7 +1248,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "108",
+        "X-Yolko-Build": "109",
       },
     });
   },
