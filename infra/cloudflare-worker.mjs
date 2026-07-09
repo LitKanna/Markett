@@ -153,7 +153,6 @@ const FALLBACK_INDEX = `<!doctype html>
           <div class="hero-visual" aria-hidden="true">
             <div class="blob blob-a"></div>
             <div class="blob blob-b"></div>
-            <div class="scribble"></div>
             <picture class="hero-tray">
               <source srcset="assets/tray-studio.webp?v=107" type="image/webp">
               <img src="assets/tray-studio.jpg?v=107" alt="" width="1536" height="1024" fetchpriority="high" decoding="async">

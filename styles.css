@@ -296,41 +296,6 @@ img { max-width: 100%; height: auto; display: block; }
   opacity: 0.85;
 }
 
-.scribble {
-  position: absolute;
-  left: -4%;
-  top: 28%;
-  width: 90px;
-  height: 70px;
-  z-index: 2;
-  background:
-    radial-gradient(circle at 20% 50%, transparent 0 42%, var(--blue) 43% 48%, transparent 49%) top left / 28px 28px no-repeat,
-    linear-gradient(105deg, transparent 0 10%, var(--blue) 10% 12%, transparent 12% 100%);
-  opacity: 0.55;
-  transform: rotate(-18deg);
-}
-.scribble::before {
-  content: "";
-  position: absolute;
-  inset: 18% 8% auto auto;
-  width: 54px;
-  height: 2px;
-  background: var(--blue);
-  border-radius: 2px;
-  transform: rotate(18deg);
-}
-.scribble::after {
-  content: "";
-  position: absolute;
-  right: 6px;
-  top: 22%;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 5px 0 5px 9px;
-  border-color: transparent transparent transparent var(--blue);
-}
-
 .hero-tray {
   position: relative;
   z-index: 1;
@@ -940,7 +905,6 @@ details p {
   .done-card { grid-template-columns: 1fr; }
   .field-row { grid-template-columns: 1fr; }
   .egg-1 { left: 2%; }
-  .scribble { display: none; }
 }
 
 @media (max-width: 640px) {
