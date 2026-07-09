@@ -1,4 +1,4 @@
-name: SEO IndexNow ping
+name: SEO ping (IndexNow + Google Search Console)
 
 on:
   push:
@@ -8,17 +8,37 @@ on:
       - "sitemap.xml"
       - "robots.txt"
       - "8f3c2a1b9d4e7f6a8b2c1d0e9f8a7b6c.txt"
+      - "infra/seo-*.mjs"
+      - ".github/workflows/seo-indexnow.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  indexnow:
+  ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping IndexNow
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ping IndexNow (Bing / Yandex)
         env:
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
-        run: |
-          KEY="${INDEXNOW_KEY:-8f3c2a1b9d4e7f6a8b2c1d0e9f8a7b6c}"
-          curl -sf -X POST "https://api.indexnow.org/indexnow" \
-            -H "Content-Type: application/json; charset=utf-8" \
-            -d "{\"host\":\"getyolko.com\",\"key\":\"${KEY}\",\"keyLocation\":\"https://getyolko.com/${KEY}.txt\",\"urlList\":[\"https://getyolko.com/\",\"https://getyolko.com/sitemap.xml\"]}"
+        run: npm run seo:indexnow
+
+      - name: Submit sitemap to Google Search Console
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SEARCH_CONSOLE_SITE_URL: https://getyolko.com/
+          GOOGLE_SITEMAP_URL: https://getyolko.com/sitemap.xml
+        run: npm run seo:google
