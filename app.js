@@ -28,48 +28,12 @@ let lastOrderId = null;
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ---------- Ticker: always covers the screen, loops seamlessly ---------- */
-const TICKER_ITEMS = [
-  "Fresh eggs every week",
-  "30 eggs for $12",
-  "Pickup Friday & Saturday",
-  "Paddy's Markets Flemington",
-];
-
-function renderTicker() {
-  const track = document.getElementById("ticker-track");
-  if (!track) return;
-
-  const dot = '<i>\u2B24</i>';
-  const base = TICKER_ITEMS.map((t) => `<span>${t}</span>${dot}`).join("");
-
-  // Measure one copy, then repeat until each half is wider than the screen,
-  // so the tail never leaves an empty gap before the loop restarts.
-  track.innerHTML = `<div class="ticker-half">${base}</div>`;
-  const half = track.firstElementChild;
-  const copies = Math.max(1, Math.ceil(window.innerWidth / Math.max(1, half.scrollWidth)));
-  const filled = base.repeat(copies);
-  track.innerHTML = `<div class="ticker-half">${filled}</div><div class="ticker-half">${filled}</div>`;
-
-  // Constant scroll speed regardless of content length
-  const speed = 65; // px per second
-  track.style.animationDuration = `${Math.round(track.firstElementChild.scrollWidth / speed)}s`;
-}
-
-renderTicker();
-
-let tickerResizeTimer;
-window.addEventListener("resize", () => {
-  clearTimeout(tickerResizeTimer);
-  tickerResizeTimer = setTimeout(renderTicker, 250);
-});
-
 /* ---------- Scroll effects, throttled to one update per frame ---------- */
 const topbar = document.querySelector(".topbar");
 let scrollTicking = false;
 
 function onScrollFrame() {
-  topbar.classList.toggle("scrolled", window.scrollY > 8);
+  if (topbar) topbar.classList.toggle("scrolled", window.scrollY > 8);
   updateMobileCta();
   scrollTicking = false;
 }
@@ -80,31 +44,6 @@ window.addEventListener("scroll", () => {
     requestAnimationFrame(onScrollFrame);
   }
 }, { passive: true });
-
-/* ---------- Scroll reveal ---------- */
-const revealTargets = document.querySelectorAll(
-  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .faq details, .stock-note"
-);
-
-revealTargets.forEach((el, i) => {
-  el.classList.add("reveal");
-  el.style.setProperty("--reveal-delay", `${(i % 4) * 70}ms`);
-});
-
-if (!reducedMotion && "IntersectionObserver" in window) {
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("in");
-        io.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
-
-  revealTargets.forEach((el) => io.observe(el));
-} else {
-  revealTargets.forEach((el) => el.classList.add("in"));
-}
 
 /* ---------- Cursor-following glow on price cards ---------- */
 if (!reducedMotion && window.matchMedia("(hover: hover)").matches) {
@@ -122,6 +61,7 @@ const mobileCta = document.getElementById("mobile-cta");
 const heroSection = document.querySelector(".hero");
 
 function updateMobileCta() {
+  if (!mobileCta || !heroSection) return;
   const pastHero = window.scrollY > heroSection.offsetHeight * 0.7;
   const orderRect = orderSection.getBoundingClientRect();
   const doneVisible = !doneSection.hidden;
@@ -188,10 +128,7 @@ function refreshSubmitPrice() {
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const qty = currentQuantity();
 
-  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} ${nextPickupDate(currentPickupDay())} &middot; $${bundle.price * qty}`;
-  orderSummary.classList.remove("bump");
-  void orderSummary.offsetWidth;
-  orderSummary.classList.add("bump");
+  orderSummary.textContent = `${describeOrder(bundleKey, qty)} · ${currentPickupDay()} ${nextPickupDate(currentPickupDay())} · $${bundle.price * qty}`;
 }
 
 document.querySelectorAll('input[name="bundle"]').forEach((radio) => {
@@ -267,9 +204,7 @@ function applySettings(settings) {
   const leadStrong = document.querySelector(".hero-sub strong");
   if (leadStrong) leadStrong.textContent = `$${p1}`;
 
-  // Ticker and mobile bar
-  TICKER_ITEMS[1] = `30 eggs for $${p1}`;
-  renderTicker();
+  // Mobile bar
   const ctaStrong = document.querySelector(".mobile-cta-text strong");
   if (ctaStrong) ctaStrong.textContent = `30 eggs · $${p1}`;
 
@@ -298,21 +233,18 @@ function applySettings(settings) {
     if (stock > 0) {
       stockNote.textContent = `Only ${stock} trays available this week. Book early.`;
       stockNote.hidden = false;
-      stockNote.classList.add("in");
     } else {
       stockNote.textContent = "Sold out this week. Check back Wednesday.";
       stockNote.hidden = false;
-      stockNote.classList.add("in");
     }
   }
 
-  // Tray weight (1.5kg or 1.75kg)
+  // Tray weight (1.5kg or 1.75kg) — label says LARGE eggs
   const weight = settings.trayWeight === "1.5" ? "1.5" : "1.75";
-  const size = weight === "1.5" ? "large" : "extra large";
   const traySpec = document.getElementById("tray-spec");
-  if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
+  if (traySpec) traySpec.textContent = `Large, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
-  if (faqEggs) faqEggs.textContent = `Pace Farm cage ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
+  if (faqEggs) faqEggs.textContent = `Pace Farm large eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
@@ -402,9 +334,6 @@ function applyPickup(pickup) {
     stats[2].querySelector("dt").textContent = enabledDays.length ? `${enabledDays.length} day${enabledDays.length > 1 ? "s" : ""}` : "Paused";
     stats[2].querySelector("dd").textContent = dayText;
   }
-
-  TICKER_ITEMS[2] = `Pickup ${dayText}`;
-  renderTicker();
 
   const ctaSpan = document.querySelector(".mobile-cta-text span");
   if (ctaSpan) ctaSpan.textContent = `Pickup ${dayText}`;
