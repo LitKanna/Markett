@@ -28,7 +28,7 @@ const FALLBACK_INDEX = `<!doctype html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=104">
-  <link rel="preload" as="image" href="assets/hf_2-cut.webp?v=104" type="image/webp">
+  <link rel="preload" as="image" href="assets/hf_2.webp?v=104" type="image/webp">
 
   <script type="application/ld+json">
   {
@@ -97,7 +97,7 @@ const FALLBACK_INDEX = `<!doctype html>
     <section class="hero">
       <div class="hero-media" aria-hidden="true">
         <picture>
-          <source srcset="assets/hf_2-cut.webp?v=104" type="image/webp">
+          <source srcset="assets/hf_2.webp?v=104" type="image/webp">
           <img src="assets/hf_2-hero.jpg?v=104" alt="" width="1400" height="1048" fetchpriority="high" decoding="async">
         </picture>
       </div>
