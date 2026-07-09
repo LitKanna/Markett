@@ -29,11 +29,13 @@ let lastOrderId = null;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- Scroll effects, throttled to one update per frame ---------- */
-const topbar = document.querySelector(".topbar");
+const topbar = document.querySelector(".topbar") || document.querySelector(".card-nav");
 let scrollTicking = false;
 
 function onScrollFrame() {
-  if (topbar) topbar.classList.toggle("scrolled", window.scrollY > 8);
+  if (topbar && topbar.classList.contains("topbar")) {
+    topbar.classList.toggle("scrolled", window.scrollY > 8);
+  }
   updateMobileCta();
   scrollTicking = false;
 }
@@ -196,12 +198,9 @@ function applySettings(settings) {
   const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
 
   // Hero
-  const badge = document.querySelector(".badge-price");
+  const badge = document.querySelector(".starburst strong");
   if (badge) badge.textContent = `$${p1}`;
-  const stats = document.querySelectorAll(".hero-stats dt");
-  if (stats[0]) stats[0].textContent = `$${p1}`;
-  if (stats[1]) stats[1].innerHTML = `${perEgg}&cent;`;
-  const leadStrong = document.querySelector(".hero-sub strong");
+  const leadStrong = document.querySelector(".lede strong");
   if (leadStrong) leadStrong.textContent = `$${p1}`;
 
   // Mobile bar
@@ -327,12 +326,6 @@ function applyPickup(pickup) {
       enabledDays.length === 1 ? `Come on ${enabledDays[0]}` :
       enabledDays.length === 2 ? `Come ${enabledDays[0]} or ${enabledDays[1]}` :
       `Open ${enabledDays.length} days a week`;
-  }
-
-  const stats = document.querySelectorAll(".hero-stats div");
-  if (stats[2]) {
-    stats[2].querySelector("dt").textContent = enabledDays.length ? `${enabledDays.length} day${enabledDays.length > 1 ? "s" : ""}` : "Paused";
-    stats[2].querySelector("dd").textContent = dayText;
   }
 
   const ctaSpan = document.querySelector(".mobile-cta-text span");
