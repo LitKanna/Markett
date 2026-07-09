@@ -195,9 +195,7 @@ function applySettings(settings) {
   const perEgg = Math.round((p1 / 30) * 100);
   const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
 
-  // Hero — giant yolk price is the signature
-  const badge = document.querySelector(".yolk-price") || document.querySelector(".badge-price");
-  if (badge) badge.textContent = `$${p1}`;
+  // Hero lede price
   const leadStrong = document.querySelector(".lede strong");
   if (leadStrong) leadStrong.textContent = `$${p1}`;
 
@@ -281,17 +279,17 @@ function applyPickup(pickup) {
   const enabledDays = WEEK_DAYS.filter((d) => pickup[d]?.enabled);
   const previousChoice = currentPickupDay();
 
-  // Day cards in the pickup section, with the actual next date
-  const cardsBox = document.querySelector(".day-cards");
-  if (cardsBox) {
-    cardsBox.innerHTML = enabledDays.map((day) => {
+  // Pickup day list with the actual next date
+  const daysBox = document.querySelector(".day-list");
+  if (daysBox) {
+    daysBox.innerHTML = enabledDays.map((day) => {
       const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
-      return `<article class="day-card">
+      return `<div class="day-row">
         <p class="day-name">${day} ${nextPickupDate(day)}</p>
         <p class="day-time">${hours}</p>
         <p class="day-note">Book by ${DAY_BEFORE[day]} night</p>
-      </article>`;
-    }).join("") || `<article class="day-card"><p class="day-name">Paused</p><p class="day-time">Back soon</p><p class="day-note">Check again Wednesday</p></article>`;
+      </div>`;
+    }).join("") || `<div class="day-row"><p class="day-name">Paused</p><p class="day-time">Back soon</p><p class="day-note">Check again Wednesday</p></div>`;
   }
 
   // Booking form day segments, dated

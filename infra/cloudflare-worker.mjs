@@ -16,19 +16,19 @@ const FALLBACK_INDEX = `<!doctype html>
   <meta property="og:type" content="website">
   <meta property="og:title" content="YOLKO: 30 Eggs for $12 at Flemington Markets">
   <meta property="og:description" content="Book online, pick up Friday or Saturday at Paddy's Markets Flemington. 1 tray $12, 2 trays $23, full box $66.">
-  <meta property="og:image" content="https://getyolko.com/assets/hf_2-hero.jpg?v=103">
+  <meta property="og:image" content="https://getyolko.com/assets/hf_2-hero.jpg?v=104">
   <meta property="og:url" content="https://getyolko.com/">
   <meta name="twitter:card" content="summary_large_image">
 
-  <meta name="theme-color" content="#146B34">
+  <meta name="theme-color" content="#1A5C32">
   <link rel="canonical" href="https://getyolko.com/">
   <link rel="sitemap" type="application/xml" href="/sitemap.xml">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=103">
-  <link rel="preload" as="image" href="assets/hf_2-cut.webp?v=103" type="image/webp">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=104">
+  <link rel="preload" as="image" href="assets/hf_2-cut.webp?v=104" type="image/webp">
 
   <script type="application/ld+json">
   {
@@ -38,9 +38,11 @@ const FALLBACK_INDEX = `<!doctype html>
         "@type": "LocalBusiness",
         "@id": "https://getyolko.com/#business",
         "name": "YOLKO",
+        "description": "Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.",
         "url": "https://getyolko.com/",
         "telephone": "+61433975055",
-        "image": "https://getyolko.com/assets/hf_2-hero.jpg?v=103",
+        "image": "https://getyolko.com/assets/hf_2-hero.jpg?v=104",
+        "priceRange": "$$",
         "address": {
           "@type": "PostalAddress",
           "streetAddress": "Building D, Sydney Markets, 250 Parramatta Road",
@@ -49,6 +51,7 @@ const FALLBACK_INDEX = `<!doctype html>
           "postalCode": "2129",
           "addressCountry": "AU"
         },
+        "geo": { "@type": "GeoCoordinates", "latitude": -33.8686, "longitude": 151.0695 },
         "openingHoursSpecification": [
           { "@type": "OpeningHoursSpecification", "dayOfWeek": "Friday", "opens": "10:00", "closes": "16:30" },
           { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "06:00", "closes": "14:00" }
@@ -58,7 +61,7 @@ const FALLBACK_INDEX = `<!doctype html>
         "@type": "Product",
         "@id": "https://getyolko.com/#product-tray",
         "name": "Fresh Egg Tray (30 eggs)",
-        "image": "https://getyolko.com/assets/hf_2-hero.jpg?v=103",
+        "image": "https://getyolko.com/assets/hf_2-hero.jpg?v=104",
         "brand": { "@type": "Brand", "name": "Pace Farm" },
         "offers": {
           "@type": "Offer",
@@ -74,12 +77,10 @@ const FALLBACK_INDEX = `<!doctype html>
 </head>
 <body>
 
-  <div class="canopy" aria-hidden="true"></div>
-
   <header class="topbar">
     <div class="wrap topbar-inner">
-      <a class="brand" href="#top">
-        <span class="brand-egg" aria-hidden="true"></span>
+      <a class="brand" href="#top" aria-label="YOLKO home">
+        <span class="brand-mark" aria-hidden="true"></span>
         <span class="brand-name">YOLKO</span>
       </a>
       <nav class="topnav" aria-label="Main">
@@ -87,195 +88,153 @@ const FALLBACK_INDEX = `<!doctype html>
         <a href="#pickup">Pickup</a>
         <a href="#faq">FAQ</a>
       </nav>
-      <a class="btn btn-chalk btn-small" href="#order">Book now</a>
+      <a class="btn btn-primary btn-small" href="#order">Book now</a>
     </div>
   </header>
 
   <main id="top">
 
-    <!-- MARKET BOARD HERO -->
     <section class="hero">
-      <div class="wrap hero-board">
-        <div class="hero-copy">
-          <p class="stamp stamp-leaf">Flemington Markets</p>
-          <h1>
-            <span class="shout">EGGS.</span>
-            <span class="shout-sub">Fresh. Loud. Twelve bucks.</span>
-          </h1>
-          <p class="lede">30 Pace Farm large eggs a tray. Book online, grab them Friday or Saturday at Paddy's.</p>
-          <div class="hero-actions">
-            <a class="btn btn-ticket" href="#order">
-              <span class="ticket-notch" aria-hidden="true"></span>
-              Book your tray
-              <span class="ticket-notch right" aria-hidden="true"></span>
-            </a>
-            <a class="text-link" href="#prices">See the board →</a>
-          </div>
-        </div>
-
-        <div class="hero-collage" aria-label="Market price board">
-          <!-- Signature: giant yolk price disc -->
-          <div class="yolk-disc">
-            <span class="yolk-ring" aria-hidden="true"></span>
-            <strong class="yolk-price badge-price">$12</strong>
-            <span class="yolk-label">per tray</span>
-          </div>
-
-          <figure class="tray">
-            <picture>
-              <source srcset="assets/hf_2-cut.webp?v=103" type="image/webp">
-              <img src="assets/hf_2-hero.jpg?v=103" alt="Pace Farm 30 large eggs tray, 1.75kg" width="1400" height="1048" fetchpriority="high" decoding="async">
-            </picture>
-          </figure>
-
-          <span class="stamp stamp-red s1">FRI · SAT</span>
-          <span class="stamp stamp-ink s2">30 EGGS</span>
-          <span class="stamp stamp-leaf s3" id="tray-spec">1.75KG</span>
-          <span class="stamp stamp-red s4">PACE FARM</span>
+      <div class="hero-media" aria-hidden="true">
+        <picture>
+          <source srcset="assets/hf_2-cut.webp?v=104" type="image/webp">
+          <img src="assets/hf_2-hero.jpg?v=104" alt="" width="1400" height="1048" fetchpriority="high" decoding="async">
+        </picture>
+      </div>
+      <div class="hero-scrim" aria-hidden="true"></div>
+      <div class="wrap hero-copy">
+        <p class="brand-hero">YOLKO</p>
+        <h1>Fresh eggs at market prices</h1>
+        <p class="lede">30 Pace Farm large eggs for <strong>$12</strong> a tray. Book online, pick up Friday or Saturday at Flemington.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#order">Book your tray</a>
+          <a class="btn btn-ghost-light" href="#prices">See prices</a>
         </div>
       </div>
     </section>
 
-    <section class="marquee" aria-hidden="true">
-      <div class="marquee-track">
-        <span>Fresh every week</span><i>·</i>
-        <span>30 eggs $12</span><i>·</i>
-        <span>Flemington pickup</span><i>·</i>
-        <span>Book ahead</span><i>·</i>
-        <span>Fresh every week</span><i>·</i>
-        <span>30 eggs $12</span><i>·</i>
-        <span>Flemington pickup</span><i>·</i>
-        <span>Book ahead</span><i>·</i>
+    <section class="trust" aria-label="Why book with YOLKO">
+      <div class="wrap trust-row">
+        <p><strong>Pace Farm</strong><span id="tray-spec">Large · 1.75kg a tray</span></p>
+        <p><strong>Book ahead</strong><span>Your tray is reserved</span></p>
+        <p><strong>Flemington</strong><span>Building D, NSW 2129</span></p>
+        <p><strong>Priority</strong><span>Prepaid packed first</span></p>
       </div>
     </section>
 
-    <!-- TORN TICKET PRICES -->
     <section id="prices" class="prices">
       <div class="wrap">
         <header class="section-head">
-          <p class="stamp stamp-ink">The board</p>
-          <h2>Pick a ticket</h2>
+          <h2>Pick your bundle</h2>
+          <p>Same fresh eggs. Better price when you take more.</p>
         </header>
 
         <div class="price-grid">
-          <article class="ticket">
-            <div class="ticket-top">
-              <h3>Single</h3>
+          <article class="price-card">
+            <div class="price-card-body">
+              <h3>Single tray</h3>
               <p class="price-big">$12</p>
-              <p class="price-per">30 eggs · 40&cent;</p>
-            </div>
-            <div class="ticket-perf" aria-hidden="true"></div>
-            <div class="ticket-bot">
+              <p class="price-per">30 eggs · 40&cent; each</p>
               <ul>
-                <li>One tray for the week</li>
-                <li>Fri or Sat pickup</li>
+                <li>Perfect for the week</li>
+                <li>Friday or Saturday pickup</li>
               </ul>
-              <a class="btn btn-ink btn-block" href="#order" data-bundle="tray1">Book 1</a>
             </div>
+            <a class="btn btn-secondary btn-block" href="#order" data-bundle="tray1">Book 1 tray</a>
           </article>
 
-          <article class="ticket featured">
-            <p class="flag">Hot</p>
-            <div class="ticket-top">
-              <h3>Double</h3>
+          <article class="price-card featured">
+            <p class="flag">Most popular</p>
+            <div class="price-card-body">
+              <h3>Double up</h3>
               <p class="price-big">$23</p>
               <p class="price-per">60 eggs · save $1</p>
-            </div>
-            <div class="ticket-perf" aria-hidden="true"></div>
-            <div class="ticket-bot">
               <ul>
-                <li>Families &amp; bakers</li>
-                <li>One trip, two trays</li>
+                <li>Big families &amp; bakers</li>
+                <li>One pickup, two trays</li>
               </ul>
-              <a class="btn btn-leaf btn-block" href="#order" data-bundle="tray2">Book 2</a>
             </div>
+            <a class="btn btn-primary btn-block" href="#order" data-bundle="tray2">Book 2 trays</a>
           </article>
 
-          <article class="ticket">
-            <div class="ticket-top">
+          <article class="price-card">
+            <div class="price-card-body">
               <h3>Full box</h3>
               <p class="price-big">$66</p>
               <p class="price-per">6 trays · 180 eggs</p>
-            </div>
-            <div class="ticket-perf" aria-hidden="true"></div>
-            <div class="ticket-bot">
               <ul>
-                <li>Cafés &amp; stalls</li>
-                <li>Weekly supply OK</li>
+                <li>Cafés, stalls &amp; bakers</li>
+                <li>Weekly supply welcome</li>
               </ul>
-              <a class="btn btn-ink btn-block" href="#order" data-bundle="box">Book box</a>
             </div>
+            <a class="btn btn-secondary btn-block" href="#order" data-bundle="box">Book a box</a>
           </article>
         </div>
         <p class="stock-note" id="stock-note" hidden></p>
       </div>
     </section>
 
-    <!-- PICKUP -->
     <section id="pickup" class="pickup">
       <div class="wrap pickup-grid">
         <div class="pickup-copy">
           <header class="section-head left">
-            <p class="stamp stamp-leaf">Where</p>
-            <h2 id="pickup-title">Friday or Saturday</h2>
-            <p>Two market mornings. Book ahead, walk in, walk out with eggs.</p>
+            <h2 id="pickup-title">Come Friday or Saturday</h2>
+            <p>Two market mornings a week. Book ahead, walk in, walk out with your eggs.</p>
           </header>
 
-          <div class="day-cards">
-            <article class="day-card">
+          <div class="day-list">
+            <div class="day-row">
               <p class="day-name">Friday</p>
-              <p class="day-time">10:00 – 16:30</p>
+              <p class="day-time">10:00 AM – 4:30 PM</p>
               <p class="day-note">Book by Thursday night</p>
-            </article>
-            <article class="day-card">
+            </div>
+            <div class="day-row">
               <p class="day-name">Saturday</p>
-              <p class="day-time">06:00 – 14:00</p>
+              <p class="day-time">6:00 AM – 2:00 PM</p>
               <p class="day-note">Book by Friday night</p>
-            </article>
+            </div>
           </div>
 
-          <div class="loc-card">
+          <div class="loc-row">
             <div class="loc-text">
               <strong>Paddy's Markets Flemington</strong>
               <span>Building D, Sydney Markets, 250 Parramatta Rd, Flemington NSW 2129</span>
             </div>
-            <a class="btn btn-chalk btn-small" href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets" target="_blank" rel="noopener noreferrer">Maps</a>
+            <a class="btn btn-secondary btn-small" href="https://www.google.com/maps/search/Paddy's+Markets+Flemington+Sydney+Markets" target="_blank" rel="noopener noreferrer">Maps</a>
           </div>
         </div>
 
-        <div class="steps-card">
+        <aside class="steps-panel">
           <p class="steps-title">How it works</p>
           <ol class="steps">
-            <li><span>01</span>Pick a ticket and a day</li>
-            <li><span>02</span>We confirm on WhatsApp</li>
-            <li><span>03</span>Meet us at Building D</li>
-            <li><span>04</span>Pay on pickup, or prepay</li>
+            <li><span>1</span>Choose your bundle and pickup day</li>
+            <li><span>2</span>We confirm by text or WhatsApp</li>
+            <li><span>3</span>Pick up your eggs at the market</li>
+            <li><span>4</span>Pay on pickup, or prepay for priority</li>
           </ol>
-        </div>
+        </aside>
       </div>
     </section>
 
-    <!-- ORDER PAD -->
     <section id="order" class="order">
       <div class="wrap order-grid">
         <div class="order-copy">
-          <p class="stamp stamp-red">Order pad</p>
           <h2>Book your eggs</h2>
-          <p>Trays run out most weeks. We'll confirm the same day.</p>
+          <p>Reserve now. Trays run out most weeks. We'll confirm the same day.</p>
           <div class="order-tray-note">
             <div class="order-tray-photo">
               <picture>
-                <source srcset="assets/hf_2-order.webp?v=103" type="image/webp">
-                <img src="assets/hf_2-order.jpg?v=103" alt="Pace Farm 30 large eggs tray" width="800" height="599" loading="lazy" decoding="async">
+                <source srcset="assets/hf_2-order.webp?v=104" type="image/webp">
+                <img src="assets/hf_2-order.jpg?v=104" alt="Pace Farm 30 large eggs tray" width="800" height="599" loading="lazy" decoding="async">
               </picture>
             </div>
-            <p><strong>30 large eggs</strong> · Pace Farm · Flemington</p>
+            <p><strong>30 large eggs</strong> per tray · Pace Farm · Flemington pickup</p>
           </div>
         </div>
 
         <form id="order-form" class="order-form">
           <fieldset class="picker">
-            <legend>Your ticket</legend>
+            <legend>Pick your bundle</legend>
             <label class="bundle-opt">
               <input type="radio" name="bundle" value="tray1">
               <span class="bo-name">1 tray</span>
@@ -338,14 +297,14 @@ const FALLBACK_INDEX = `<!doctype html>
           <p class="order-summary" id="order-summary">2 trays (60 eggs) · Saturday · $23</p>
 
           <div class="cta-row">
-            <button type="submit" class="btn btn-ink" id="submit-btn">
+            <button type="submit" class="btn btn-secondary" id="submit-btn">
               <span id="submit-label">Reserve</span>
             </button>
-            <button type="button" class="btn btn-leaf" id="buynow-btn">
+            <button type="button" class="btn btn-primary" id="buynow-btn">
               <span id="buynow-label">Buy now</span>
             </button>
           </div>
-          <p class="form-note">Reserve and pay at pickup, or buy now for priority stock.</p>
+          <p class="form-note">Reserve and pay at pickup, or buy now for guaranteed priority stock.</p>
         </form>
       </div>
     </section>
@@ -354,10 +313,9 @@ const FALLBACK_INDEX = `<!doctype html>
       <div class="wrap">
         <div class="done-card">
           <div class="done-side">
-            <p class="stamp stamp-leaf">Booked</p>
-            <h2>You're in</h2>
+            <h2>You're booked in</h2>
             <p id="done-summary">We'll confirm your pickup shortly.</p>
-            <p class="done-hint">Show this screen at the market.</p>
+            <p class="done-hint">Show this screen when you arrive at the market.</p>
           </div>
           <div class="done-detail">
             <dl class="receipt">
@@ -365,15 +323,15 @@ const FALLBACK_INDEX = `<!doctype html>
               <div><dt>Mobile</dt><dd id="r-phone"></dd></div>
               <div><dt>Order</dt><dd id="r-order"></dd></div>
               <div><dt>Pickup</dt><dd id="r-pickup"></dd></div>
-              <div class="receipt-total"><dt>Total</dt><dd id="r-total"></dd></div>
+              <div class="receipt-total"><dt>Total on pickup</dt><dd id="r-total"></dd></div>
             </dl>
             <div class="done-actions">
               <a id="whatsapp-send" class="btn btn-wa btn-block" target="_blank" rel="noopener noreferrer" hidden>Confirm on WhatsApp</a>
-              <a id="stripe-pay" class="btn btn-leaf btn-block" target="_blank" rel="noopener noreferrer" hidden>Pay online now</a>
-              <p class="pay-perk" id="pay-perk" hidden>Prepaid orders are packed first, even on sold-out weeks.</p>
+              <a id="stripe-pay" class="btn btn-primary btn-block" target="_blank" rel="noopener noreferrer" hidden>Pay online now</a>
+              <p class="pay-perk" id="pay-perk" hidden>Prepaid orders are packed first and guaranteed, even if the week sells out.</p>
               <div class="done-row">
-                <button id="copy-message" class="btn btn-ink" type="button">Copy order</button>
-                <button id="again" class="btn btn-chalk" type="button">New booking</button>
+                <button id="copy-message" class="btn btn-secondary" type="button">Copy order</button>
+                <button id="again" class="btn btn-ghost" type="button">New booking</button>
               </div>
             </div>
           </div>
@@ -384,8 +342,7 @@ const FALLBACK_INDEX = `<!doctype html>
     <section id="faq" class="faq">
       <div class="wrap">
         <header class="section-head">
-          <p class="stamp stamp-ink">FAQ</p>
-          <h2>Quick ones</h2>
+          <h2>Quick questions</h2>
         </header>
         <div class="faq-grid">
           <details>
@@ -394,15 +351,15 @@ const FALLBACK_INDEX = `<!doctype html>
           </details>
           <details>
             <summary>How do I pay?</summary>
-            <p>Cash or card on pickup, or pay online when you book. Prepaid orders get priority.</p>
+            <p>Cash or card on pickup, or pay online when you book. Prepaid orders get priority: they're packed first and guaranteed even on sold-out weeks.</p>
           </details>
           <details>
             <summary>What eggs are they?</summary>
             <p id="faq-eggs">Pace Farm large eggs, 30 to a tray (1.75kg). Same brand as the big shops, better price.</p>
           </details>
           <details>
-            <summary>Can I order in bulk?</summary>
-            <p>Yes. Choose Full box, up to 10 boxes (1,800 eggs). Weekly business orders get stock put aside first.</p>
+            <summary>Can I order in bulk for my café or stall?</summary>
+            <p>Yes. Choose Full box and set how many you need, up to 10 boxes (1,800 eggs). Weekly business orders get their stock put aside first.</p>
           </details>
         </div>
       </div>
@@ -414,19 +371,19 @@ const FALLBACK_INDEX = `<!doctype html>
       <strong>30 eggs · $12</strong>
       <span>Pickup Fri &amp; Sat</span>
     </div>
-    <a class="btn btn-leaf btn-small" href="#order">Book</a>
+    <a class="btn btn-primary btn-small" href="#order">Book now</a>
   </div>
 
   <footer class="foot">
     <div class="wrap foot-inner">
       <a class="foot-brand" href="#top">YOLKO</a>
-      <p class="foot-line">Eggs. Flemington. Every week.</p>
+      <p class="foot-line">Fresh eggs, every Friday &amp; Saturday.</p>
       <p class="foot-copy">&copy; 2026 YOLKO</p>
     </div>
   </footer>
 
-  <script src="config.js?v=103"></script>
-  <script src="app.js?v=103"></script>
+  <script src="config.js?v=104"></script>
+  <script src="app.js?v=104"></script>
 </body>
 </html>
 `;
@@ -1266,14 +1223,14 @@ export default {
           headers: {
             "Content-Type": MIME.html,
             "Cache-Control": "no-cache",
-            "X-Yolko-Build": "103",
+            "X-Yolko-Build": "104",
             "X-Yolko-Source": "fallback",
           },
         });
       }
       return new Response(`Not found (${path}, upstream ${lastStatus})`, {
         status: 404,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "103" },
+        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "104" },
       });
     }
 
@@ -1288,7 +1245,7 @@ export default {
         headers: {
           "Content-Type": MIME.html,
           "Cache-Control": "no-cache",
-          "X-Yolko-Build": "103",
+          "X-Yolko-Build": "104",
         },
       });
     }
@@ -1298,7 +1255,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "103",
+        "X-Yolko-Build": "104",
       },
     });
   },
