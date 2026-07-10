@@ -83,7 +83,7 @@ window.addEventListener("scroll", () => {
 
 /* ---------- Scroll reveal ---------- */
 const revealTargets = document.querySelectorAll(
-  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .faq details, .stock-note"
+  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .club-copy, .club-form, .faq details, .stock-note"
 );
 
 revealTargets.forEach((el, i) => {
@@ -619,3 +619,61 @@ againButton.addEventListener("click", () => {
   orderSection.hidden = false;
   orderSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 });
+
+/* ---------- Yolk Club join ---------- */
+const clubForm = document.getElementById("club-form");
+const clubPhoneInput = document.getElementById("club-phone");
+const clubPhoneError = document.getElementById("club-phone-error");
+const clubSubmit = document.getElementById("club-submit");
+const clubSuccess = document.getElementById("club-success");
+
+if (clubPhoneInput) {
+  clubPhoneInput.addEventListener("input", () => {
+    clubPhoneInput.value = formatAuMobile(normaliseAuMobile(clubPhoneInput.value));
+    clubPhoneError.hidden = true;
+  });
+}
+
+if (clubForm) {
+  clubForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const name = String(document.getElementById("club-name").value || "").trim();
+    const phoneDigits = normaliseAuMobile(clubPhoneInput.value || "");
+    const preferredBundle = document.querySelector('input[name="clubBundle"]:checked')?.value || "tray1";
+    const preferredDay = document.querySelector('input[name="clubDay"]:checked')?.value || "Saturday";
+
+    if (!name) {
+      flagInvalid(document.getElementById("club-name"));
+      return;
+    }
+    if (!isValidAuMobile(phoneDigits)) {
+      clubPhoneError.hidden = false;
+      flagInvalid(clubPhoneInput);
+      return;
+    }
+
+    clubSubmit.disabled = true;
+    clubSubmit.textContent = "Joining…";
+
+    try {
+      const res = await fetch(`${API_BASE}/api/club`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone: phoneDigits, preferredDay, preferredBundle }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) throw new Error("join failed");
+
+      clubForm.classList.add("is-done");
+      clubSuccess.hidden = false;
+      clubSuccess.textContent = data.rejoined
+        ? `Welcome back, ${name.split(" ")[0]}! Your Yolk Club spot is updated.`
+        : `You're in, ${name.split(" ")[0]}! We'll message you when trays land.`;
+      showToast("Yolk Club joined — see you on market day.");
+    } catch {
+      clubSubmit.disabled = false;
+      clubSubmit.textContent = "Join Yolk Club";
+      showToast("Could not join right now. Try again in a moment.");
+    }
+  });
+}
