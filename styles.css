@@ -1,9 +1,10 @@
 :root {
-  --stone: #e8ebe8;
-  --stone-2: #e0e1de;
+  /* Matched to Higgsfield hero ground so the tray reads as engraved, not framed */
+  --stone: #e2e4de;
+  --stone-2: #d8dbd4;
   --ink: #121412;
   --soft: #5c655e;
-  --line: #d0d3ce;
+  --line: #cfd2cb;
   --yolk: #d9960a;
   --yolk-soft: #f0b429;
   --mist: #e5ebe6;
@@ -29,7 +30,10 @@ body {
   font-family: var(--font);
   font-size: 16px;
   color: var(--ink);
-  background: var(--stone);
+  background:
+    radial-gradient(120% 70% at 78% 18%, rgba(255, 255, 255, 0.35) 0%, transparent 55%),
+    linear-gradient(180deg, #e6e8e2 0%, var(--stone) 28%, var(--stone) 100%);
+  background-color: var(--stone);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
@@ -67,7 +71,7 @@ img { max-width: 100%; height: auto; display: block; }
   top: 0;
   z-index: var(--z-sticky);
   padding: 0.65rem 0;
-  background: rgba(232, 235, 232, 0.92);
+  background: rgba(226, 228, 222, 0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
@@ -155,16 +159,16 @@ img { max-width: 100%; height: auto; display: block; }
 .btn-wa { background: var(--wa); color: #fff; }
 
 .hero {
-  padding: 3.25rem 0 1rem;
-  min-height: min(82dvh, 760px);
+  padding: 3.25rem 0 0.25rem;
+  min-height: min(84dvh, 780px);
   display: grid;
   align-items: center;
   overflow: visible;
 }
 .hero-split {
   display: grid;
-  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
-  gap: 2rem 2.5rem;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: 1.25rem 1.5rem;
   align-items: center;
   overflow: visible;
 }
@@ -258,12 +262,13 @@ img { max-width: 100%; height: auto; display: block; }
   z-index: 0;
   display: grid;
   place-items: center;
-  justify-self: end;
-  width: min(100%, 640px);
+  justify-self: stretch;
+  width: min(100%, 720px);
+  margin-right: -0.5rem;
   background: transparent;
   border: 0;
   box-shadow: none;
-  animation: rise 0.85s var(--ease) 0.05s both;
+  animation: float-in 1s var(--ease) 0.08s both;
 }
 .hero-tray {
   position: relative;
@@ -278,6 +283,9 @@ img { max-width: 100%; height: auto; display: block; }
   border-radius: 0;
   box-shadow: none;
   overflow: visible;
+  /* Dissolve photo edges into page ground — engraved, not framed */
+  -webkit-mask-image: radial-gradient(ellipse 86% 78% at 50% 48%, #000 38%, rgba(0,0,0,0.55) 62%, transparent 82%);
+  mask-image: radial-gradient(ellipse 86% 78% at 50% 48%, #000 38%, rgba(0,0,0,0.55) 62%, transparent 82%);
 }
 .hero-tray img {
   width: 100%;
@@ -289,11 +297,17 @@ img { max-width: 100%; height: auto; display: block; }
   border-radius: 0;
   box-shadow: none;
   filter: none;
+  transform: scale(1.04);
+  transform-origin: center;
 }
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .proof { padding: 0.75rem 0 2.75rem; }
@@ -504,6 +518,16 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .order-tray { margin-top: 1rem; }
+.order-tray picture {
+  display: block;
+  width: min(100%, 420px);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-mask-image: radial-gradient(ellipse 88% 82% at 50% 48%, #000 40%, rgba(0,0,0,0.5) 68%, transparent 88%);
+  mask-image: radial-gradient(ellipse 88% 82% at 50% 48%, #000 40%, rgba(0,0,0,0.5) 68%, transparent 88%);
+}
 .order-tray picture,
 .order-tray img {
   width: 100%;
@@ -875,4 +899,5 @@ details p {
     transition: none !important;
   }
   .reveal { opacity: 1; transform: none; }
+  .hero-copy, .offer, .hero-visual { opacity: 1; transform: none; }
 }
