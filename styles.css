@@ -155,16 +155,16 @@ img { max-width: 100%; height: auto; display: block; }
 .btn-wa { background: var(--wa); color: #fff; }
 
 .hero {
-  padding: 2.75rem 0 0.75rem;
-  min-height: min(78dvh, 700px);
+  padding: 3.25rem 0 1rem;
+  min-height: min(82dvh, 760px);
   display: grid;
   align-items: center;
   overflow: visible;
 }
 .hero-split {
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: 1.75rem 2rem;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  gap: 2rem 2.5rem;
   align-items: center;
   overflow: visible;
 }
@@ -172,26 +172,36 @@ img { max-width: 100%; height: auto; display: block; }
 .hero-copy {
   position: relative;
   z-index: 1;
-  max-width: 34rem;
+  max-width: 32rem;
   animation: rise 0.7s var(--ease) both;
 }
 
 .eyebrow {
-  margin: 0 0 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 1rem;
   font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: none;
   color: var(--soft);
+}
+.eyebrow::before {
+  content: "";
+  width: 1.35rem;
+  height: 2px;
+  background: var(--yolk);
+  border-radius: 2px;
 }
 
 .hero-line {
-  margin: 0 0 0.85rem;
-  max-width: 11ch;
-  font-size: clamp(2.65rem, 6.4vw, 4.1rem);
+  margin: 0 0 1rem;
+  max-width: 12ch;
+  font-size: clamp(2.85rem, 6.8vw, 4.35rem);
   font-weight: 800;
-  letter-spacing: -0.055em;
-  line-height: 0.98;
+  letter-spacing: -0.058em;
+  line-height: 0.96;
   color: var(--ink);
   text-wrap: balance;
 }
@@ -200,10 +210,10 @@ img { max-width: 100%; height: auto; display: block; }
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.35rem 0.7rem;
-  margin: 0 0 0.95rem;
-  max-width: 20rem;
-  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  gap: 0.35rem 0.75rem;
+  margin: 0 0 1rem;
+  max-width: 22rem;
+  font-size: clamp(1.05rem, 2vw, 1.2rem);
   font-weight: 650;
   letter-spacing: -0.025em;
   line-height: 1.2;
@@ -211,7 +221,7 @@ img { max-width: 100%; height: auto; display: block; }
   animation: rise 0.8s var(--ease) 0.06s both;
 }
 .offer .badge-price {
-  font-size: clamp(2rem, 4.4vw, 2.65rem);
+  font-size: clamp(2.15rem, 4.6vw, 2.85rem);
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 0.95;
@@ -230,10 +240,10 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .lede {
-  margin: 0 0 1.55rem;
+  margin: 0 0 1.65rem;
   font-size: 1.0625rem;
   color: var(--soft);
-  max-width: 32ch;
+  max-width: 34ch;
   text-wrap: pretty;
 }
 
@@ -249,12 +259,11 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid;
   place-items: center;
   justify-self: end;
-  width: min(100%, 620px);
-  margin-right: -0.5rem;
+  width: min(100%, 640px);
   background: transparent;
   border: 0;
   box-shadow: none;
-  animation: rise 0.8s var(--ease) 0.05s both;
+  animation: rise 0.85s var(--ease) 0.05s both;
 }
 .hero-tray {
   position: relative;
@@ -279,7 +288,6 @@ img { max-width: 100%; height: auto; display: block; }
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  /* Shadow is baked into tray-on-page — no CSS plate/glow */
   filter: none;
 }
 
@@ -288,12 +296,12 @@ img { max-width: 100%; height: auto; display: block; }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.proof { padding: 0.5rem 0 2.5rem; }
+.proof { padding: 0.75rem 0 2.75rem; }
 .proof-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
-  padding: 1.35rem 0;
+  gap: 1.5rem;
+  padding: 1.45rem 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -836,7 +844,7 @@ details p {
   .hero-copy { order: 0; }
   .hero-visual {
     order: 1;
-    width: min(100%, 460px);
+    width: min(100%, 520px);
     margin-right: 0;
     justify-self: center;
   }
