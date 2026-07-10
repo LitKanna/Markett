@@ -1,5 +1,5 @@
 // Pin to commit SHA so CDN/raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "293bebc8b4da275cfaf7408d2848f3b7b5a6ccad";
+const DEPLOY_SHA = "741b3063ad8bb29b9e315ac2ced8365cf110bd48";
 const UPSTREAMS = [
   `https://cdn.jsdelivr.net/gh/LitKanna/Markett@${DEPLOY_SHA}`,
   `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`,
