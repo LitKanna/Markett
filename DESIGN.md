@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v113)
+# YOLKO Design System — locked (v114)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
@@ -10,7 +10,7 @@
 Book a Pace Farm tray for Friday or Saturday pickup at Flemington.
 
 ## Signature (only one)
-Clean studio tray beside a commercial headline + yolk **$12** offer. Brand lives in the nav only.
+Cutout tray sitting on the page (no gray card / rounded media frame) beside a commercial headline + yolk **$12** offer. Brand lives in the nav only.
 
 ## Hero copy (locked)
 ```
@@ -56,6 +56,7 @@ Always keep a real headline above the price. No cute slogans. No second YOLKO wo
 - Cream + Fraunces craft look
 - Three equal pricing towers
 - Updating `.price-big` by querySelectorAll index
+- Gray rounded media frame / card around the tray photo
 
 ## Business truth
 - 1 tray $12 · 2 trays $23 · box $66

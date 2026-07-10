@@ -29,7 +29,7 @@ const FALLBACK_INDEX = `
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=113">
-  <link rel="preload" as="image" href="assets/tray-studio.webp?v=113" type="image/webp">
+  <link rel="preload" as="image" href="assets/tray-cutout.webp?v=114" type="image/webp">
 
   <script type="application/ld+json">
   {
@@ -113,8 +113,8 @@ const FALLBACK_INDEX = `
         </div>
         <div class="hero-visual">
           <picture class="hero-tray">
-            <source srcset="assets/tray-studio.webp?v=113" type="image/webp">
-            <img src="assets/tray-studio.jpg?v=113" alt="Pace Farm 30 large eggs tray" width="1536" height="1024" fetchpriority="high" decoding="async">
+            <source srcset="assets/tray-cutout.webp?v=114" type="image/webp">
+            <img src="assets/tray-cutout.png?v=114" alt="Pace Farm 30 large eggs tray" width="1116" height="675" fetchpriority="high" decoding="async">
           </picture>
         </div>
       </div>
@@ -220,8 +220,8 @@ const FALLBACK_INDEX = `
           <p>Reserve now. Trays run out most weeks. We confirm the same day.</p>
           <div class="order-tray">
             <picture>
-              <source srcset="assets/tray-studio.webp?v=113" type="image/webp">
-              <img src="assets/tray-studio.jpg?v=113" alt="Pace Farm 30 large eggs tray" width="1536" height="1024" loading="lazy" decoding="async">
+              <source srcset="assets/tray-cutout.webp?v=114" type="image/webp">
+              <img src="assets/tray-cutout.png?v=114" alt="Pace Farm 30 large eggs tray" width="1116" height="675" loading="lazy" decoding="async">
             </picture>
             <p><strong>30 large eggs</strong> per tray · Pace Farm · Flemington pickup</p>
           </div>
@@ -1201,7 +1201,7 @@ export default {
         headers: {
           "Content-Type": MIME.html,
           "Cache-Control": "no-cache",
-          "X-Yolko-Build": "113",
+          "X-Yolko-Build": "114",
           "X-Yolko-Source": "embedded",
         },
       });
@@ -1229,7 +1229,7 @@ export default {
     if (!upstreamResp) {
       return new Response(`Not found (${path}, upstream ${lastStatus})`, {
         status: 404,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "113" },
+        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "114" },
       });
     }
 
@@ -1238,7 +1238,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "113",
+        "X-Yolko-Build": "114",
       },
     });
   },

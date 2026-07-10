@@ -228,15 +228,15 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .hero-tray {
   width: min(100%, 560px);
-  border-radius: 20px;
-  overflow: hidden;
-  background: var(--stone-2);
+  background: transparent;
 }
 .hero-tray img {
   width: 100%;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  object-position: center;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  background: transparent;
+  filter: drop-shadow(0 18px 28px rgba(18, 20, 18, 0.14));
 }
 
 @keyframes rise {
@@ -454,12 +454,12 @@ img { max-width: 100%; height: auto; display: block; }
 .order-tray { margin-top: 1rem; }
 .order-tray picture,
 .order-tray img {
-  border-radius: var(--r);
-  overflow: hidden;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  background: var(--stone-2);
+  height: auto;
+  display: block;
+  object-fit: contain;
+  background: transparent;
+  filter: drop-shadow(0 14px 22px rgba(18, 20, 18, 0.12));
 }
 .order-tray p {
   margin: 0.75rem 0 0;
