@@ -133,8 +133,8 @@ const FALLBACK_INDEX = `
             width="1128"
             height="812"
           >
-            <source src="assets/tray-hero.webm?v=129" type="video/webm">
             <source src="assets/tray-hero.mp4?v=129" type="video/mp4">
+            <source src="assets/tray-hero.webm?v=129" type="video/webm">
           </video>
         </div>
       </div>
