@@ -30,10 +30,8 @@ body {
   font-family: var(--font);
   font-size: 16px;
   color: var(--ink);
-  background:
-    radial-gradient(120% 70% at 78% 18%, rgba(255, 255, 255, 0.35) 0%, transparent 55%),
-    linear-gradient(180deg, #e6e8e2 0%, var(--stone) 28%, var(--stone) 100%);
-  background-color: var(--stone);
+  /* Solid stone — must match Higgsfield tray ground exactly for engraved look */
+  background: var(--stone);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
@@ -283,9 +281,9 @@ img { max-width: 100%; height: auto; display: block; }
   border-radius: 0;
   box-shadow: none;
   overflow: visible;
-  /* Dissolve photo edges into page ground — engraved, not framed */
-  -webkit-mask-image: radial-gradient(ellipse 86% 78% at 50% 48%, #000 38%, rgba(0,0,0,0.55) 62%, transparent 82%);
-  mask-image: radial-gradient(ellipse 86% 78% at 50% 48%, #000 38%, rgba(0,0,0,0.55) 62%, transparent 82%);
+  /* Stronger dissolve — no rectangular photo silhouette */
+  -webkit-mask-image: radial-gradient(ellipse 92% 84% at 50% 48%, #000 28%, rgba(0,0,0,0.7) 55%, rgba(0,0,0,0.25) 72%, transparent 88%);
+  mask-image: radial-gradient(ellipse 92% 84% at 50% 48%, #000 28%, rgba(0,0,0,0.7) 55%, rgba(0,0,0,0.25) 72%, transparent 88%);
 }
 .hero-tray img {
   width: 100%;

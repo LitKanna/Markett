@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v123)
+# YOLKO Design System — locked (v124)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
