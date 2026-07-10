@@ -176,7 +176,7 @@ const FALLBACK_INDEX = `
       <div class="wrap pickup-split">
         <div class="pickup-copy">
           <h2 id="pickup-title">Come Friday or Saturday</h2>
-          <p>Two market mornings a week. Book ahead, walk in, walk out with your eggs.</p>
+          <p>Two market mornings a week. Reserve your tray online, then collect at the stall.</p>
 
           <div class="day-list">
             <div class="day-row">
@@ -1188,6 +1188,24 @@ export default {
     const ext = path.includes(".") ? path.split(".").pop().toLowerCase() : "html";
     if (!path.includes(".")) path += ".html";
 
+    // Homepage: always serve the embedded build so CDN lag can't resurrect old copy.
+    if (ext === "html" && (path === "/index.html" || path === "/")) {
+      let page = FALLBACK_INDEX;
+      if (env.GOOGLE_SITE_VERIFICATION && !page.includes("google-site-verification")) {
+        const verifyTag = `<meta name="google-site-verification" content="${env.GOOGLE_SITE_VERIFICATION}">`;
+        page = page.replace("<head>", `<head>\n  ${verifyTag}`);
+      }
+      return new Response(page, {
+        status: 200,
+        headers: {
+          "Content-Type": MIME.html,
+          "Cache-Control": "no-cache",
+          "X-Yolko-Build": "112",
+          "X-Yolko-Source": "embedded",
+        },
+      });
+    }
+
     // Prefer jsDelivr (stable), fall back to GitHub raw if needed.
     let upstreamResp = null;
     let lastStatus = 0;
@@ -1208,37 +1226,9 @@ export default {
     }
 
     if (!upstreamResp) {
-      // Never blank the homepage if GitHub/CDN blips — serve the embedded copy.
-      if (ext === "html" && (path === "/index.html" || path === "/")) {
-        return new Response(FALLBACK_INDEX, {
-          status: 200,
-          headers: {
-            "Content-Type": MIME.html,
-            "Cache-Control": "no-cache",
-            "X-Yolko-Build": "112",
-            "X-Yolko-Source": "fallback",
-          },
-        });
-      }
       return new Response(`Not found (${path}, upstream ${lastStatus})`, {
         status: 404,
         headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "112" },
-      });
-    }
-
-    if (ext === "html" && env.GOOGLE_SITE_VERIFICATION) {
-      let html = await upstreamResp.text();
-      const verifyTag = `<meta name="google-site-verification" content="${env.GOOGLE_SITE_VERIFICATION}">`;
-      if (!html.includes("google-site-verification")) {
-        html = html.replace("<head>", `<head>\n  ${verifyTag}`);
-      }
-      return new Response(html, {
-        status: 200,
-        headers: {
-          "Content-Type": MIME.html,
-          "Cache-Control": "no-cache",
-          "X-Yolko-Build": "112",
-        },
       });
     }
 
@@ -1246,7 +1236,7 @@ export default {
       status: 200,
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
-        "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
+        "Cache-Control": "public, max-age=60, must-revalidate",
         "X-Yolko-Build": "112",
       },
     });
