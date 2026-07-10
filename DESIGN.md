@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v116)
+# YOLKO Design System — locked (v117)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
@@ -10,62 +10,52 @@
 Book a Pace Farm tray for Friday or Saturday pickup at Flemington.
 
 ## Signature (only one)
-Freestanding cutout tray on the page (no media card) beside a commercial headline + yolk **$12** offer. Brand lives in the nav only.
+Tray product sitting on the page stone ground — **not** inside a media card. Use `assets/tray-on-page.webp` (opaque, exact `#F3F4F1` corners + baked contact shadow). Brand lives in the nav only.
 
 ## Hero copy (locked)
 ```
+Flemington Markets · Fri & Sat
 30 large eggs this weekend
 $12 · one Pace Farm tray
-Book online. Pick up Friday or Saturday at Flemington Markets.
+Book online. Pick up Friday or Saturday at the stall.
 ```
-Always keep a real headline above the price. No cute slogans. No second YOLKO wordmark.
 
-## Craft rules (why v115 felt bad)
-1. **Atmosphere** — flat stone alone reads unfinished. Use a soft warm wash behind the hero product, never a gray card.
-2. **Composition** — first viewport is one scene: copy left, tray right, proof strip as the floor. Not a sparse template.
-3. **Hierarchy** — headline > price > lede > CTAs. Price is accent, not louder than the headline.
-4. **Density** — tighten empty gaps; keep breathing room, kill dead space.
-5. **Ground the tray** — freestanding cutout + soft radial wash + object drop-shadow. No rounded media frame.
+## Tray rules (hard)
+1. Page background must be solid `--stone` `#F3F4F1` — no page washes that mismatch the asset.
+2. Hero tray asset must be `tray-on-page` (stone-matched), not a cutout with CSS glow/drop-shadow plates.
+3. No `border-radius`, no gray fill, no `box-shadow` rectangle, no `hero-glow` behind the tray.
+4. Shadow lives in the image (contact shadow), not as a CSS filter that draws a plate.
 
 ## Tokens
 | Token | Hex | Role |
 |-------|-----|------|
-| stone | `#F3F4F1` | page ground |
+| stone | `#F3F4F1` | page ground + tray asset ground |
 | ink | `#121412` | text + primary CTA |
 | soft | `#5C655E` | secondary text |
 | line | `#D5D9D3` | rules / borders |
 | yolk | `#D9960A` | price accent only |
 | mist | `#E5EBE6` | soft panels |
 | white | `#FFFFFF` | surfaces |
-| wash | `rgba(217,150,10,0.10)` | hero atmosphere only |
 
 ## Type
 - **Outfit** only (400/500/600/700/800)
-- No Inter, Fraunces, Syne, Plus Jakarta for this version
 
 ## Shape
 - Buttons / inputs: `10px`
 - Cards / panels: `14px`
-- **No pill CTAs** (`border-radius: 999px` banned on buttons)
+- **No pill CTAs**
 
-## Layout rules
-- Asymmetric split hero (copy left, product right)
-- Hero budget: statement headline + offer line + lede + CTA group + product
-- Proof = text strip, no icons
-- Cards only on pricing + booking form
-- Featured bundle = Double up ($23), prices bound by `data-price` never DOM index
-
-## Kill list for this brand (hard ban)
+## Kill list
 - Pace Farm logo clone / blue pill wordmark
-- Floating decorative eggs
-- Orange starburst / price sticker overlays
+- Floating decorative eggs / orange starburst stickers
 - 4-icon navy feature bars
-- Soft colored blobs behind product (wash ≠ blob — wash is subtle radial only)
+- Soft colored blobs / hero-glow plates behind product
 - Cream + Fraunces craft look
 - Three equal pricing towers
-- Updating `.price-big` by querySelectorAll index
-- Gray rounded media frame / card around the tray photo
-- Cute slogan headlines (“walk out with eggs”)
+- Updating `.price-big` by DOM index
+- Gray rounded media frame around tray
+- Cute slogan headlines
+- Transparent cutout + CSS drop-shadow that reads as a boxed photo
 
 ## Business truth
 - 1 tray $12 · 2 trays $23 · box $66

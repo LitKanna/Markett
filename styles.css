@@ -29,11 +29,7 @@ body {
   font-family: var(--font);
   font-size: 16px;
   color: var(--ink);
-  background:
-    radial-gradient(1200px 520px at 78% 8%, rgba(217, 150, 10, 0.07), transparent 60%),
-    radial-gradient(900px 420px at 12% -10%, rgba(229, 235, 230, 0.9), transparent 55%),
-    var(--stone);
-  background-attachment: fixed;
+  background: var(--stone);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
@@ -254,20 +250,11 @@ img { max-width: 100%; height: auto; display: block; }
   place-items: center;
   justify-self: end;
   width: min(100%, 620px);
-  margin-right: -0.75rem;
-  background: none;
+  margin-right: -0.5rem;
+  background: transparent;
   border: 0;
   box-shadow: none;
   animation: rise 0.8s var(--ease) 0.05s both;
-}
-.hero-glow {
-  position: absolute;
-  inset: 8% 2% 4% 2%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 55%, var(--wash), transparent 68%);
-  filter: blur(2px);
-  pointer-events: none;
-  z-index: 0;
 }
 .hero-tray {
   position: relative;
@@ -277,7 +264,7 @@ img { max-width: 100%; height: auto; display: block; }
   max-width: none;
   margin: 0;
   padding: 0;
-  background: none;
+  background: transparent;
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -288,12 +275,12 @@ img { max-width: 100%; height: auto; display: block; }
   height: auto;
   display: block;
   object-fit: contain;
-  background: none;
+  background: transparent;
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  filter: drop-shadow(0 26px 20px rgba(18, 20, 18, 0.14))
-          drop-shadow(0 8px 8px rgba(18, 20, 18, 0.07));
+  /* Shadow is baked into tray-on-page — no CSS plate/glow */
+  filter: none;
 }
 
 @keyframes rise {
@@ -516,7 +503,10 @@ img { max-width: 100%; height: auto; display: block; }
   display: block;
   object-fit: contain;
   background: transparent;
-  filter: drop-shadow(0 14px 22px rgba(18, 20, 18, 0.12));
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  filter: none;
 }
 .order-tray p {
   margin: 0.75rem 0 0;
@@ -850,7 +840,6 @@ details p {
     margin-right: 0;
     justify-self: center;
   }
-  .hero-glow { inset: 12% 6% 8% 6%; }
   .proof-row { grid-template-columns: 1fr; gap: 0.85rem; }
   .price-bento,
   .pickup-split,
