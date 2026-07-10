@@ -594,7 +594,7 @@ form.addEventListener("submit", async (event) => {
   document.getElementById("submit-label").textContent = "Reserving…";
   const [orderId] = await Promise.all([
     createOrder(booking),
-    new Promise((resolve) => setTimeout(resolve, 420)),
+    new Promise((resolve) => setTimeout(resolve, 850)),
   ]);
   lastOrderId = orderId;
   submitBtn.disabled = false;
