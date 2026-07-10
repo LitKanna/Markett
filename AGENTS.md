@@ -29,7 +29,9 @@ demonstrate the flow without needing Stripe.
 `/api/*` and an `/admin` dashboard. Run with `npx wrangler dev` (defaults to port 8787). It
 needs a KV namespace bound as `DATA` (wrangler dev provides a local simulation) plus
 `ADMIN_KEY` and `STRIPE_KEY` secrets; Stripe endpoints return 503 when `STRIPE_KEY` is unset.
-`wrangler` is intentionally not a declared dependency — invoke via `npx`.
+The Worker serves site files from the immutable `DEPLOY_SHA` near the top of
+`infra/cloudflare-worker.mjs`; update that pin to the merged site commit before a production
+deploy. `npm run deploy` requires the `CLOUDFLARE_API_TOKEN` GitHub Actions secret.
 
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
