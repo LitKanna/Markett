@@ -17,7 +17,7 @@ const FALLBACK_INDEX = `
   <meta property="og:type" content="website">
   <meta property="og:title" content="YOLKO: 30 Eggs for $12 at Flemington Markets">
   <meta property="og:description" content="Book online, pick up Friday or Saturday at Paddy's Markets Flemington. 1 tray $12, 2 trays $23, full box $66.">
-  <meta property="og:image" content="https://getyolko.com/assets/tray-studio.jpg?v=113">
+  <meta property="og:image" content="https://getyolko.com/assets/tray-studio.jpg?v=114">
   <meta property="og:url" content="https://getyolko.com/">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -28,7 +28,7 @@ const FALLBACK_INDEX = `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=113">
+  <link rel="stylesheet" href="styles.css?v=114">
   <link rel="preload" as="image" href="assets/tray-cutout.webp?v=114" type="image/webp">
 
   <script type="application/ld+json">
@@ -42,7 +42,7 @@ const FALLBACK_INDEX = `
         "description": "Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.",
         "url": "https://getyolko.com/",
         "telephone": "+61433975055",
-        "image": "https://getyolko.com/assets/tray-studio.jpg?v=113",
+        "image": "https://getyolko.com/assets/tray-studio.jpg?v=114",
         "priceRange": "$$",
         "address": {
           "@type": "PostalAddress",
@@ -62,7 +62,7 @@ const FALLBACK_INDEX = `
         "@type": "Product",
         "@id": "https://getyolko.com/#product-tray",
         "name": "Fresh Egg Tray (30 eggs)",
-        "image": "https://getyolko.com/assets/tray-studio.jpg?v=113",
+        "image": "https://getyolko.com/assets/tray-studio.jpg?v=114",
         "brand": { "@type": "Brand", "name": "Pace Farm" },
         "offers": {
           "@type": "Offer",
@@ -375,8 +375,8 @@ const FALLBACK_INDEX = `
     </div>
   </footer>
 
-  <script src="config.js?v=113"></script>
-  <script src="app.js?v=113"></script>
+  <script src="config.js?v=114"></script>
+  <script src="app.js?v=114"></script>
 </body>
 </html>
 `;
