@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v131)
+# YOLKO Design System — locked (v132)
 
 **Design read:** Local-food conversion landing for Flemington shoppers — honest market brand with modern DTC clarity. Forest ink + yolk amber on cool stone. Premium = air, not density. Not Pace Farm chrome. Not cream craft. Not purple AI.
 
@@ -16,7 +16,7 @@ Book a Pace Farm tray for Friday or Saturday pickup at Flemington.
 4. **Real Pace Farm** — large eggs, 1.75kg trays
 
 ## Signature
-Higgsfield open studio tray as a designed hero mark on `--stone` `#E2E4DE` — subtle muted looping video (`assets/tray-hero.webm` / `.mp4`) with static poster fallback. Soft-dissolved edges. Brand in nav.
+Higgsfield **transparent tray cutout** (`assets/tray-cutout.webp`) as a designed hero mark on live page stone — real alpha, no photo rectangle. Soft float motion. Brand in nav.
 
 ## Hero copy (locked)
 ```
@@ -34,7 +34,7 @@ Premium rules: intentional 2-line headline, generous vertical rhythm, one CTA, w
 2. Hero tray = designed mark, not a photo frame.
 3. Closed lid only in order section.
 4. No radius / fill / shadow on the tray.
-5. Never rembg the open hero tray.
+5. Hero uses Higgsfield background-removed cutout (true alpha). Do not place opaque rectangular video/photo boxes in the hero.
 
 ## Tokens
 | Token | Hex | Role |
