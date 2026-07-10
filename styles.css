@@ -8,6 +8,7 @@
   --yolk-soft: #f0b429;
   --mist: #e5ebe6;
   --white: #ffffff;
+  --wash: rgba(217, 150, 10, 0.11);
   --danger: #b42318;
   --wa: #25d366;
   --r: 14px;
@@ -28,7 +29,11 @@ body {
   font-family: var(--font);
   font-size: 16px;
   color: var(--ink);
-  background: var(--stone);
+  background:
+    radial-gradient(1200px 520px at 78% 8%, rgba(217, 150, 10, 0.07), transparent 60%),
+    radial-gradient(900px 420px at 12% -10%, rgba(229, 235, 230, 0.9), transparent 55%),
+    var(--stone);
+  background-attachment: fixed;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
@@ -154,16 +159,16 @@ img { max-width: 100%; height: auto; display: block; }
 .btn-wa { background: var(--wa); color: #fff; }
 
 .hero {
-  padding: 2rem 0 0.5rem;
-  min-height: min(74dvh, 640px);
+  padding: 2.75rem 0 0.75rem;
+  min-height: min(78dvh, 700px);
   display: grid;
   align-items: center;
   overflow: visible;
 }
 .hero-split {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 1.75rem 2rem;
   align-items: center;
   overflow: visible;
 }
@@ -171,37 +176,46 @@ img { max-width: 100%; height: auto; display: block; }
 .hero-copy {
   position: relative;
   z-index: 1;
+  max-width: 34rem;
   animation: rise 0.7s var(--ease) both;
 }
 
+.eyebrow {
+  margin: 0 0 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
 .hero-line {
-  margin: 0 0 0.7rem;
-  max-width: 12ch;
-  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  margin: 0 0 0.85rem;
+  max-width: 11ch;
+  font-size: clamp(2.65rem, 6.4vw, 4.1rem);
   font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 1.02;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
   color: var(--ink);
   text-wrap: balance;
-  animation: rise 0.7s var(--ease) both;
 }
 
 .offer {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.4rem 0.65rem;
-  margin: 0 0 0.85rem;
-  max-width: 18rem;
-  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+  gap: 0.35rem 0.7rem;
+  margin: 0 0 0.95rem;
+  max-width: 20rem;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
   font-weight: 650;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
   color: var(--ink);
   animation: rise 0.8s var(--ease) 0.06s both;
 }
 .offer .badge-price {
-  font-size: clamp(2.2rem, 5vw, 2.9rem);
+  font-size: clamp(2rem, 4.4vw, 2.65rem);
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 0.95;
@@ -212,19 +226,25 @@ img { max-width: 100%; height: auto; display: block; }
   color: var(--ink);
   font-weight: 650;
 }
+.offer-rest::before {
+  content: "·";
+  margin-right: 0.55rem;
+  color: var(--line);
+  font-weight: 700;
+}
 
 .lede {
-  margin: 0 0 1.4rem;
+  margin: 0 0 1.55rem;
   font-size: 1.0625rem;
   color: var(--soft);
-  max-width: 30ch;
+  max-width: 32ch;
   text-wrap: pretty;
 }
 
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: 0.7rem;
 }
 
 .hero-visual {
@@ -233,15 +253,25 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid;
   place-items: center;
   justify-self: end;
-  width: min(100%, 640px);
-  margin-right: -1.5rem;
-  margin-bottom: -1.5rem;
+  width: min(100%, 620px);
+  margin-right: -0.75rem;
   background: none;
   border: 0;
   box-shadow: none;
   animation: rise 0.8s var(--ease) 0.05s both;
 }
+.hero-glow {
+  position: absolute;
+  inset: 8% 2% 4% 2%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%, var(--wash), transparent 68%);
+  filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
 .hero-tray {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   max-width: none;
@@ -262,9 +292,8 @@ img { max-width: 100%; height: auto; display: block; }
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  /* Soft object shadow that follows the cutout alpha — not a rectangular card */
-  filter: drop-shadow(0 22px 18px rgba(18, 20, 18, 0.12))
-          drop-shadow(0 6px 6px rgba(18, 20, 18, 0.06));
+  filter: drop-shadow(0 26px 20px rgba(18, 20, 18, 0.14))
+          drop-shadow(0 8px 8px rgba(18, 20, 18, 0.07));
 }
 
 @keyframes rise {
@@ -272,12 +301,12 @@ img { max-width: 100%; height: auto; display: block; }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.proof { padding: 0.25rem 0 2rem; }
+.proof { padding: 0.5rem 0 2.5rem; }
 .proof-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  padding: 1.15rem 0;
+  gap: 1.25rem;
+  padding: 1.35rem 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -285,10 +314,10 @@ img { max-width: 100%; height: auto; display: block; }
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.28rem;
 }
-.proof-row strong { font-size: 0.9375rem; font-weight: 700; }
-.proof-row span { font-size: 0.8125rem; color: var(--soft); }
+.proof-row strong { font-size: 0.9375rem; font-weight: 750; letter-spacing: -0.02em; }
+.proof-row span { font-size: 0.8125rem; color: var(--soft); line-height: 1.35; }
 
 .section-head { margin-bottom: 1.75rem; max-width: 36rem; }
 .section-head h2,
@@ -307,7 +336,7 @@ img { max-width: 100%; height: auto; display: block; }
   max-width: 42ch;
 }
 
-.prices { padding: 2.5rem 0 3rem; }
+.prices { padding: 3rem 0 3.5rem; }
 
 .price-bento {
   display: grid;
@@ -817,11 +846,11 @@ details p {
   .hero-copy { order: 0; }
   .hero-visual {
     order: 1;
-    width: min(100%, 480px);
+    width: min(100%, 460px);
     margin-right: 0;
-    margin-bottom: -0.5rem;
     justify-self: center;
   }
+  .hero-glow { inset: 12% 6% 8% 6%; }
   .proof-row { grid-template-columns: 1fr; gap: 0.85rem; }
   .price-bento,
   .pickup-split,
@@ -832,8 +861,9 @@ details p {
 
 @media (max-width: 640px) {
   .wrap { width: min(100% - 1.5rem, 1120px); }
-  .hero-line { font-size: 2.35rem; max-width: 12ch; }
-  .offer .badge-price { font-size: 2.35rem; }
+  .hero-line { font-size: 2.45rem; max-width: 11ch; }
+  .offer .badge-price { font-size: 2.15rem; }
+  .eyebrow { margin-bottom: 0.7rem; }
   .day-row { grid-template-columns: 1fr; }
   .day-name { grid-row: auto; }
   .cta-row,
