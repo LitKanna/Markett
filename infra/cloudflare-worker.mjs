@@ -789,8 +789,10 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Canonical: force https and apex host
-    if (url.protocol === "http:" || url.hostname.startsWith("www.")) {
+    // Canonical: force https and apex host in production, but keep
+    // `wrangler dev` usable over its local HTTP server.
+    const isLocal = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (!isLocal && (url.protocol === "http:" || url.hostname.startsWith("www."))) {
       url.protocol = "https:";
       if (url.hostname.startsWith("www.")) url.hostname = url.hostname.slice(4);
       return Response.redirect(url.toString(), 301);
