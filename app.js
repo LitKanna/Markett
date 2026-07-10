@@ -56,6 +56,39 @@ if (!reducedMotion && window.matchMedia("(hover: hover)").matches) {
   });
 }
 
+/* ---------- Soft hero mark parallax (B1 lite depth) ---------- */
+const heroMark = document.querySelector(".hero-mark[data-parallax]");
+if (!reducedMotion && heroMark && window.matchMedia("(hover: hover)").matches) {
+  let px = 0;
+  let py = 0;
+  let tx = 0;
+  let ty = 0;
+  let parallaxTick = false;
+
+  function renderParallax() {
+    px += (tx - px) * 0.08;
+    py += (ty - py) * 0.08;
+    heroMark.style.setProperty("--parallax-x", `${px.toFixed(2)}px`);
+    heroMark.style.setProperty("--parallax-y", `${py.toFixed(2)}px`);
+    if (Math.abs(tx - px) > 0.05 || Math.abs(ty - py) > 0.05) {
+      requestAnimationFrame(renderParallax);
+    } else {
+      parallaxTick = false;
+    }
+  }
+
+  window.addEventListener("pointermove", (e) => {
+    const cx = window.innerWidth * 0.5;
+    const cy = window.innerHeight * 0.45;
+    tx = ((e.clientX - cx) / cx) * 10;
+    ty = ((e.clientY - cy) / cy) * 7;
+    if (!parallaxTick) {
+      parallaxTick = true;
+      requestAnimationFrame(renderParallax);
+    }
+  }, { passive: true });
+}
+
 /* ---------- Sticky mobile booking bar ---------- */
 const mobileCta = document.getElementById("mobile-cta");
 const heroSection = document.querySelector(".hero");
