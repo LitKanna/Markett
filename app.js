@@ -164,6 +164,10 @@ function setQuantity(qty) {
   const next = Math.min(10, Math.max(1, qty));
   quantityInput.value = String(next);
   qtyValue.textContent = String(next);
+  // Brief pop so the quantity change registers visually.
+  qtyValue.classList.remove("bump");
+  void qtyValue.offsetWidth;
+  qtyValue.classList.add("bump");
   refreshSubmitPrice();
 }
 

@@ -103,6 +103,7 @@ h3 {
   border-bottom: 1px solid transparent;
   background: rgba(242, 240, 234, 0.86);
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   transition: background 180ms ease, border-color 180ms ease;
 }
 
@@ -470,10 +471,17 @@ h3 {
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  animation: tag-in 600ms 450ms var(--ease) both;
+}
+
+@keyframes tag-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Proof strip */
@@ -572,6 +580,24 @@ h3 {
   background: var(--paper);
 }
 
+/* Left accent bar wipes in on hover — makes the editorial list feel selectable */
+.price-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--orange);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 220ms var(--ease);
+}
+
+.price-card:hover::before {
+  transform: scaleY(1);
+}
+
 .price-card.featured {
   background: var(--yellow);
 }
@@ -585,6 +611,11 @@ h3 {
   font-family: var(--display);
   font-size: 13px;
   font-weight: 800;
+  transition: color 220ms ease;
+}
+
+.price-card:hover .pack-index {
+  color: var(--orange);
 }
 
 .pack-title {
@@ -962,6 +993,13 @@ h3 {
 
 .bundle-opt:has(input:checked)::before {
   border: 4px solid var(--ink);
+  animation: radio-pop 240ms var(--ease);
+}
+
+@keyframes radio-pop {
+  0% { transform: scale(0.5); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
 }
 
 .bo-name {
@@ -1022,6 +1060,14 @@ h3 {
   font-family: var(--display);
   font-size: 19px;
   font-weight: 800;
+}
+
+.step-value.bump {
+  animation: value-pop 260ms var(--ease);
+}
+
+@keyframes value-pop {
+  40% { transform: scale(1.2); }
 }
 
 .seg {
