@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v117)
+# YOLKO Design System — locked (v118)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
@@ -10,7 +10,7 @@
 Book a Pace Farm tray for Friday or Saturday pickup at Flemington.
 
 ## Signature (only one)
-Tray product sitting on the page stone ground — **not** inside a media card. Use `assets/tray-on-page.webp` (opaque, exact `#F3F4F1` corners + baked contact shadow). Brand lives in the nav only.
+True transparent tray cutout (`assets/tray-cutout.webp`) sitting on solid `--stone` page ground. Contact shadow is baked into the alpha. No media card, no CSS glow, no CSS drop-shadow plate. Brand lives in the nav only.
 
 ## Hero copy (locked)
 ```
@@ -21,10 +21,10 @@ Book online. Pick up Friday or Saturday at the stall.
 ```
 
 ## Tray rules (hard)
-1. Page background must be solid `--stone` `#F3F4F1` — no page washes that mismatch the asset.
-2. Hero tray asset must be `tray-on-page` (stone-matched), not a cutout with CSS glow/drop-shadow plates.
-3. No `border-radius`, no gray fill, no `box-shadow` rectangle, no `hero-glow` behind the tray.
-4. Shadow lives in the image (contact shadow), not as a CSS filter that draws a plate.
+1. Page background must be solid `--stone` `#F3F4F1` — no page washes.
+2. Hero tray = transparent cutout with baked contact shadow only.
+3. No `border-radius`, no gray fill, no `box-shadow`, no `hero-glow`, no CSS `filter: drop-shadow` on the tray.
+4. Never use an opaque studio photo with a different gray — that creates a visible image box.
 
 ## Tokens
 | Token | Hex | Role |
