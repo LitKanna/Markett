@@ -1,5 +1,5 @@
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "842b7c1";
+const DEPLOY_SHA = "4690218";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
@@ -271,6 +271,72 @@ async function handleApi(request, env, url) {
     return json({ ok: true, trays: traysFor(order), stockDelta: stock.delta, traysAvailable: stock.traysAvailable });
   }
 
+  // Public: join Yolk Club (weekly tray-saver list)
+  if (url.pathname === "/api/club" && request.method === "POST") {
+    const body = await request.json().catch(() => null);
+    const name = String(body?.name || "").trim().slice(0, 80);
+    const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
+    const preferredDay = ["Friday", "Saturday", "either"].includes(body?.preferredDay)
+      ? body.preferredDay
+      : "either";
+    const preferredBundle = ["tray1", "tray2", "box"].includes(body?.preferredBundle)
+      ? body.preferredBundle
+      : "tray1";
+
+    if (!name || !/^04\d{8}$/.test(phone)) {
+      return json({ error: "invalid member" }, 400);
+    }
+
+    const id = `club:${phone}`;
+    const existing = await env.DATA.get(id, "json");
+    const now = new Date().toISOString();
+    const member = {
+      id,
+      name,
+      phone,
+      preferredDay,
+      preferredBundle,
+      status: "active",
+      joinedAt: existing?.joinedAt || now,
+      updatedAt: now,
+    };
+    await env.DATA.put(id, JSON.stringify(member));
+    return json({ ok: true, id, rejoined: Boolean(existing) });
+  }
+
+  // Admin: list Yolk Club members
+  if (url.pathname === "/api/club" && request.method === "GET") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const list = await env.DATA.list({ prefix: "club:", limit: 500 });
+    const members = await Promise.all(list.keys.map((k) => env.DATA.get(k.name, "json")));
+    const valid = members
+      .filter(Boolean)
+      .sort((a, b) => String(b.joinedAt || "").localeCompare(String(a.joinedAt || "")));
+    return json({ members: valid });
+  }
+
+  // Admin: pause, resume, or remove a club member
+  if (url.pathname === "/api/club" && request.method === "PATCH") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const body = await request.json().catch(() => null);
+    const id = String(body?.id || "");
+    if (!id.startsWith("club:")) return json({ error: "bad request" }, 400);
+
+    if (body?.action === "remove") {
+      await env.DATA.delete(id);
+      return json({ ok: true, removed: true });
+    }
+
+    const status = ["active", "paused"].includes(body?.status) ? body.status : null;
+    if (!status) return json({ error: "bad request" }, 400);
+    const member = await env.DATA.get(id, "json");
+    if (!member) return json({ error: "not found" }, 404);
+    member.status = status;
+    member.updatedAt = new Date().toISOString();
+    await env.DATA.put(id, JSON.stringify(member));
+    return json({ ok: true, member });
+  }
+
   return json({ error: "not found" }, 404);
 }
 
@@ -405,6 +471,15 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
 .empty { color:var(--soft); text-align:center; padding:24px 0; }
 .refresh { width:100%; margin-top:4px; }
 .login { max-width:420px; margin:40px auto 0; }
+.club-blast { margin:0 0 14px; padding:12px; background:var(--cream2); border:1.5px solid var(--line); border-radius:14px; }
+.club-blast textarea { width:100%; min-height:88px; resize:vertical; font:inherit; font-size:13.5px; line-height:1.45; border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; background:#fff; color:var(--ink); margin:0 0 10px; }
+.club-blast-row { display:flex; flex-wrap:wrap; gap:8px; }
+.club-card { border:1.5px solid var(--line); border-radius:14px; padding:14px; margin:0 0 10px; background:#fff; }
+.club-card.paused { opacity:.72; }
+.club-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:6px; }
+.club-name { font-weight:800; font-size:15px; }
+.club-meta { font-size:12.5px; color:var(--soft); margin:0 0 10px; }
+.club-actions { display:flex; flex-wrap:wrap; gap:8px; }
 </style>
 </head>
 <body>
@@ -441,6 +516,23 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
         <span class="b-sum" id="buyer-sum"></span>
       </div>
       <div id="buyers"></div>
+    </div>
+
+    <div class="card">
+      <div class="topline">
+        <h2>Yolk Club</h2>
+        <span class="b-sum" id="club-sum"></span>
+      </div>
+      <p class="hint" style="margin-top:0">Weekly tray-savers. Copy a WhatsApp blast, then message them Thursday.</p>
+      <div class="club-blast" id="club-blast" style="display:none">
+        <textarea id="club-msg" rows="4" readonly></textarea>
+        <div class="club-blast-row">
+          <button type="button" class="ghost" onclick="copyClubBlast()">Copy blast</button>
+          <a class="callbtn" id="club-wa" href="#" target="_blank" rel="noopener noreferrer">Open WhatsApp</a>
+        </div>
+      </div>
+      <div id="club-members"></div>
+      <button class="ghost refresh" onclick="loadClub()">Refresh club</button>
     </div>
     </div>
 
@@ -769,6 +861,82 @@ async function saveSettings() {
 
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 
+const BUNDLE_LABEL = { tray1: "1 tray", tray2: "2 trays", box: "full box" };
+const DAY_LABEL = { Friday: "Friday", Saturday: "Saturday", either: "Fri or Sat" };
+
+function clubBlastText(members) {
+  const active = members.filter(function(m) { return m.status !== "paused"; });
+  const n = active.length;
+  return [
+    "Yolk Club — eggs this week at Flemington.",
+    "30-egg tray $12. Book your usual tray and pick up Fri or Sat.",
+    "https://getyolko.com/#order",
+    "(" + n + " club member" + (n === 1 ? "" : "s") + " on the list)"
+  ].join(String.fromCharCode(10));
+}
+
+async function loadClub() {
+  const res = await fetch("/api/club", { headers: authHeaders() });
+  if (!res.ok) return;
+  const { members } = await res.json();
+  const active = members.filter(function(m) { return m.status !== "paused"; });
+  $("club-sum").textContent = members.length
+    ? active.length + " active · " + members.length + " total"
+    : "";
+
+  if (!members.length) {
+    $("club-blast").style.display = "none";
+    $("club-members").innerHTML = '<p class="empty">No club members yet. They join from the site.</p>';
+    return;
+  }
+
+  const blast = clubBlastText(members);
+  $("club-blast").style.display = "block";
+  $("club-msg").value = blast;
+  $("club-wa").href = "https://wa.me/?text=" + encodeURIComponent(blast);
+
+  $("club-members").innerHTML = members.map(function(m) {
+    const paused = m.status === "paused";
+    return '<div class="club-card' + (paused ? " paused" : "") + '">' +
+      '<div class="club-top">' +
+        '<span class="club-name">' + escapeHtml(m.name) + '</span>' +
+        '<span class="pill ' + (paused ? "cancelled" : "confirmed") + '">' + (paused ? "paused" : "active") + '</span>' +
+      '</div>' +
+      '<p class="club-meta">' + fmtPhone(m.phone) + " · usually " + (BUNDLE_LABEL[m.preferredBundle] || m.preferredBundle) +
+        " · " + (DAY_LABEL[m.preferredDay] || m.preferredDay) + "</p>" +
+      '<div class="club-actions">' +
+        '<a class="callbtn" href="tel:' + m.phone + '">Call</a>' +
+        '<a class="callbtn" href="https://wa.me/61' + m.phone.slice(1) + '?text=' + encodeURIComponent("Hi " + m.name.split(" ")[0] + "! Eggs are on this week at Flemington. Want your usual " + (BUNDLE_LABEL[m.preferredBundle] || "tray") + "? Book here: https://getyolko.com/#order") + '" target="_blank" rel="noopener noreferrer">WhatsApp</a>' +
+        (paused
+          ? '<button class="ghost" onclick="setClubStatus(\\'' + m.id + '\\',\\'active\\')">Resume</button>'
+          : '<button class="ghost" onclick="setClubStatus(\\'' + m.id + '\\',\\'paused\\')">Pause</button>') +
+        '<button class="danger" onclick="removeClubMember(\\'' + m.id + '\\')">Remove</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+async function copyClubBlast() {
+  const text = $("club-msg").value;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("Blast copied");
+  } catch {
+    toast("Copy failed");
+  }
+}
+
+async function setClubStatus(id, status) {
+  await fetch("/api/club", { method: "PATCH", headers: authHeaders(), body: JSON.stringify({ id, status }) });
+  loadClub();
+}
+
+async function removeClubMember(id) {
+  if (!confirm("Remove this member from Yolk Club?")) return;
+  await fetch("/api/club", { method: "PATCH", headers: authHeaders(), body: JSON.stringify({ id, action: "remove" }) });
+  loadClub();
+}
+
 async function boot() {
   const res = await fetch("/api/orders", { headers: authHeaders() });
   if (!res.ok) return;
@@ -777,6 +945,7 @@ async function boot() {
   $("signout").style.display = "inline-flex";
   loadSettings();
   loadOrders();
+  loadClub();
   setInterval(loadOrders, 30000);
 }
 

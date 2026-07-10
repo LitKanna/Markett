@@ -83,7 +83,7 @@ window.addEventListener("scroll", () => {
 
 /* ---------- Scroll reveal ---------- */
 const revealTargets = document.querySelectorAll(
-  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .faq details, .stock-note"
+  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .club-copy, .club-form, .faq details, .stock-note"
 );
 
 revealTargets.forEach((el, i) => {
@@ -619,3 +619,133 @@ againButton.addEventListener("click", () => {
   orderSection.hidden = false;
   orderSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 });
+
+/* ---------- Yolk Club join ---------- */
+const clubForm = document.getElementById("club-form");
+const clubPhoneInput = document.getElementById("club-phone");
+const clubPhoneError = document.getElementById("club-phone-error");
+const clubSubmit = document.getElementById("club-submit");
+const clubSuccess = document.getElementById("club-success");
+
+if (clubPhoneInput) {
+  clubPhoneInput.addEventListener("input", () => {
+    clubPhoneInput.value = formatAuMobile(normaliseAuMobile(clubPhoneInput.value));
+    clubPhoneError.hidden = true;
+  });
+}
+
+if (clubForm) {
+  clubForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const name = String(document.getElementById("club-name").value || "").trim();
+    const phoneDigits = normaliseAuMobile(clubPhoneInput.value || "");
+    const preferredBundle = document.querySelector('input[name="clubBundle"]:checked')?.value || "tray1";
+    const preferredDay = document.querySelector('input[name="clubDay"]:checked')?.value || "Saturday";
+
+    if (!name) {
+      flagInvalid(document.getElementById("club-name"));
+      return;
+    }
+    if (!isValidAuMobile(phoneDigits)) {
+      clubPhoneError.hidden = false;
+      flagInvalid(clubPhoneInput);
+      return;
+    }
+
+    clubSubmit.disabled = true;
+    clubSubmit.textContent = "Joining…";
+
+    try {
+      const res = await fetch(`${API_BASE}/api/club`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone: phoneDigits, preferredDay, preferredBundle }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) throw new Error("join failed");
+
+      clubForm.classList.add("is-done");
+      clubSuccess.hidden = false;
+      clubSuccess.textContent = data.rejoined
+        ? `Welcome back, ${name.split(" ")[0]}! Your Yolk Club spot is updated.`
+        : `You're in, ${name.split(" ")[0]}! We'll message you when trays land.`;
+      showToast("Yolk Club joined — see you on market day.");
+    } catch {
+      clubSubmit.disabled = false;
+      clubSubmit.textContent = "Join Yolk Club";
+      showToast("Could not join right now. Try again in a moment.");
+    }
+  });
+}
+
+/* ---------- Premium micro-interactions ---------- */
+const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+if (!reducedMotion && canHover) {
+  // Showcase pointer tilt
+  const showcase = document.querySelector(".hero-showcase");
+  const card = document.querySelector(".showcase-card");
+  if (showcase && card) {
+    let tiltRaf = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    const applyTilt = () => {
+      tiltRaf = 0;
+      card.style.transform = `perspective(900px) rotateX(${targetY}deg) rotateY(${targetX}deg) translateY(-2px)`;
+    };
+
+    // Start float after the hero entrance animation finishes
+    setTimeout(() => showcase.classList.add("float-ready"), 900);
+
+    showcase.addEventListener("pointerenter", () => {
+      showcase.classList.add("is-paused");
+      card.classList.add("is-tilting");
+    });
+
+    showcase.addEventListener("pointermove", (e) => {
+      const rect = card.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width - 0.5;
+      const py = (e.clientY - rect.top) / rect.height - 0.5;
+      targetX = px * 7;
+      targetY = -py * 5;
+      if (!tiltRaf) tiltRaf = requestAnimationFrame(applyTilt);
+    });
+
+    showcase.addEventListener("pointerleave", () => {
+      showcase.classList.remove("is-paused");
+      card.classList.remove("is-tilting");
+      targetX = 0;
+      targetY = 0;
+      card.style.transform = "";
+    });
+  }
+
+  // Soft magnetic pull on primary CTAs
+  document.querySelectorAll(".btn-solid, .btn-reserve").forEach((btn) => {
+    let magRaf = 0;
+    let mx = 0;
+    let my = 0;
+
+    const applyMag = () => {
+      magRaf = 0;
+      btn.style.transform = `translate(${mx}px, ${my - 2}px)`;
+    };
+
+    btn.addEventListener("pointerenter", () => btn.classList.add("is-magnetic"));
+    btn.addEventListener("pointermove", (e) => {
+      const rect = btn.getBoundingClientRect();
+      const dx = e.clientX - (rect.left + rect.width / 2);
+      const dy = e.clientY - (rect.top + rect.height / 2);
+      mx = Math.max(-6, Math.min(6, dx * 0.12));
+      my = Math.max(-4, Math.min(4, dy * 0.12));
+      if (!magRaf) magRaf = requestAnimationFrame(applyMag);
+    });
+    btn.addEventListener("pointerleave", () => {
+      btn.classList.remove("is-magnetic");
+      mx = 0;
+      my = 0;
+      btn.style.transform = "";
+    });
+  });
+}
