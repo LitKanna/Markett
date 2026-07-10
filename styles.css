@@ -198,6 +198,8 @@ img { max-width: 100%; height: auto; display: block; }
   transform: translateY(-50%);
   pointer-events: none;
   user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
   animation: mark-in 1.05s var(--ease) 0.1s both;
 }
 .hero-mark picture,
@@ -210,8 +212,21 @@ img { max-width: 100%; height: auto; display: block; }
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  -webkit-mask-image: radial-gradient(ellipse 80% 72% at 48% 52%, #000 32%, rgba(0,0,0,0.55) 60%, transparent 84%);
-  mask-image: radial-gradient(ellipse 80% 72% at 48% 52%, #000 32%, rgba(0,0,0,0.55) 60%, transparent 84%);
+  /* Soft dissolve — no rectangular media silhouette */
+  -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 48%, #000 20%, rgba(0,0,0,0.75) 48%, rgba(0,0,0,0.25) 68%, transparent 86%);
+  mask-image: radial-gradient(ellipse 72% 68% at 50% 48%, #000 20%, rgba(0,0,0,0.75) 48%, rgba(0,0,0,0.25) 68%, transparent 86%);
+}
+/* Page-stone vignette on top — kills any leftover photo-box edge */
+.hero-mark::after {
+  content: "";
+  position: absolute;
+  inset: -2%;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 68% 62% at 50% 48%, transparent 28%, rgba(226, 228, 222, 0.55) 62%, var(--stone) 86%),
+    linear-gradient(to right, var(--stone) 0%, transparent 14%, transparent 86%, var(--stone) 100%),
+    linear-gradient(to bottom, var(--stone) 0%, transparent 16%, transparent 84%, var(--stone) 100%);
 }
 .hero-mark .hero-product-static {
   position: absolute;
@@ -223,6 +238,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .hero-mark .hero-product {
   position: relative;
+  z-index: 1;
   object-fit: contain;
 }
 
@@ -925,16 +941,23 @@ details p {
     order: 1;
     right: auto;
     top: auto;
-    width: min(92%, 480px);
-    margin: 0.5rem auto 0;
+    width: min(100%, 520px);
+    margin: 0.75rem auto 0.25rem;
     transform: none;
     animation: rise 0.85s var(--ease) 0.08s both;
   }
   .hero-mark picture,
   .hero-mark img,
   .hero-mark video {
-    -webkit-mask-image: radial-gradient(ellipse 88% 80% at 50% 48%, #000 36%, rgba(0,0,0,0.55) 64%, transparent 86%);
-    mask-image: radial-gradient(ellipse 88% 80% at 50% 48%, #000 36%, rgba(0,0,0,0.55) 64%, transparent 86%);
+    -webkit-mask-image: radial-gradient(ellipse 78% 74% at 50% 46%, #000 18%, rgba(0,0,0,0.7) 46%, rgba(0,0,0,0.2) 68%, transparent 88%);
+    mask-image: radial-gradient(ellipse 78% 74% at 50% 46%, #000 18%, rgba(0,0,0,0.7) 46%, rgba(0,0,0,0.2) 68%, transparent 88%);
+  }
+  .hero-mark::after {
+    inset: -4%;
+    background:
+      radial-gradient(ellipse 74% 70% at 50% 46%, transparent 22%, rgba(226, 228, 222, 0.65) 58%, var(--stone) 84%),
+      linear-gradient(to right, var(--stone) 0%, transparent 18%, transparent 82%, var(--stone) 100%),
+      linear-gradient(to bottom, var(--stone) 0%, transparent 18%, transparent 82%, var(--stone) 100%);
   }
   .proof-row,
   .values-row { grid-template-columns: 1fr; gap: 0.85rem; }
