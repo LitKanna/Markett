@@ -273,6 +273,24 @@ h1, h2, h3 {
   position: relative;
   max-width: 480px;
   margin-inline: auto;
+  perspective: 1300px;
+}
+
+/* Soft grounding shadow so the tray reads as lifted off the page */
+.hero-showcase::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  width: 76%;
+  height: 40px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(36, 20, 7, 0.32), transparent 72%);
+  filter: blur(9px);
+  z-index: -1;
+  opacity: 0.72;
+  transition: opacity 0.45s ease, width 0.45s ease, transform 0.45s ease;
+  pointer-events: none;
 }
 
 .showcase-card {
@@ -280,15 +298,36 @@ h1, h2, h3 {
   border-radius: var(--r-lg);
   overflow: hidden;
   background: #c4722a;
+  transform-style: preserve-3d;
   box-shadow:
     0 0 0 1px rgba(217, 122, 41, 0.22),
-    0 28px 64px rgba(36, 20, 7, 0.16);
+    0 12px 26px rgba(36, 20, 7, 0.10),
+    0 30px 66px rgba(36, 20, 7, 0.18);
+  transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1),
+              box-shadow 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+}
+
+/* Tilt + lift toward the cursor for a tactile, premium feel */
+.hero-showcase:hover .showcase-card {
+  transform: translateY(-10px) rotateX(3deg) rotateY(-4deg);
+  box-shadow:
+    0 0 0 1px rgba(217, 122, 41, 0.30),
+    0 22px 44px rgba(36, 20, 7, 0.16),
+    0 54px 110px rgba(36, 20, 7, 0.24);
+}
+
+.hero-showcase:hover::after {
+  opacity: 1;
+  width: 66%;
+  transform: translateX(-50%) translateY(6px);
 }
 
 .showcase-photo {
   display: block;
   margin: 0;
   line-height: 0;
+  position: relative;
 }
 
 .showcase-photo img {
@@ -297,6 +336,18 @@ h1, h2, h3 {
   aspect-ratio: 3 / 2;
   object-fit: cover;
   object-position: center 46%;
+  transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.hero-showcase:hover .showcase-photo img { transform: scale(1.04); }
+
+/* Gentle light gradient across the photo to add depth and gloss */
+.showcase-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 32%, rgba(36, 20, 7, 0.16) 100%);
+  pointer-events: none;
 }
 
 .showcase-price {
@@ -310,7 +361,19 @@ h1, h2, h3 {
   padding: 12px 18px;
   background: var(--white);
   border-radius: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 10px 26px rgba(36, 20, 7, 0.22);
+  transform: translateZ(60px);
+  animation: badge-bob 4.5s ease-in-out 0.8s infinite;
+  transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hero-showcase:hover .showcase-price {
+  animation-play-state: paused;
+  transform: translateZ(60px) scale(1.06) rotate(-2deg);
+}
+
+@keyframes badge-bob {
+  50% { transform: translateZ(60px) translateY(-6px); }
 }
 
 .showcase-price-num {
@@ -1349,6 +1412,12 @@ section { scroll-margin-top: 84px; }
 /* Trust strip items brighten */
 .trust-row p { transition: opacity 0.25s ease, transform 0.25s ease; opacity: 0.92; }
 .trust-row p:hover { opacity: 1; transform: translateY(-2px); }
+
+/* Hero stats: each figure lifts and warms as you pass */
+.hero-stats div { transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1); cursor: default; }
+.hero-stats div:hover { transform: translateY(-3px); }
+.hero-stats dt { transition: color 0.25s ease; }
+.hero-stats div:hover dt { color: var(--amber-dark); }
 
 /* Receipt rows highlight softly */
 .receipt > div { transition: background 0.2s ease; }
