@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v126)
+# YOLKO Design System — locked (v127)
 
 **Design read:** Local-food conversion landing for Flemington shoppers — honest market brand with modern DTC clarity. Forest ink + yolk amber on cool stone. Not Pace Farm chrome. Not cream craft. Not purple AI.
 
