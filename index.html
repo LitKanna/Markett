@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=69">
+  <link rel="stylesheet" href="styles.css?v=70">
 
   <script type="application/ld+json">
   {
@@ -124,6 +124,14 @@
               "@type": "Answer",
               "text": "Yes. Choose Full box and set how many you need, up to 10 boxes (1,800 eggs). Weekly business orders get their stock put aside first."
             }
+          },
+          {
+            "@type": "Question",
+            "name": "What is Yolk Club?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "A free weekly tray-saver list. Join once, get a Thursday message when stock is ready, and your usual order gets first dibs. Pause or leave anytime."
+            }
           }
         ]
       }
@@ -166,6 +174,7 @@
       <nav class="topnav" aria-label="Main">
         <a href="#prices">Prices</a>
         <a href="#pickup">Pickup</a>
+        <a href="#club">Club</a>
         <a href="#faq">FAQ</a>
       </nav>
       <a class="btn btn-solid btn-small" href="#order">Book now</a>
@@ -463,6 +472,71 @@
       </div>
     </section>
 
+    <!-- YOLK CLUB -->
+    <section id="club" class="club">
+      <div class="wrap club-grid">
+        <div class="club-copy">
+          <p class="club-kicker">Yolk Club</p>
+          <h2>Never miss a tray week.</h2>
+          <p>Join the free list. We message you when trays land, and your usual order gets first dibs before the public rush.</p>
+          <ul class="club-perks">
+            <li>Thursday heads-up when stock is ready</li>
+            <li>Priority hold for your usual tray</li>
+            <li>Pause or leave anytime</li>
+          </ul>
+        </div>
+
+        <form id="club-form" class="club-form" novalidate>
+          <div class="field">
+            <label for="club-name">Your name</label>
+            <input id="club-name" name="name" type="text" placeholder="Full name" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="club-phone">Mobile (Australian)</label>
+            <input id="club-phone" name="phone" type="tel" inputmode="numeric" placeholder="04xx xxx xxx" autocomplete="tel" required>
+            <p class="field-error" id="club-phone-error" hidden>Enter a valid Australian mobile, e.g. 0412 345 678</p>
+          </div>
+          <div class="field">
+            <span class="field-label">Usual order</span>
+            <div class="seg" id="club-bundle-seg">
+              <label class="seg-opt">
+                <input type="radio" name="clubBundle" value="tray1" checked>
+                <span class="seg-day">1 tray</span>
+              </label>
+              <label class="seg-opt">
+                <input type="radio" name="clubBundle" value="tray2">
+                <span class="seg-day">2 trays</span>
+              </label>
+              <label class="seg-opt">
+                <input type="radio" name="clubBundle" value="box">
+                <span class="seg-day">Box</span>
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Usual day</span>
+            <div class="seg" id="club-day-seg">
+              <label class="seg-opt">
+                <input type="radio" name="clubDay" value="Friday">
+                <span class="seg-day">Friday</span>
+              </label>
+              <label class="seg-opt">
+                <input type="radio" name="clubDay" value="Saturday" checked>
+                <span class="seg-day">Saturday</span>
+              </label>
+              <label class="seg-opt">
+                <input type="radio" name="clubDay" value="either">
+                <span class="seg-day">Either</span>
+              </label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-solid btn-block" id="club-submit">Join Yolk Club</button>
+          <p class="form-note" id="club-note">Free. We only message about eggs — no spam.</p>
+          <p class="club-success" id="club-success" hidden role="status"></p>
+        </form>
+      </div>
+    </section>
+
     <!-- FAQ -->
     <section id="faq" class="faq">
       <div class="wrap">
@@ -485,6 +559,10 @@
           <details>
             <summary>Can I order in bulk for my café or stall?</summary>
             <p>Yes. Choose "Full box" and set how many you need, up to 10 boxes (1,800 eggs). Weekly business orders get their stock put aside first.</p>
+          </details>
+          <details>
+            <summary>What is Yolk Club?</summary>
+            <p>A free weekly tray-saver list. Join once, get a Thursday message when stock is ready, and your usual order gets first dibs. Pause or leave anytime.</p>
           </details>
         </div>
       </div>
@@ -514,7 +592,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=46"></script>
-  <script src="app.js?v=46"></script>
+  <script src="config.js?v=70"></script>
+  <script src="app.js?v=70"></script>
 </body>
 </html>
