@@ -201,7 +201,8 @@ img { max-width: 100%; height: auto; display: block; }
   animation: mark-in 1.05s var(--ease) 0.1s both;
 }
 .hero-mark picture,
-.hero-mark img {
+.hero-mark img,
+.hero-mark video {
   display: block;
   width: 100%;
   height: auto;
@@ -211,6 +212,18 @@ img { max-width: 100%; height: auto; display: block; }
   box-shadow: none;
   -webkit-mask-image: radial-gradient(ellipse 80% 72% at 48% 52%, #000 32%, rgba(0,0,0,0.55) 60%, transparent 84%);
   mask-image: radial-gradient(ellipse 80% 72% at 48% 52%, #000 32%, rgba(0,0,0,0.55) 60%, transparent 84%);
+}
+.hero-mark .hero-product-static {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  pointer-events: none;
+}
+.hero-mark .hero-product {
+  position: relative;
+  object-fit: contain;
 }
 
 .eyebrow {
@@ -918,7 +931,8 @@ details p {
     animation: rise 0.85s var(--ease) 0.08s both;
   }
   .hero-mark picture,
-  .hero-mark img {
+  .hero-mark img,
+  .hero-mark video {
     -webkit-mask-image: radial-gradient(ellipse 88% 80% at 50% 48%, #000 36%, rgba(0,0,0,0.55) 64%, transparent 86%);
     mask-image: radial-gradient(ellipse 88% 80% at 50% 48%, #000 36%, rgba(0,0,0,0.55) 64%, transparent 86%);
   }
@@ -953,4 +967,9 @@ details p {
   }
   .reveal { opacity: 1; transform: none; }
   .hero-copy, .offer, .hero-mark { opacity: 1; transform: none; }
+  .hero-mark .hero-product { display: none; }
+  .hero-mark .hero-product-static {
+    position: relative;
+    opacity: 1;
+  }
 }
