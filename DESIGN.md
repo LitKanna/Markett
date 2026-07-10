@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v124)
+# YOLKO Design System — locked (v125)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
@@ -10,7 +10,7 @@
 Book a Pace Farm tray for Friday or Saturday pickup at Flemington.
 
 ## Signature (only one)
-Higgsfield **open studio tray** in the hero (`assets/tray-hero.webp`) on exact page stone — product proof engraved into the page ground (soft edge dissolve, no photo frame). Closed-lid pack lives in the order section only (`assets/tray-closed.webp`). Brand lives in the nav only.
+Higgsfield **open studio tray** as a designed hero mark (`assets/tray-hero.webp`) — absolute product graphic on exact page stone, soft-dissolved edges, not a photo column. Closed-lid pack lives in the order section only (`assets/tray-closed.webp`). Brand lives in the nav only.
 
 ## Hero copy (locked)
 ```

@@ -157,25 +157,56 @@ img { max-width: 100%; height: auto; display: block; }
 .btn-wa { background: var(--wa); color: #fff; }
 
 .hero {
-  padding: 3.25rem 0 0.25rem;
-  min-height: min(84dvh, 780px);
+  position: relative;
+  padding: 3.5rem 0 2.5rem;
+  min-height: min(88dvh, 820px);
   display: grid;
   align-items: center;
-  overflow: visible;
+  overflow: hidden;
 }
-.hero-split {
+
+/* One composition: copy + product mark sharing the same ground */
+.hero-stage {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-  gap: 1.25rem 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
+  min-height: min(68dvh, 640px);
   overflow: visible;
 }
 
 .hero-copy {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   max-width: 32rem;
+  padding-right: min(42vw, 22rem);
   animation: rise 0.7s var(--ease) both;
+}
+
+/* Tray as a designed page mark — bleeds into the hero ground */
+.hero-mark {
+  position: absolute;
+  z-index: 1;
+  right: -6%;
+  top: 50%;
+  width: min(62vw, 720px);
+  transform: translateY(-48%);
+  pointer-events: none;
+  user-select: none;
+  animation: mark-in 1.05s var(--ease) 0.1s both;
+}
+.hero-mark picture,
+.hero-mark img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  /* Soft dissolve into page — reads as layout, not media */
+  -webkit-mask-image: radial-gradient(ellipse 78% 70% at 48% 52%, #000 34%, rgba(0,0,0,0.65) 58%, transparent 82%);
+  mask-image: radial-gradient(ellipse 78% 70% at 48% 52%, #000 34%, rgba(0,0,0,0.65) 58%, transparent 82%);
 }
 
 .eyebrow {
@@ -255,57 +286,13 @@ img { max-width: 100%; height: auto; display: block; }
   gap: 0.7rem;
 }
 
-.hero-visual {
-  position: relative;
-  z-index: 0;
-  display: grid;
-  place-items: center;
-  justify-self: stretch;
-  width: min(100%, 720px);
-  margin-right: -0.5rem;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  animation: float-in 1s var(--ease) 0.08s both;
-}
-.hero-tray {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  overflow: visible;
-  /* Stronger dissolve — no rectangular photo silhouette */
-  -webkit-mask-image: radial-gradient(ellipse 92% 84% at 50% 48%, #000 28%, rgba(0,0,0,0.7) 55%, rgba(0,0,0,0.25) 72%, transparent 88%);
-  mask-image: radial-gradient(ellipse 92% 84% at 50% 48%, #000 28%, rgba(0,0,0,0.7) 55%, rgba(0,0,0,0.25) 72%, transparent 88%);
-}
-.hero-tray img {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  filter: none;
-  transform: scale(1.04);
-  transform-origin: center;
-}
-
 @keyframes rise {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@keyframes float-in {
-  from { opacity: 0; transform: translateY(18px) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes mark-in {
+  from { opacity: 0; transform: translateY(-44%) scale(0.97); }
+  to { opacity: 1; transform: translateY(-48%) scale(1); }
 }
 
 .proof { padding: 0.75rem 0 2.75rem; }
@@ -857,18 +844,34 @@ details p {
   .topnav { display: none; }
   .hero {
     min-height: 0;
-    padding-top: 1.35rem;
+    padding: 1.5rem 0 1.25rem;
+    overflow: visible;
   }
-  .hero-split {
-    grid-template-columns: 1fr;
-    gap: 1.35rem;
+  .hero-stage {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
-  .hero-copy { order: 0; }
-  .hero-visual {
+  .hero-copy {
+    order: 0;
+    max-width: none;
+    padding-right: 0;
+  }
+  .hero-mark {
+    position: relative;
     order: 1;
+    right: auto;
+    top: auto;
     width: min(100%, 520px);
-    margin-right: 0;
-    justify-self: center;
+    margin: 0.25rem auto -0.5rem;
+    transform: none;
+    animation: rise 0.85s var(--ease) 0.08s both;
+  }
+  .hero-mark picture,
+  .hero-mark img {
+    -webkit-mask-image: radial-gradient(ellipse 88% 80% at 50% 48%, #000 36%, rgba(0,0,0,0.55) 64%, transparent 86%);
+    mask-image: radial-gradient(ellipse 88% 80% at 50% 48%, #000 36%, rgba(0,0,0,0.55) 64%, transparent 86%);
   }
   .proof-row { grid-template-columns: 1fr; gap: 0.85rem; }
   .price-bento,
@@ -897,5 +900,5 @@ details p {
     transition: none !important;
   }
   .reveal { opacity: 1; transform: none; }
-  .hero-copy, .offer, .hero-visual { opacity: 1; transform: none; }
+  .hero-copy, .offer, .hero-mark { opacity: 1; transform: none; }
 }
