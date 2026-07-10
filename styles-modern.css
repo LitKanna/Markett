@@ -211,6 +211,22 @@ h3 {
   transform: translateY(0) scale(0.985);
 }
 
+.btn[aria-busy="true"] {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
+.btn[aria-busy="true"]::before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: button-spin 650ms linear infinite;
+}
+
 .btn-solid {
   color: var(--white);
   background: var(--ink);
@@ -1449,6 +1465,10 @@ h3 {
     opacity: 0;
     transform: translateY(-5px);
   }
+}
+
+@keyframes button-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Responsive */
