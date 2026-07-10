@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v119)
+# YOLKO Design System — locked (v120)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
@@ -10,7 +10,7 @@
 Book a Pace Farm tray for Friday or Saturday pickup at Flemington.
 
 ## Signature (only one)
-Studio tray photo with background recolored to exact page stone (`assets/tray-hero.webp`). Clear plastic stays intact — **never rembg/cutout** clear trays (that chews edges and looks broken). Brand lives in the nav only.
+Closed-lid Pace Farm 30-egg tray (`assets/tray-hero.webp`) on exact page stone — lid closed, 1.75kg label visible. Brand lives in the nav only.
 
 ## Hero copy (locked)
 ```
@@ -22,7 +22,7 @@ Book online. Pick up Friday or Saturday at the stall.
 
 ## Tray rules (hard)
 1. Page background = solid `--stone` `#F3F4F1` (must match tray asset corners exactly).
-2. Hero asset = `tray-hero` (studio photo, bg recolored to stone). Do **not** rembg clear plastic.
+2. Hero asset = `tray-hero` closed-lid retail tray on stone. Prefer closed lid with Pace Farm label.
 3. No `border-radius`, no gray fill, no `box-shadow`, no `hero-glow`, no CSS `drop-shadow` on the tray.
 4. Natural studio shadow stays in the photo; do not add a second CSS shadow plate.
 
