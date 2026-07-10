@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v121)
+# YOLKO Design System — locked (v122)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
@@ -21,7 +21,7 @@ Book online. Collect at Paddy's Markets Flemington.
 ```
 
 ## Tray rules (hard)
-1. Page background = solid `--stone` `#F3F4F1` (must match tray asset corners exactly).
+1. Page background = solid `--stone` `#E8EBE8` (matches studio tray floor) (must match tray asset corners exactly).
 2. Hero = open studio tray (landscape). Do **not** put the busy closed-lid retail label pack in the hero.
 3. Closed-lid pack is allowed only in the order section as “what you pick up.”
 4. No `border-radius`, no gray fill, no `box-shadow`, no `hero-glow`, no CSS `drop-shadow` on the tray.
@@ -30,7 +30,7 @@ Book online. Collect at Paddy's Markets Flemington.
 ## Tokens
 | Token | Hex | Role |
 |-------|-----|------|
-| stone | `#F3F4F1` | page ground + tray photo ground |
+| stone | `#E8EBE8` | page ground + matches studio tray floor |
 | ink | `#121412` | text + primary CTA |
 | soft | `#5C655E` | secondary text |
 | line | `#D5D9D3` | rules / borders |
