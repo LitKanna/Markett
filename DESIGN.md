@@ -1,4 +1,4 @@
-# YOLKO Design System — locked (v118)
+# YOLKO Design System — locked (v119)
 
 **Design read:** Local-food conversion landing for Flemington shoppers, quiet modern DTC language (Allbirds / Glossier clarity + market product proof). Not a Pace Farm clone. Not cream craft. Not poster.
 
@@ -10,7 +10,7 @@
 Book a Pace Farm tray for Friday or Saturday pickup at Flemington.
 
 ## Signature (only one)
-True transparent tray cutout (`assets/tray-cutout.webp`) sitting on solid `--stone` page ground. Contact shadow is baked into the alpha. No media card, no CSS glow, no CSS drop-shadow plate. Brand lives in the nav only.
+Studio tray photo with background recolored to exact page stone (`assets/tray-hero.webp`). Clear plastic stays intact — **never rembg/cutout** clear trays (that chews edges and looks broken). Brand lives in the nav only.
 
 ## Hero copy (locked)
 ```
@@ -21,15 +21,15 @@ Book online. Pick up Friday or Saturday at the stall.
 ```
 
 ## Tray rules (hard)
-1. Page background must be solid `--stone` `#F3F4F1` — no page washes.
-2. Hero tray = transparent cutout with baked contact shadow only.
-3. No `border-radius`, no gray fill, no `box-shadow`, no `hero-glow`, no CSS `filter: drop-shadow` on the tray.
-4. Never use an opaque studio photo with a different gray — that creates a visible image box.
+1. Page background = solid `--stone` `#F3F4F1` (must match tray asset corners exactly).
+2. Hero asset = `tray-hero` (studio photo, bg recolored to stone). Do **not** rembg clear plastic.
+3. No `border-radius`, no gray fill, no `box-shadow`, no `hero-glow`, no CSS `drop-shadow` on the tray.
+4. Natural studio shadow stays in the photo; do not add a second CSS shadow plate.
 
 ## Tokens
 | Token | Hex | Role |
 |-------|-----|------|
-| stone | `#F3F4F1` | page ground + tray asset ground |
+| stone | `#F3F4F1` | page ground + tray photo ground |
 | ink | `#121412` | text + primary CTA |
 | soft | `#5C655E` | secondary text |
 | line | `#D5D9D3` | rules / borders |
@@ -49,12 +49,13 @@ Book online. Pick up Friday or Saturday at the stall.
 - Pace Farm logo clone / blue pill wordmark
 - Floating decorative eggs / orange starburst stickers
 - 4-icon navy feature bars
-- Soft colored blobs / hero-glow plates behind product
+- Soft colored blobs / hero-glow plates
 - Cream + Fraunces craft look
 - Three equal pricing towers
 - Updating `.price-big` by DOM index
 - Gray rounded media frame around tray
 - Cute slogan headlines
+- rembg / aggressive cutouts on clear plastic trays
 - Transparent cutout + CSS drop-shadow that reads as a boxed photo
 
 ## Business truth
