@@ -126,7 +126,10 @@ function updateMobileCta() {
   const orderRect = orderSection.getBoundingClientRect();
   const doneVisible = !doneSection.hidden;
   const orderOnScreen = orderRect.top < window.innerHeight && orderRect.bottom > 0;
-  mobileCta.classList.toggle("show", pastHero && !orderOnScreen && !doneVisible);
+  const show = pastHero && !orderOnScreen && !doneVisible;
+  mobileCta.classList.toggle("show", show);
+  // Keep the off-screen bar out of the tab order / a11y tree until it slides in.
+  mobileCta.inert = !show;
 }
 
 /* ---------- Booking controls ---------- */
@@ -233,9 +236,13 @@ phoneInput.addEventListener("input", () => {
 function flagInvalid(input) {
   const field = input.closest(".field");
   field.classList.add("error", "shake");
+  input.setAttribute("aria-invalid", "true");
   input.focus();
   field.addEventListener("animationend", () => field.classList.remove("shake"), { once: true });
-  input.addEventListener("input", () => field.classList.remove("error"), { once: true });
+  input.addEventListener("input", () => {
+    field.classList.remove("error");
+    input.removeAttribute("aria-invalid");
+  }, { once: true });
 }
 
 // Limited-stock note from config
@@ -331,12 +338,22 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 // Next pickup date for a weekday, Sydney time, always at least tomorrow.
 // Booking today for today isn't possible; orders roll to the next market day.
+// Uses the Australia/Sydney zone directly so it stays correct across daylight
+// saving (UTC+10 in winter, UTC+11 in summer) regardless of the viewer's zone.
 function nextPickupDate(dayName) {
-  const sydneyNow = new Date(Date.now() + 10 * 3600 * 1000);
-  const todayIdx = sydneyNow.getUTCDay();
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Australia/Sydney",
+    year: "numeric", month: "numeric", day: "numeric", weekday: "short",
+  }).formatToParts(new Date());
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+  const todayIdx = DAY_INDEX[{ Sun: "Sunday", Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday" }[get("weekday")]];
+
+  // Anchor on Sydney's calendar date as a UTC instant, then add whole days —
+  // no fixed offset, so DST transitions never shift the result by a day.
+  const base = Date.UTC(Number(get("year")), Number(get("month")) - 1, Number(get("day")));
   let ahead = (DAY_INDEX[dayName] - todayIdx + 7) % 7;
   if (ahead === 0) ahead = 7;
-  const d = new Date(sydneyNow.getTime() + ahead * 86400 * 1000);
+  const d = new Date(base + ahead * 86400 * 1000);
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
 }
 const DAY_BEFORE = {
@@ -560,17 +577,29 @@ function showConfirmation(b) {
   orderSection.hidden = true;
   doneSection.hidden = false;
   mobileCta.classList.remove("show");
+  mobileCta.inert = true;
   doneSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 }
 
-// Reserve: book now, pay at pickup
-form.addEventListener("submit", (event) => {
+// Reserve: book now, pay at pickup. Keep the progress state visible long
+// enough to acknowledge the action before transitioning to the receipt.
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const booking = collectBooking();
   if (!booking) return;
 
   lastOrderId = null;
-  createOrder(booking).then((id) => { lastOrderId = id; });
+  submitBtn.disabled = true;
+  submitBtn.setAttribute("aria-busy", "true");
+  document.getElementById("submit-label").textContent = "Reserving…";
+  const [orderId] = await Promise.all([
+    createOrder(booking),
+    new Promise((resolve) => setTimeout(resolve, 850)),
+  ]);
+  lastOrderId = orderId;
+  submitBtn.disabled = false;
+  submitBtn.removeAttribute("aria-busy");
+  document.getElementById("submit-label").textContent = "Reserve";
   showConfirmation(booking);
 });
 
