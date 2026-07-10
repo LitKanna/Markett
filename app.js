@@ -28,48 +28,12 @@ let lastOrderId = null;
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ---------- Ticker: always covers the screen, loops seamlessly ---------- */
-const TICKER_ITEMS = [
-  "Fresh eggs every week",
-  "30 eggs for $12",
-  "Pickup Friday & Saturday",
-  "Paddy's Markets Flemington",
-];
-
-function renderTicker() {
-  const track = document.getElementById("ticker-track");
-  if (!track) return;
-
-  const dot = '<i>\u2B24</i>';
-  const base = TICKER_ITEMS.map((t) => `<span>${t}</span>${dot}`).join("");
-
-  // Measure one copy, then repeat until each half is wider than the screen,
-  // so the tail never leaves an empty gap before the loop restarts.
-  track.innerHTML = `<div class="ticker-half">${base}</div>`;
-  const half = track.firstElementChild;
-  const copies = Math.max(1, Math.ceil(window.innerWidth / Math.max(1, half.scrollWidth)));
-  const filled = base.repeat(copies);
-  track.innerHTML = `<div class="ticker-half">${filled}</div><div class="ticker-half">${filled}</div>`;
-
-  // Constant scroll speed regardless of content length
-  const speed = 65; // px per second
-  track.style.animationDuration = `${Math.round(track.firstElementChild.scrollWidth / speed)}s`;
-}
-
-renderTicker();
-
-let tickerResizeTimer;
-window.addEventListener("resize", () => {
-  clearTimeout(tickerResizeTimer);
-  tickerResizeTimer = setTimeout(renderTicker, 250);
-});
-
 /* ---------- Scroll effects, throttled to one update per frame ---------- */
 const topbar = document.querySelector(".topbar");
 let scrollTicking = false;
 
 function onScrollFrame() {
-  topbar.classList.toggle("scrolled", window.scrollY > 8);
+  if (topbar) topbar.classList.toggle("scrolled", window.scrollY > 8);
   updateMobileCta();
   scrollTicking = false;
 }
@@ -80,31 +44,6 @@ window.addEventListener("scroll", () => {
     requestAnimationFrame(onScrollFrame);
   }
 }, { passive: true });
-
-/* ---------- Scroll reveal ---------- */
-const revealTargets = document.querySelectorAll(
-  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .faq details, .stock-note"
-);
-
-revealTargets.forEach((el, i) => {
-  el.classList.add("reveal");
-  el.style.setProperty("--reveal-delay", `${(i % 4) * 70}ms`);
-});
-
-if (!reducedMotion && "IntersectionObserver" in window) {
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("in");
-        io.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
-
-  revealTargets.forEach((el) => io.observe(el));
-} else {
-  revealTargets.forEach((el) => el.classList.add("in"));
-}
 
 /* ---------- Cursor-following glow on price cards ---------- */
 if (!reducedMotion && window.matchMedia("(hover: hover)").matches) {
@@ -117,11 +56,45 @@ if (!reducedMotion && window.matchMedia("(hover: hover)").matches) {
   });
 }
 
+/* ---------- Soft hero mark parallax (B1 lite depth) ---------- */
+const heroMark = document.querySelector(".hero-mark[data-parallax]");
+if (!reducedMotion && heroMark && window.matchMedia("(hover: hover)").matches) {
+  let px = 0;
+  let py = 0;
+  let tx = 0;
+  let ty = 0;
+  let parallaxTick = false;
+
+  function renderParallax() {
+    px += (tx - px) * 0.08;
+    py += (ty - py) * 0.08;
+    heroMark.style.setProperty("--parallax-x", `${px.toFixed(2)}px`);
+    heroMark.style.setProperty("--parallax-y", `${py.toFixed(2)}px`);
+    if (Math.abs(tx - px) > 0.05 || Math.abs(ty - py) > 0.05) {
+      requestAnimationFrame(renderParallax);
+    } else {
+      parallaxTick = false;
+    }
+  }
+
+  window.addEventListener("pointermove", (e) => {
+    const cx = window.innerWidth * 0.5;
+    const cy = window.innerHeight * 0.45;
+    tx = ((e.clientX - cx) / cx) * 10;
+    ty = ((e.clientY - cy) / cy) * 7;
+    if (!parallaxTick) {
+      parallaxTick = true;
+      requestAnimationFrame(renderParallax);
+    }
+  }, { passive: true });
+}
+
 /* ---------- Sticky mobile booking bar ---------- */
 const mobileCta = document.getElementById("mobile-cta");
 const heroSection = document.querySelector(".hero");
 
 function updateMobileCta() {
+  if (!mobileCta || !heroSection) return;
   const pastHero = window.scrollY > heroSection.offsetHeight * 0.7;
   const orderRect = orderSection.getBoundingClientRect();
   const doneVisible = !doneSection.hidden;
@@ -188,10 +161,7 @@ function refreshSubmitPrice() {
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const qty = currentQuantity();
 
-  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} ${nextPickupDate(currentPickupDay())} &middot; $${bundle.price * qty}`;
-  orderSummary.classList.remove("bump");
-  void orderSummary.offsetWidth;
-  orderSummary.classList.add("bump");
+  orderSummary.textContent = `${describeOrder(bundleKey, qty)} · ${currentPickupDay()} ${nextPickupDate(currentPickupDay())} · $${bundle.price * qty}`;
 }
 
 document.querySelectorAll('input[name="bundle"]').forEach((radio) => {
@@ -258,30 +228,33 @@ function applySettings(settings) {
   const perEgg = Math.round((p1 / 30) * 100);
   const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
 
-  // Hero
-  const badge = document.querySelector(".badge-price");
+  // Hero burst price + any lede strong
+  const badge = document.querySelector(".badge-price") || document.querySelector(".burst strong");
   if (badge) badge.textContent = `$${p1}`;
-  const stats = document.querySelectorAll(".hero-stats dt");
-  if (stats[0]) stats[0].textContent = `$${p1}`;
-  if (stats[1]) stats[1].innerHTML = `${perEgg}&cent;`;
-  const leadStrong = document.querySelector(".hero-sub strong");
+  const leadStrong = document.querySelector(".lede strong");
   if (leadStrong) leadStrong.textContent = `$${p1}`;
 
-  // Ticker and mobile bar
-  TICKER_ITEMS[1] = `30 eggs for $${p1}`;
-  renderTicker();
+  // Mobile bar
   const ctaStrong = document.querySelector(".mobile-cta-text strong");
   if (ctaStrong) ctaStrong.textContent = `30 eggs · $${p1}`;
 
-  // Price cards
-  const bigs = document.querySelectorAll(".price-big");
-  const pers = document.querySelectorAll(".price-per");
-  if (bigs[0]) bigs[0].textContent = `$${BUNDLES.tray1.price}`;
-  if (bigs[1]) bigs[1].textContent = `$${BUNDLES.tray2.price}`;
-  if (bigs[2]) bigs[2].textContent = `$${BUNDLES.box.price}`;
-  if (pers[0]) pers[0].innerHTML = `30 eggs · ${perEgg}&cent; each`;
-  if (pers[1]) pers[1].textContent = saving > 0 ? `60 eggs · save $${saving}` : "60 eggs";
-  if (pers[2]) pers[2].textContent = "6 trays · 180 eggs";
+  // Price cards — bind by bundle key, never DOM order
+  const setPrice = (key, text) => {
+    const el = document.querySelector(`[data-price="${key}"]`);
+    if (el) el.textContent = text;
+  };
+  const setPer = (key, html, asHtml = false) => {
+    const el = document.querySelector(`[data-per="${key}"]`);
+    if (!el) return;
+    if (asHtml) el.innerHTML = html;
+    else el.textContent = html;
+  };
+  setPrice("tray1", `$${BUNDLES.tray1.price}`);
+  setPrice("tray2", `$${BUNDLES.tray2.price}`);
+  setPrice("box", `$${BUNDLES.box.price}`);
+  setPer("tray1", `30 eggs · ${perEgg}&cent; each`, true);
+  setPer("tray2", saving > 0 ? `60 eggs · save $${saving}` : "60 eggs");
+  setPer("box", "6 trays · 180 eggs");
 
   // Form options and submit chip
   const bpTray1 = document.getElementById("bp-tray1");
@@ -298,21 +271,18 @@ function applySettings(settings) {
     if (stock > 0) {
       stockNote.textContent = `Only ${stock} trays available this week. Book early.`;
       stockNote.hidden = false;
-      stockNote.classList.add("in");
     } else {
       stockNote.textContent = "Sold out this week. Check back Wednesday.";
       stockNote.hidden = false;
-      stockNote.classList.add("in");
     }
   }
 
-  // Tray weight (1.5kg or 1.75kg)
+  // Tray weight (1.5kg or 1.75kg) - label says LARGE eggs
   const weight = settings.trayWeight === "1.5" ? "1.5" : "1.75";
-  const size = weight === "1.5" ? "large" : "extra large";
   const traySpec = document.getElementById("tray-spec");
-  if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
+  if (traySpec) traySpec.textContent = `Large, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
-  if (faqEggs) faqEggs.textContent = `Pace Farm cage ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
+  if (faqEggs) faqEggs.textContent = `Pace Farm large eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
@@ -352,17 +322,17 @@ function applyPickup(pickup) {
   const enabledDays = WEEK_DAYS.filter((d) => pickup[d]?.enabled);
   const previousChoice = currentPickupDay();
 
-  // Day cards in the pickup section, with the actual next date
-  const cardsBox = document.querySelector(".day-cards");
-  if (cardsBox) {
-    cardsBox.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
-      return `<article class="day-card">
+  // Pickup day list with the actual next date
+  const daysBox = document.querySelector(".day-list");
+  if (daysBox) {
+    daysBox.innerHTML = enabledDays.map((day) => {
+      const hours = `${formatTime(pickup[day].open)} - ${formatTime(pickup[day].close)}`;
+      return `<div class="day-row">
         <p class="day-name">${day} ${nextPickupDate(day)}</p>
         <p class="day-time">${hours}</p>
         <p class="day-note">Book by ${DAY_BEFORE[day]} night</p>
-      </article>`;
-    }).join("") || `<article class="day-card"><p class="day-name">Paused</p><p class="day-time">Back soon</p><p class="day-note">Check again Wednesday</p></article>`;
+      </div>`;
+    }).join("") || `<div class="day-row"><p class="day-name">Paused</p><p class="day-time">Back soon</p><p class="day-note">Check again Wednesday</p></div>`;
   }
 
   // Booking form day segments, dated
@@ -370,7 +340,7 @@ function applyPickup(pickup) {
   if (seg) {
     const pick = enabledDays.includes(previousChoice) ? previousChoice : enabledDays[enabledDays.length - 1];
     seg.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
+      const hours = `${formatTime(pickup[day].open)} - ${formatTime(pickup[day].close)}`;
       return `<label class="seg-opt">
         <input type="radio" name="pickupDay" value="${day}"${day === pick ? " checked" : ""}>
         <span class="seg-day">${day} ${nextPickupDate(day)}</span>
@@ -396,15 +366,6 @@ function applyPickup(pickup) {
       enabledDays.length === 2 ? `Come ${enabledDays[0]} or ${enabledDays[1]}` :
       `Open ${enabledDays.length} days a week`;
   }
-
-  const stats = document.querySelectorAll(".hero-stats div");
-  if (stats[2]) {
-    stats[2].querySelector("dt").textContent = enabledDays.length ? `${enabledDays.length} day${enabledDays.length > 1 ? "s" : ""}` : "Paused";
-    stats[2].querySelector("dd").textContent = dayText;
-  }
-
-  TICKER_ITEMS[2] = `Pickup ${dayText}`;
-  renderTicker();
 
   const ctaSpan = document.querySelector(".mobile-cta-text span");
   if (ctaSpan) ctaSpan.textContent = `Pickup ${dayText}`;
@@ -619,3 +580,18 @@ againButton.addEventListener("click", () => {
   orderSection.hidden = false;
   orderSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 });
+
+/* ---------- Scroll reveals ---------- */
+if (!reducedMotion && "IntersectionObserver" in window) {
+  const reveals = document.querySelectorAll(".proof, .prices, .pickup, .order, .faq");
+  reveals.forEach((el) => el.classList.add("reveal"));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+  reveals.forEach((el) => io.observe(el));
+}
