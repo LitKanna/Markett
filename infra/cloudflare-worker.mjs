@@ -17,7 +17,7 @@ const FALLBACK_INDEX = `
   <meta property="og:type" content="website">
   <meta property="og:title" content="YOLKO: 30 Eggs for $12 at Flemington Markets">
   <meta property="og:description" content="Book online, pick up Friday or Saturday at Paddy's Markets Flemington. 1 tray $12, 2 trays $23, full box $66.">
-  <meta property="og:image" content="https://getyolko.com/assets/tray-studio.jpg?v=114">
+  <meta property="og:image" content="https://getyolko.com/assets/tray-studio.jpg?v=115">
   <meta property="og:url" content="https://getyolko.com/">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -28,8 +28,8 @@ const FALLBACK_INDEX = `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=114">
-  <link rel="preload" as="image" href="assets/tray-cutout.webp?v=114" type="image/webp">
+  <link rel="stylesheet" href="styles.css?v=115">
+  <link rel="preload" as="image" href="assets/tray-cutout.webp?v=115" type="image/webp">
 
   <script type="application/ld+json">
   {
@@ -42,7 +42,7 @@ const FALLBACK_INDEX = `
         "description": "Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.",
         "url": "https://getyolko.com/",
         "telephone": "+61433975055",
-        "image": "https://getyolko.com/assets/tray-studio.jpg?v=114",
+        "image": "https://getyolko.com/assets/tray-studio.jpg?v=115",
         "priceRange": "$$",
         "address": {
           "@type": "PostalAddress",
@@ -62,7 +62,7 @@ const FALLBACK_INDEX = `
         "@type": "Product",
         "@id": "https://getyolko.com/#product-tray",
         "name": "Fresh Egg Tray (30 eggs)",
-        "image": "https://getyolko.com/assets/tray-studio.jpg?v=114",
+        "image": "https://getyolko.com/assets/tray-studio.jpg?v=115",
         "brand": { "@type": "Brand", "name": "Pace Farm" },
         "offers": {
           "@type": "Offer",
@@ -113,8 +113,8 @@ const FALLBACK_INDEX = `
         </div>
         <div class="hero-visual">
           <picture class="hero-tray">
-            <source srcset="assets/tray-cutout.webp?v=114" type="image/webp">
-            <img src="assets/tray-cutout.png?v=114" alt="Pace Farm 30 large eggs tray" width="1116" height="675" fetchpriority="high" decoding="async">
+            <source srcset="assets/tray-cutout.webp?v=115" type="image/webp">
+            <img src="assets/tray-cutout.png?v=115" alt="Pace Farm 30 large eggs tray" width="1084" height="656" fetchpriority="high" decoding="async">
           </picture>
         </div>
       </div>
@@ -220,8 +220,8 @@ const FALLBACK_INDEX = `
           <p>Reserve now. Trays run out most weeks. We confirm the same day.</p>
           <div class="order-tray">
             <picture>
-              <source srcset="assets/tray-cutout.webp?v=114" type="image/webp">
-              <img src="assets/tray-cutout.png?v=114" alt="Pace Farm 30 large eggs tray" width="1116" height="675" loading="lazy" decoding="async">
+              <source srcset="assets/tray-cutout.webp?v=115" type="image/webp">
+              <img src="assets/tray-cutout.png?v=115" alt="Pace Farm 30 large eggs tray" width="1084" height="656" loading="lazy" decoding="async">
             </picture>
             <p><strong>30 large eggs</strong> per tray · Pace Farm · Flemington pickup</p>
           </div>
@@ -375,8 +375,8 @@ const FALLBACK_INDEX = `
     </div>
   </footer>
 
-  <script src="config.js?v=114"></script>
-  <script src="app.js?v=114"></script>
+  <script src="config.js?v=115"></script>
+  <script src="app.js?v=115"></script>
 </body>
 </html>
 `;
@@ -1201,7 +1201,7 @@ export default {
         headers: {
           "Content-Type": MIME.html,
           "Cache-Control": "no-cache",
-          "X-Yolko-Build": "114",
+          "X-Yolko-Build": "115",
           "X-Yolko-Source": "embedded",
         },
       });
@@ -1229,7 +1229,7 @@ export default {
     if (!upstreamResp) {
       return new Response(`Not found (${path}, upstream ${lastStatus})`, {
         status: 404,
-        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "114" },
+        headers: { "Content-Type": "text/plain; charset=utf-8", "X-Yolko-Build": "115" },
       });
     }
 
@@ -1238,7 +1238,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "114",
+        "X-Yolko-Build": "115",
       },
     });
   },

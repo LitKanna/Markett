@@ -154,19 +154,25 @@ img { max-width: 100%; height: auto; display: block; }
 .btn-wa { background: var(--wa); color: #fff; }
 
 .hero {
-  padding: 2rem 0 1.25rem;
+  padding: 2rem 0 0.5rem;
   min-height: min(74dvh, 640px);
   display: grid;
   align-items: center;
+  overflow: visible;
 }
 .hero-split {
   display: grid;
-  grid-template-columns: 0.95fr 1.05fr;
-  gap: 2.5rem;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 1.25rem;
   align-items: center;
+  overflow: visible;
 }
 
-.hero-copy { animation: rise 0.7s var(--ease) both; }
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  animation: rise 0.7s var(--ease) both;
+}
 
 .hero-line {
   margin: 0 0 0.7rem;
@@ -222,21 +228,43 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .hero-visual {
+  position: relative;
+  z-index: 0;
   display: grid;
   place-items: center;
+  justify-self: end;
+  width: min(100%, 640px);
+  margin-right: -1.5rem;
+  margin-bottom: -1.5rem;
+  background: none;
+  border: 0;
+  box-shadow: none;
   animation: rise 0.8s var(--ease) 0.05s both;
 }
 .hero-tray {
-  width: min(100%, 560px);
-  background: transparent;
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
 }
 .hero-tray img {
   width: 100%;
   height: auto;
   display: block;
   object-fit: contain;
-  background: transparent;
-  filter: drop-shadow(0 18px 28px rgba(18, 20, 18, 0.14));
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  /* Soft object shadow that follows the cutout alpha — not a rectangular card */
+  filter: drop-shadow(0 22px 18px rgba(18, 20, 18, 0.12))
+          drop-shadow(0 6px 6px rgba(18, 20, 18, 0.06));
 }
 
 @keyframes rise {
@@ -787,8 +815,13 @@ details p {
     gap: 1.35rem;
   }
   .hero-copy { order: 0; }
-  .hero-visual { order: 1; }
-  .hero-tray { width: min(100%, 420px); }
+  .hero-visual {
+    order: 1;
+    width: min(100%, 480px);
+    margin-right: 0;
+    margin-bottom: -0.5rem;
+    justify-self: center;
+  }
   .proof-row { grid-template-columns: 1fr; gap: 0.85rem; }
   .price-bento,
   .pickup-split,
