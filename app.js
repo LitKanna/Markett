@@ -677,3 +677,75 @@ if (clubForm) {
     }
   });
 }
+
+/* ---------- Premium micro-interactions ---------- */
+const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+if (!reducedMotion && canHover) {
+  // Showcase pointer tilt
+  const showcase = document.querySelector(".hero-showcase");
+  const card = document.querySelector(".showcase-card");
+  if (showcase && card) {
+    let tiltRaf = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    const applyTilt = () => {
+      tiltRaf = 0;
+      card.style.transform = `perspective(900px) rotateX(${targetY}deg) rotateY(${targetX}deg) translateY(-2px)`;
+    };
+
+    // Start float after the hero entrance animation finishes
+    setTimeout(() => showcase.classList.add("float-ready"), 900);
+
+    showcase.addEventListener("pointerenter", () => {
+      showcase.classList.add("is-paused");
+      card.classList.add("is-tilting");
+    });
+
+    showcase.addEventListener("pointermove", (e) => {
+      const rect = card.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width - 0.5;
+      const py = (e.clientY - rect.top) / rect.height - 0.5;
+      targetX = px * 7;
+      targetY = -py * 5;
+      if (!tiltRaf) tiltRaf = requestAnimationFrame(applyTilt);
+    });
+
+    showcase.addEventListener("pointerleave", () => {
+      showcase.classList.remove("is-paused");
+      card.classList.remove("is-tilting");
+      targetX = 0;
+      targetY = 0;
+      card.style.transform = "";
+    });
+  }
+
+  // Soft magnetic pull on primary CTAs
+  document.querySelectorAll(".btn-solid, .btn-reserve").forEach((btn) => {
+    let magRaf = 0;
+    let mx = 0;
+    let my = 0;
+
+    const applyMag = () => {
+      magRaf = 0;
+      btn.style.transform = `translate(${mx}px, ${my - 2}px)`;
+    };
+
+    btn.addEventListener("pointerenter", () => btn.classList.add("is-magnetic"));
+    btn.addEventListener("pointermove", (e) => {
+      const rect = btn.getBoundingClientRect();
+      const dx = e.clientX - (rect.left + rect.width / 2);
+      const dy = e.clientY - (rect.top + rect.height / 2);
+      mx = Math.max(-6, Math.min(6, dx * 0.12));
+      my = Math.max(-4, Math.min(4, dy * 0.12));
+      if (!magRaf) magRaf = requestAnimationFrame(applyMag);
+    });
+    btn.addEventListener("pointerleave", () => {
+      btn.classList.remove("is-magnetic");
+      mx = 0;
+      my = 0;
+      btn.style.transform = "";
+    });
+  });
+}
