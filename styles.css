@@ -169,32 +169,42 @@ img { max-width: 100%; height: auto; display: block; }
 .hero-copy { animation: rise 0.7s var(--ease) both; }
 
 .hero-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 0.65rem;
-  margin: 0 0 0.85rem;
-  max-width: 14rem;
-  font-size: clamp(1.45rem, 3vw, 1.85rem);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1.12;
+  margin: 0 0 0.7rem;
+  max-width: 12ch;
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
   color: var(--ink);
   text-wrap: balance;
   animation: rise 0.7s var(--ease) both;
 }
-.hero-line .badge-price {
-  font-size: clamp(2.75rem, 7vw, 4rem);
+
+.offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.65rem;
+  margin: 0 0 0.85rem;
+  max-width: 18rem;
+  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--ink);
+  animation: rise 0.8s var(--ease) 0.06s both;
+}
+.offer .badge-price {
+  font-size: clamp(2.2rem, 5vw, 2.9rem);
   font-weight: 800;
-  letter-spacing: -0.055em;
-  line-height: 0.92;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
   color: var(--yolk);
   font-variant-numeric: tabular-nums;
 }
-.hero-rest {
-  max-width: 11ch;
-  font-weight: 700;
+.offer-rest {
   color: var(--ink);
+  font-weight: 650;
 }
 
 .lede {
@@ -789,9 +799,8 @@ details p {
 
 @media (max-width: 640px) {
   .wrap { width: min(100% - 1.5rem, 1120px); }
-  .hero-line { max-width: 13rem; font-size: 1.4rem; }
-  .hero-line .badge-price { font-size: 2.85rem; }
-  .hero-rest { max-width: 12ch; }
+  .hero-line { font-size: 2.35rem; max-width: 12ch; }
+  .offer .badge-price { font-size: 2.35rem; }
   .day-row { grid-template-columns: 1fr; }
   .day-name { grid-row: auto; }
   .cta-row,
