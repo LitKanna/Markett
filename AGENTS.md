@@ -4,7 +4,7 @@
 
 ### What this repo is
 YOLKO (`Markett`) is a single **static, one-page marketing/ordering website** for selling
-fresh egg trays. The core files are `index.html`, `styles.css`, `app.js`, and `config.js`.
+fresh egg trays. The core files are `index.html`, `styles-modern.css`, `app.js`, and `config.js`.
 There is **no framework and no build step** — the files are served as-is.
 
 ### Run the site (the main product)
