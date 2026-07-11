@@ -309,8 +309,8 @@ function suggestDozenSell(caseCost) {
 async function getSettings(env) {
   const stored = (await env.DATA.get("settings", "json")) || {};
   const prices = { ...DEFAULT_SETTINGS.prices, ...(stored.prices || {}) };
-  // Legendary exception: $13 single tray → $69 full box (not ratio $72)
-  if (Number(prices.tray1) === 13) prices.box = 69;
+  // When single tray is $13, full box is $72
+  if (Number(prices.tray1) === 13) prices.box = 72;
   // Fill missing case sell prices from matching dozen × 15
   for (const caseKey of CASE_KEYS) {
     const unitKey = CASE_UNIT[caseKey];
@@ -353,8 +353,8 @@ async function handleApi(request, env, url) {
       const n = Number(body?.prices?.[key]);
       if (Number.isFinite(n) && n > 0) prices[key] = Math.round(n);
     }
-    // Legendary exception: $13 single tray → $69 full box
-    if (Number(prices.tray1) === 13) prices.box = 69;
+    // When single tray is $13, full box is $72
+    if (Number(prices.tray1) === 13) prices.box = 72;
     const dozenCosts = { ...current.dozenCosts };
     if (body?.dozenCosts && typeof body.dozenCosts === "object") {
       for (const key of DOZEN_KEYS) {
@@ -1117,7 +1117,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 
       <div class="ps-block">
         <h3 class="ps-title">Tray prices</h3>
-        <p class="ps-sub">Change one price and the others follow. $13 tray locks the box at $69.</p>
+        <p class="ps-sub">Change one price and the others follow. $13 tray locks the box at $72.</p>
         <div class="grid3">
           <div><label>1 tray</label><input id="p1" type="number" min="1" step="1"></div>
           <div><label>2 trays</label><input id="p2" type="number" min="1" step="1"></div>
@@ -1829,11 +1829,11 @@ function pricesFromBoxCost(cost) {
   });
 }
 
-/** Special case: $13 single tray → $69 full box (legendary), not ratio $72. */
+/** When single tray is $13, full box is $72. */
 function applyTrayExceptions(prices) {
   if (!prices) return prices;
   if (Number(prices.tray1) === 13) {
-    return Object.assign({}, prices, { box: 69 });
+    return Object.assign({}, prices, { box: 72 });
   }
   return prices;
 }
@@ -2063,7 +2063,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "86",
+        "X-Yolko-Build": "87",
       },
     });
   },
