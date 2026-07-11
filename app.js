@@ -1,3 +1,5 @@
+const DOZENS_PER_CASE = 15;
+
 const BUNDLES = {
   tray1: { label: "1 tray (30 eggs)", price: 12, eggs: 30, kind: "tray" },
   tray2: { label: "2 trays (60 eggs)", price: 23, eggs: 60, kind: "tray" },
@@ -8,6 +10,12 @@ const BUNDLES = {
   fr600: { label: "Free range dozen 600g", price: 8, eggs: 12, kind: "dozen", housing: "free range", weight: "600g" },
   fr700: { label: "Free range dozen 700g", price: 9, eggs: 12, kind: "dozen", housing: "free range", weight: "700g" },
   fr800: { label: "Free range dozen 800g", price: 10, eggs: 12, kind: "dozen", housing: "free range", weight: "800g" },
+  cage600case: { label: "Cage case 600g (15 dozens)", price: 90, eggs: 180, kind: "case", housing: "cage", weight: "600g", unitKey: "cage600" },
+  cage700case: { label: "Cage case 700g (15 dozens)", price: 105, eggs: 180, kind: "case", housing: "cage", weight: "700g", unitKey: "cage700" },
+  cage800case: { label: "Cage case 800g (15 dozens)", price: 120, eggs: 180, kind: "case", housing: "cage", weight: "800g", unitKey: "cage800" },
+  fr600case: { label: "Free range case 600g (15 dozens)", price: 120, eggs: 180, kind: "case", housing: "free range", weight: "600g", unitKey: "fr600" },
+  fr700case: { label: "Free range case 700g (15 dozens)", price: 135, eggs: 180, kind: "case", housing: "free range", weight: "700g", unitKey: "fr700" },
+  fr800case: { label: "Free range case 800g (15 dozens)", price: 150, eggs: 180, kind: "case", housing: "free range", weight: "800g", unitKey: "fr800" },
 };
 
 const BUNDLE_KEYS = Object.keys(BUNDLES);
@@ -194,6 +202,12 @@ function describeOrder(bundleKey, qty) {
   if (b.kind === "dozen") {
     const unit = `${b.housing === "cage" ? "Cage" : "Free range"} dozen ${b.weight}`;
     return qty === 1 ? `${unit} (12 eggs)` : `${qty}× ${unit} (${eggs} eggs)`;
+  }
+  if (b.kind === "case") {
+    const unit = `${b.housing === "cage" ? "Cage" : "Free range"} case ${b.weight}`;
+    return qty === 1
+      ? `${unit} (15 dozens, 180 eggs)`
+      : `${qty}× ${unit} (${eggs} eggs)`;
   }
   if (bundleKey === "box") {
     return qty === 1

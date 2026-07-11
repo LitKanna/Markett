@@ -21,7 +21,7 @@
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/3y9K6as8bTXq_nANBjzKo3IeZx8z6up5BeSl9D4dj_x9PpZBMlGIInE.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2" crossorigin>
   <link rel="stylesheet" href="assets/fonts.css?v=72">
-  <link rel="stylesheet" href="styles-modern.css?v=80">
+  <link rel="stylesheet" href="styles-modern.css?v=81">
 
   <script type="application/ld+json">
   {
@@ -209,7 +209,7 @@
             <p class="section-label">Dozen packs</p>
             <h2>12 eggs.<br>Cage or free range.</h2>
           </div>
-          <p>600g, 700g and 800g cartons — pick the size that fits your fridge.</p>
+          <p>Single dozens, or a full case of <strong>15 packs</strong> (180 eggs). 600g, 700g and 800g.</p>
         </header>
 
         <div class="price-grid dozen-grid">
@@ -242,6 +242,47 @@
             <div class="pack-title"><h3>Free range 800g</h3><p class="pack-note">12 eggs</p></div>
             <div class="price-block"><p class="price-big" id="price-fr800">$10</p></div>
             <a class="btn btn-line" href="#order" data-bundle="fr800">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
+          </article>
+        </div>
+
+        <header class="section-head" style="margin-top:40px">
+          <div>
+            <p class="section-label">Wholesale cases</p>
+            <h2>15 dozen packs<br>in one case.</h2>
+          </div>
+          <p>Same cage and free-range sizes — sold as a full case of 15 cartons (180 eggs).</p>
+        </header>
+
+        <div class="price-grid dozen-grid">
+          <article class="price-card compact">
+            <div class="pack-title"><h3>Cage 600g case</h3><p class="pack-note">15 packs · 180 eggs</p></div>
+            <div class="price-block"><p class="price-big" id="price-cage600case">$90</p></div>
+            <a class="btn btn-line" href="#order" data-bundle="cage600case">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
+          </article>
+          <article class="price-card compact">
+            <div class="pack-title"><h3>Cage 700g case</h3><p class="pack-note">15 packs · 180 eggs</p></div>
+            <div class="price-block"><p class="price-big" id="price-cage700case">$105</p></div>
+            <a class="btn btn-line" href="#order" data-bundle="cage700case">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
+          </article>
+          <article class="price-card compact">
+            <div class="pack-title"><h3>Cage 800g case</h3><p class="pack-note">15 packs · 180 eggs</p></div>
+            <div class="price-block"><p class="price-big" id="price-cage800case">$120</p></div>
+            <a class="btn btn-line" href="#order" data-bundle="cage800case">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
+          </article>
+          <article class="price-card compact">
+            <div class="pack-title"><h3>FR 600g case</h3><p class="pack-note">15 packs · 180 eggs</p></div>
+            <div class="price-block"><p class="price-big" id="price-fr600case">$120</p></div>
+            <a class="btn btn-line" href="#order" data-bundle="fr600case">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
+          </article>
+          <article class="price-card compact featured">
+            <div class="pack-title"><h3>FR 700g case</h3><p class="pack-note">15 packs · 180 eggs</p></div>
+            <div class="price-block"><p class="price-big" id="price-fr700case">$135</p></div>
+            <a class="btn btn-solid" href="#order" data-bundle="fr700case">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
+          </article>
+          <article class="price-card compact">
+            <div class="pack-title"><h3>FR 800g case</h3><p class="pack-note">15 packs · 180 eggs</p></div>
+            <div class="price-block"><p class="price-big" id="price-fr800case">$150</p></div>
+            <a class="btn btn-line" href="#order" data-bundle="fr800case">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
           </article>
         </div>
 
@@ -354,6 +395,28 @@
           </fieldset>
 
           <fieldset class="picker picker-dozen">
+            <legend>Cage case · 15 dozens</legend>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="cage600case">
+              <span class="bo-name">600g case</span>
+              <span class="bo-eggs">15 packs</span>
+              <span class="bo-price" id="bp-cage600case">$90</span>
+            </label>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="cage700case">
+              <span class="bo-name">700g case</span>
+              <span class="bo-eggs">15 packs</span>
+              <span class="bo-price" id="bp-cage700case">$105</span>
+            </label>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="cage800case">
+              <span class="bo-name">800g case</span>
+              <span class="bo-eggs">15 packs</span>
+              <span class="bo-price" id="bp-cage800case">$120</span>
+            </label>
+          </fieldset>
+
+          <fieldset class="picker picker-dozen">
             <legend>Free range dozen (12 eggs)</legend>
             <label class="bundle-opt">
               <input type="radio" name="bundle" value="fr600">
@@ -372,6 +435,28 @@
               <span class="bo-name">800g</span>
               <span class="bo-eggs">Free range</span>
               <span class="bo-price" id="bp-fr800">$10</span>
+            </label>
+          </fieldset>
+
+          <fieldset class="picker picker-dozen">
+            <legend>Free range case · 15 dozens</legend>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="fr600case">
+              <span class="bo-name">600g case</span>
+              <span class="bo-eggs">15 packs</span>
+              <span class="bo-price" id="bp-fr600case">$120</span>
+            </label>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="fr700case">
+              <span class="bo-name">700g case</span>
+              <span class="bo-eggs">15 packs</span>
+              <span class="bo-price" id="bp-fr700case">$135</span>
+            </label>
+            <label class="bundle-opt">
+              <input type="radio" name="bundle" value="fr800case">
+              <span class="bo-name">800g case</span>
+              <span class="bo-eggs">15 packs</span>
+              <span class="bo-price" id="bp-fr800case">$150</span>
             </label>
           </fieldset>
 
@@ -549,7 +634,7 @@
     </div>
   </footer>
 
-  <script src="config.js?v=80"></script>
-  <script src="app.js?v=80"></script>
+  <script src="config.js?v=81"></script>
+  <script src="app.js?v=81"></script>
 </body>
 </html>

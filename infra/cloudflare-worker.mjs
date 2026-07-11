@@ -24,20 +24,32 @@ const MIME = {
 
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-const BUNDLE_KEYS = ["tray1", "tray2", "box", "cage600", "cage700", "cage800", "fr600", "fr700", "fr800"];
+const DOZENS_PER_CASE = 15;
+const BUNDLE_KEYS = [
+  "tray1", "tray2", "box",
+  "cage600", "cage700", "cage800", "fr600", "fr700", "fr800",
+  "cage600case", "cage700case", "cage800case", "fr600case", "fr700case", "fr800case",
+];
 const DOZEN_KEYS = ["cage600", "cage700", "cage800", "fr600", "fr700", "fr800"];
+const CASE_KEYS = ["cage600case", "cage700case", "cage800case", "fr600case", "fr700case", "fr800case"];
 const TRAY_KEYS = ["tray1", "tray2", "box"];
+const CASE_UNIT = {
+  cage600case: "cage600", cage700case: "cage700", cage800case: "cage800",
+  fr600case: "fr600", fr700case: "fr700", fr800case: "fr800",
+};
 
 const DEFAULT_SETTINGS = {
   prices: {
     tray1: 12, tray2: 23, box: 66,
     cage600: 6, cage700: 7, cage800: 8,
     fr600: 8, fr700: 9, fr800: 10,
+    cage600case: 90, cage700case: 105, cage800case: 120,
+    fr600case: 120, fr700case: 135, fr800case: 150,
   },
   traysAvailable: 24,
   trayWeight: "1.75",
   boxCost: 55,
-  dozenCost: 5,
+  dozenCost: 75, // wholesale case of 15 dozen packs (per-dozen = /15)
   pickup: {
     Monday: { enabled: false, open: "09:00", close: "14:00" },
     Tuesday: { enabled: false, open: "09:00", close: "14:00" },
@@ -204,7 +216,7 @@ async function ensureStripeBranding(env) {
 // How many physical trays an order consumes (dozen packs do not use tray stock)
 function traysFor(order) {
   const b = order.bundle;
-  if (DOZEN_KEYS.includes(b)) return 0;
+  if (DOZEN_KEYS.includes(b) || CASE_KEYS.includes(b)) return 0;
   const perUnit = b === "box" ? 6 : b === "tray2" ? 2 : 1;
   return perUnit * (order.quantity || 1);
 }
@@ -235,10 +247,27 @@ async function syncStock(env, order, newStatus) {
 
 async function getSettings(env) {
   const stored = (await env.DATA.get("settings", "json")) || {};
+  const prices = { ...DEFAULT_SETTINGS.prices, ...(stored.prices || {}) };
+  // Fill missing case sell prices from matching dozen × 15
+  for (const caseKey of CASE_KEYS) {
+    const unitKey = CASE_UNIT[caseKey];
+    if (!Number.isFinite(Number(prices[caseKey])) || Number(prices[caseKey]) <= 0) {
+      const unit = Number(prices[unitKey]);
+      if (Number.isFinite(unit) && unit > 0) prices[caseKey] = Math.round(unit * DOZENS_PER_CASE);
+    }
+  }
+  // Migrate old per-dozen cost (e.g. $5) → wholesale case cost of 15 packs
+  let dozenCost = stored.dozenCost != null ? Number(stored.dozenCost) : DEFAULT_SETTINGS.dozenCost;
+  if (Number.isFinite(dozenCost) && dozenCost > 0 && dozenCost < 30) {
+    dozenCost = Math.round(dozenCost * DOZENS_PER_CASE * 100) / 100;
+  } else if (!Number.isFinite(dozenCost) || dozenCost < 0) {
+    dozenCost = DEFAULT_SETTINGS.dozenCost;
+  }
   return {
     ...DEFAULT_SETTINGS,
     ...stored,
-    prices: { ...DEFAULT_SETTINGS.prices, ...(stored.prices || {}) },
+    prices,
+    dozenCost,
     pickup: Object.fromEntries(
       WEEK_DAYS.map((d) => [d, cleanPickupDay((stored.pickup || {})[d], DEFAULT_SETTINGS.pickup[d])])
     ),
@@ -280,7 +309,7 @@ async function handleApi(request, env, url) {
         : (current.boxCost ?? 55),
       dozenCost: Number.isFinite(Number(body?.dozenCost))
         ? Math.max(0, Number(body.dozenCost))
-        : (current.dozenCost ?? 5),
+        : (current.dozenCost ?? 75),
       pickup: Object.fromEntries(
         WEEK_DAYS.map((d) => [d, cleanPickupDay((body?.pickup || {})[d], current.pickup[d])])
       ),
@@ -419,6 +448,12 @@ async function handleApi(request, env, url) {
       fr600: "Free range dozen 600g (12 eggs)",
       fr700: "Free range dozen 700g (12 eggs)",
       fr800: "Free range dozen 800g (12 eggs)",
+      cage600case: "Cage case 600g (15 dozens)",
+      cage700case: "Cage case 700g (15 dozens)",
+      cage800case: "Cage case 800g (15 dozens)",
+      fr600case: "Free range case 600g (15 dozens)",
+      fr700case: "Free range case 700g (15 dozens)",
+      fr800case: "Free range case 800g (15 dozens)",
     };
 
     const params = new URLSearchParams({
@@ -982,7 +1017,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
       </div>
       <p class="hint" id="price-hint">Tray ratio 12 : 23 : 66 from box cost.</p>
 
-      <h2 style="font-size:16px;margin:18px 0 8px">Dozen packs (12 eggs)</h2>
+      <h2 style="font-size:16px;margin:18px 0 8px">Dozen packs (12 eggs) · cases of 15</h2>
       <div class="grid2">
         <div><label>Cage 600g ($)</label><input id="p-cage600" type="number" min="1" step="1"></div>
         <div><label>Cage 700g ($)</label><input id="p-cage700" type="number" min="1" step="1"></div>
@@ -990,9 +1025,17 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <div><label>FR 600g ($)</label><input id="p-fr600" type="number" min="1" step="1"></div>
         <div><label>FR 700g ($)</label><input id="p-fr700" type="number" min="1" step="1"></div>
         <div><label>FR 800g ($)</label><input id="p-fr800" type="number" min="1" step="1"></div>
-        <div><label>Dozen cost ($)</label><input id="dozen-cost" type="number" min="0" step="1" value="5" title="Wholesale cost for cage 700g dozen — scales all dozen sell prices"></div>
+        <div style="grid-column:1/-1"><label>Case cost — 15 dozen packs ($)</label><input id="dozen-cost" type="number" min="0" step="1" value="75" title="What you pay for one wholesale case of 15 dozen cartons. Per-dozen cost = case ÷ 15."></div>
       </div>
-      <p class="hint" id="dozen-hint">Dozen ratio 6 : 7 : 8 (cage) and 8 : 9 : 10 (free range) from dozen cost.</p>
+      <p class="hint" id="dozen-hint">Case = 15 dozens. Sell prices ratio-lock; case sell = 15 × dozen sell.</p>
+      <div class="grid2" style="margin-top:8px">
+        <div><label>Cage 600g case ($)</label><input id="p-cage600case" type="number" min="1" step="1"></div>
+        <div><label>Cage 700g case ($)</label><input id="p-cage700case" type="number" min="1" step="1"></div>
+        <div><label>Cage 800g case ($)</label><input id="p-cage800case" type="number" min="1" step="1"></div>
+        <div><label>FR 600g case ($)</label><input id="p-fr600case" type="number" min="1" step="1"></div>
+        <div><label>FR 700g case ($)</label><input id="p-fr700case" type="number" min="1" step="1"></div>
+        <div><label>FR 800g case ($)</label><input id="p-fr800case" type="number" min="1" step="1"></div>
+      </div>
 
       <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
       <p class="hint">Tap a day to open or close it</p>
@@ -1020,6 +1063,12 @@ const BUNDLE_META = {
   fr600: { eggs: 12, kind: "dozen", label: "Free range dozen 600g" },
   fr700: { eggs: 12, kind: "dozen", label: "Free range dozen 700g" },
   fr800: { eggs: 12, kind: "dozen", label: "Free range dozen 800g" },
+  cage600case: { eggs: 180, kind: "case", label: "Cage case 600g" },
+  cage700case: { eggs: 180, kind: "case", label: "Cage case 700g" },
+  cage800case: { eggs: 180, kind: "case", label: "Cage case 800g" },
+  fr600case: { eggs: 180, kind: "case", label: "Free range case 600g" },
+  fr700case: { eggs: 180, kind: "case", label: "Free range case 700g" },
+  fr800case: { eggs: 180, kind: "case", label: "Free range case 800g" },
 };
 
 function describeOrder(bundle, qty) {
@@ -1028,6 +1077,9 @@ function describeOrder(bundle, qty) {
   const eggs = (meta.eggs * qty).toLocaleString();
   if (meta.kind === "dozen") {
     return qty === 1 ? meta.label + " (12 eggs)" : qty + "× " + meta.label + " (" + eggs + " eggs)";
+  }
+  if (meta.kind === "case") {
+    return qty === 1 ? meta.label + " (15 dozens)" : qty + "× " + meta.label + " (" + eggs + " eggs)";
   }
   if (bundle === "box") return qty === 1 ? "1 box (180 eggs)" : qty + " boxes (" + eggs + " eggs)";
   const trays = (bundle === "tray2" ? 2 : 1) * qty;
@@ -1091,7 +1143,8 @@ function collectDayRows() {
 }
 
 function traysFor(o) {
-  if (BUNDLE_META[o.bundle] && BUNDLE_META[o.bundle].kind === "dozen") return 0;
+  const kind = BUNDLE_META[o.bundle] && BUNDLE_META[o.bundle].kind;
+  if (kind === "dozen" || kind === "case") return 0;
   return (o.bundle === "box" ? 6 : o.bundle === "tray2" ? 2 : 1) * (o.quantity || 1);
 }
 
@@ -1217,6 +1270,10 @@ function shortBundle(o) {
   if (meta && meta.kind === "dozen") {
     const n = o.quantity || 1;
     return n + "× " + (meta.label || o.bundle).replace(" dozen", "");
+  }
+  if (meta && meta.kind === "case") {
+    const n = o.quantity || 1;
+    return n + "× " + (meta.label || o.bundle) + " (15pk)";
   }
   if (o.bundle === "box") return ((o.quantity || 1) * 6) + "tr box";
   const trays = traysFor(o);
@@ -1472,7 +1529,7 @@ function renderBuyers(orders) {
     return;
   }
 
-  const BUNDLE_WORD = { tray1: "single trays", tray2: "2-tray packs", box: "full boxes", cage600: "cage 600g", cage700: "cage 700g", cage800: "cage 800g", fr600: "FR 600g", fr700: "FR 700g", fr800: "FR 800g" };
+  const BUNDLE_WORD = { tray1: "single trays", tray2: "2-tray packs", box: "full boxes", cage600: "cage 600g", cage700: "cage 700g", cage800: "cage 800g", fr600: "FR 600g", fr700: "FR 700g", fr800: "FR 800g", cage600case: "cage cases", cage700case: "cage cases", cage800case: "cage cases", fr600case: "FR cases", fr700case: "FR cases", fr800case: "FR cases" };
 
   $("buyers").innerHTML = buyers.map(function(b, i) {
     b.history.sort(function(x, y) { return x.t - y.t; });
@@ -1587,7 +1644,8 @@ async function loadSettings() {
   $("p1").value = s.prices.tray1;
   $("p2").value = s.prices.tray2;
   $("p3").value = s.prices.box;
-  ["cage600","cage700","cage800","fr600","fr700","fr800"].forEach(function(k) {
+  ["cage600","cage700","cage800","fr600","fr700","fr800",
+   "cage600case","cage700case","cage800case","fr600case","fr700case","fr800case"].forEach(function(k) {
     const el = $("p-" + k);
     if (el && s.prices[k] != null) el.value = s.prices[k];
   });
@@ -1608,7 +1666,9 @@ async function loadSettings() {
 const PRICE_RATIO = { tray1: 12, tray2: 23, box: 66 };
 const DOZEN_RATIO = { cage600: 6, cage700: 7, cage800: 8, fr600: 8, fr700: 9, fr800: 10 };
 const BASE_BOX_COST = 55;
-const BASE_DOZEN_COST = 5;
+const BASE_CASE_COST = 75; // 15 dozens @ $5 each wholesale baseline
+const DOZENS_IN_CASE = 15;
+const BASE_DOZEN_COST = BASE_CASE_COST; // stored field is case cost
 let SYNCING_PRICES = false;
 
 function roundMoney(n) {
@@ -1645,19 +1705,39 @@ function pricesFromBoxCost(cost) {
 
 function pricesFromDozenAnchor(which, value) {
   const v = Number(value);
-  if (!Number.isFinite(v) || v <= 0 || !DOZEN_RATIO[which]) return null;
-  const scale = v / DOZEN_RATIO[which];
+  // Allow anchoring from a case field too (e.g. cage700case)
+  let key = which;
+  let anchor = v;
+  if (String(which).endsWith("case")) {
+    key = String(which).replace(/case$/, "");
+    anchor = v / DOZENS_IN_CASE;
+  }
+  if (!Number.isFinite(anchor) || anchor <= 0 || !DOZEN_RATIO[key]) return null;
+  const scale = anchor / DOZEN_RATIO[key];
   const out = {};
   Object.keys(DOZEN_RATIO).forEach(function(k) { out[k] = roundMoney(DOZEN_RATIO[k] * scale); });
+  return attachCasePrices(out);
+}
+
+function pricesFromDozenCost(caseCost) {
+  const c = Number(caseCost);
+  if (!Number.isFinite(c) || c < 0) return null;
+  // Case of 15 dozens → scale from baseline $75 case
+  const scale = c / BASE_CASE_COST;
+  const out = {};
+  Object.keys(DOZEN_RATIO).forEach(function(k) {
+    out[k] = roundMoney(DOZEN_RATIO[k] * scale);
+    out[k + "case"] = roundMoney(out[k] * DOZENS_IN_CASE);
+  });
   return out;
 }
 
-function pricesFromDozenCost(cost) {
-  const c = Number(cost);
-  if (!Number.isFinite(c) || c < 0) return null;
-  const scale = c / BASE_DOZEN_COST;
-  const out = {};
-  Object.keys(DOZEN_RATIO).forEach(function(k) { out[k] = roundMoney(DOZEN_RATIO[k] * scale); });
+function attachCasePrices(dozenPrices) {
+  if (!dozenPrices) return null;
+  const out = Object.assign({}, dozenPrices);
+  Object.keys(DOZEN_RATIO).forEach(function(k) {
+    if (out[k] != null) out[k + "case"] = roundMoney(Number(out[k]) * DOZENS_IN_CASE);
+  });
   return out;
 }
 
@@ -1673,10 +1753,13 @@ function applyTrayPrices(next) {
 
 function applyDozenPrices(next) {
   if (!next) return;
+  next = attachCasePrices(next);
   SYNCING_PRICES = true;
   Object.keys(DOZEN_RATIO).forEach(function(k) {
     const el = $("p-" + k);
-    if (el) el.value = next[k];
+    if (el && next[k] != null) el.value = next[k];
+    const cel = $("p-" + k + "case");
+    if (cel && next[k + "case"] != null) cel.value = next[k + "case"];
   });
   SYNCING_PRICES = false;
   updateDozenHint();
@@ -1698,10 +1781,12 @@ function updatePriceHint() {
 function updateDozenHint() {
   const el = $("dozen-hint");
   if (!el) return;
-  const cost = +(($("dozen-cost") && $("dozen-cost").value) || BASE_DOZEN_COST);
+  const caseCost = +(($("dozen-cost") && $("dozen-cost").value) || BASE_CASE_COST);
+  const per = caseCost / DOZENS_IN_CASE;
   const p700 = +(($("p-cage700") && $("p-cage700").value) || 0);
   const pfr = +(($("p-fr700") && $("p-fr700").value) || 0);
-  el.innerHTML = "Dozens · net vs " + money(cost) + " dozen cost: <b>cage 700g " + money(p700 - cost) + "</b> · <b>FR 700g " + money(pfr - cost) + "</b> (ratio 6:7:8 / 8:9:10)";
+  const c700 = +(($("p-cage700case") && $("p-cage700case").value) || 0);
+  el.innerHTML = "Case " + money(caseCost) + " ÷ 15 = " + money(per) + "/dozen · net <b>cage 700g " + money(p700 - per) + "</b> · case sell <b>" + money(c700) + "</b> · FR 700g <b>" + money(pfr - per) + "</b>";
 }
 
 function onTrayPriceInput(which) {
@@ -1726,6 +1811,8 @@ $("box-cost") && $("box-cost").addEventListener("input", function() {
 Object.keys(DOZEN_RATIO).forEach(function(k) {
   const el = $("p-" + k);
   if (el) el.addEventListener("input", function() { onDozenPriceInput(k); });
+  const cel = $("p-" + k + "case");
+  if (cel) cel.addEventListener("input", function() { onDozenPriceInput(k + "case"); });
 });
 $("dozen-cost") && $("dozen-cost").addEventListener("input", function() {
   if (SYNCING_PRICES) return;
@@ -1738,6 +1825,8 @@ async function saveSettings() {
       tray1: +$("p1").value, tray2: +$("p2").value, box: +$("p3").value,
       cage600: +$("p-cage600").value, cage700: +$("p-cage700").value, cage800: +$("p-cage800").value,
       fr600: +$("p-fr600").value, fr700: +$("p-fr700").value, fr800: +$("p-fr800").value,
+      cage600case: +$("p-cage600case").value, cage700case: +$("p-cage700case").value, cage800case: +$("p-cage800case").value,
+      fr600case: +$("p-fr600case").value, fr700case: +$("p-fr700case").value, fr800case: +$("p-fr800case").value,
     },
     traysAvailable: +$("stock").value,
     trayWeight: $("tray-weight").value,
@@ -1789,7 +1878,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "94",
+          "X-Yolko-Admin": "95",
         },
       });
     }
@@ -1820,7 +1909,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "80",
+        "X-Yolko-Build": "81",
       },
     });
   },
