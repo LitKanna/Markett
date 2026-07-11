@@ -2,7 +2,7 @@
 // The site works without them: orders fall back to a copy-and-send message.
 
 const SITE_CONFIG = {
-  // Bump when site assets change — forces browsers to fetch fresh files.
+  // Bump when site assets change, to force browsers to fetch fresh files.
   assetVersion: "72",
 
   // Your WhatsApp number in international format, digits only.

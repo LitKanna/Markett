@@ -580,7 +580,7 @@ h3 {
   background: var(--paper);
 }
 
-/* Left accent bar wipes in on hover — makes the editorial list feel selectable */
+/* Left accent bar wipes in on hover, making the editorial list feel selectable */
 .price-card::before {
   content: "";
   position: absolute;

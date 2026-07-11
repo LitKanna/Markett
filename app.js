@@ -323,7 +323,7 @@ function applySettings(settings) {
   const traySpec = document.getElementById("tray-spec");
   if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
-  if (faqEggs) faqEggs.textContent = `Pace Farm ${size} eggs — 30 to a tray (${weight}kg). The same brand you'll find in the big supermarkets, for less.`;
+  if (faqEggs) faqEggs.textContent = `Pace Farm ${size} eggs, 30 to a tray (${weight}kg). The same brand you'll find in the big supermarkets, for less.`;
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
@@ -352,8 +352,8 @@ function nextPickupDate(dayName) {
   const get = (type) => parts.find((p) => p.type === type)?.value;
   const todayIdx = DAY_INDEX[{ Sun: "Sunday", Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday" }[get("weekday")]];
 
-  // Anchor on Sydney's calendar date as a UTC instant, then add whole days —
-  // no fixed offset, so DST transitions never shift the result by a day.
+  // Anchor on Sydney's calendar date as a UTC instant, then add whole days.
+  // No fixed offset, so DST transitions never shift the result by a day.
   const base = Date.UTC(Number(get("year")), Number(get("month")) - 1, Number(get("day")));
   let ahead = (DAY_INDEX[dayName] - todayIdx + 7) % 7;
   if (ahead === 0) ahead = 7;
@@ -377,7 +377,7 @@ function applyPickup(pickup) {
   const cardsBox = document.querySelector(".day-cards");
   if (cardsBox) {
     cardsBox.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
+      const hours = `${formatTime(pickup[day].open)} to ${formatTime(pickup[day].close)}`;
       return `<article class="day-card">
         <p class="day-name">${day} ${nextPickupDate(day)}</p>
         <p class="day-time">${hours}</p>
@@ -391,7 +391,7 @@ function applyPickup(pickup) {
   if (seg) {
     const pick = enabledDays.includes(previousChoice) ? previousChoice : enabledDays[enabledDays.length - 1];
     seg.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
+      const hours = `${formatTime(pickup[day].open)} to ${formatTime(pickup[day].close)}`;
       return `<label class="seg-opt">
         <input type="radio" name="pickupDay" value="${day}"${day === pick ? " checked" : ""}>
         <span class="seg-day">${day} ${nextPickupDate(day)}</span>
