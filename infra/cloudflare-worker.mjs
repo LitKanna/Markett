@@ -1344,8 +1344,27 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 .asset-card.in-draft { box-shadow:4px 4px 0 var(--yellow); }
 .asset-card.deleted { opacity:.45; }
 .asset-card .thumb { aspect-ratio:1; background:#111; position:relative; }
-.asset-card .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.asset-card .thumb img { width:100%; height:100%; object-fit:cover; display:block; cursor:zoom-in; }
 .asset-card .badges { position:absolute; top:8px; left:8px; display:flex; gap:4px; flex-wrap:wrap; }
+.asset-lightbox {
+  position:fixed; inset:0; z-index:500; display:flex; align-items:center; justify-content:center;
+  padding:18px; background:rgba(17,17,14,.88); backdrop-filter:blur(6px);
+}
+.asset-lightbox[hidden] { display:none !important; }
+.asset-lightbox-inner {
+  position:relative; max-width:min(960px, 100%); max-height:100%;
+  display:flex; flex-direction:column; gap:10px; align-items:center;
+}
+.asset-lightbox img {
+  display:block; max-width:100%; max-height:min(82vh, 900px); object-fit:contain;
+  background:#000; border:1px solid rgba(255,255,255,.2);
+}
+.asset-lightbox .lb-cap { color:#f3f1ea; font-size:13px; font-weight:700; text-align:center; }
+.asset-lightbox .lb-close {
+  position:absolute; top:-6px; right:-6px; min-height:40px; min-width:40px; padding:0 12px;
+  background:var(--paper); color:var(--ink); border:1px solid var(--ink); font-weight:800; cursor:pointer;
+  box-shadow:3px 3px 0 var(--yellow);
+}
 .asset-card .badge {
   padding:2px 6px; font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;
   background:var(--ink); color:var(--paper);
@@ -1538,6 +1557,14 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <p class="asset-empty" id="asset-empty" hidden>No images match.</p>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="asset-lightbox" id="asset-lightbox" hidden onclick="if(event.target===this)closeAssetLightbox()">
+  <div class="asset-lightbox-inner" role="dialog" aria-modal="true" aria-label="Image preview">
+    <button type="button" class="lb-close" onclick="closeAssetLightbox()" aria-label="Close">✕</button>
+    <img id="asset-lightbox-img" src="" alt="">
+    <div class="lb-cap" id="asset-lightbox-cap"></div>
   </div>
 </div>
 
@@ -2539,14 +2566,14 @@ function renderAssets() {
     return '<article class="' + cls.join(" ") + '" data-id="' + escapeHtml(it.id) + '">'
       + '<div class="thumb">'
       + '<input class="pick" type="checkbox" aria-label="Select ' + escapeHtml(it.label) + '"' + checked + ' onchange="toggleAssetSelected(\'' + escapeHtml(it.id) + '\', this.checked)">'
-      + '<img src="' + escapeHtml(it.preview) + '" alt="" loading="lazy"><div class="badges">' + badges.join("") + '</div></div>'
+      + '<img src="' + escapeHtml(it.preview) + '" alt="' + escapeHtml(it.label) + '" loading="lazy" onclick="openAssetLightbox(\'' + escapeHtml(it.id) + '\')">'
+      + '<div class="badges">' + badges.join("") + '</div></div>'
       + '<div class="meta"><strong>' + escapeHtml(it.label) + '</strong>'
       + '<select onchange="setCategory(\'' + escapeHtml(it.id) + '\', this.value)">' + cats + '</select>'
       + '<div class="actions">'
       + '<button type="button" class="ghost" onclick="toggleFavorite(\'' + escapeHtml(it.id) + '\')">' + (it.favorite ? "Unfav" : "Favorite") + '</button>'
       + '<button type="button" onclick="toggleDraft(\'' + escapeHtml(it.id) + '\')">' + useLabel + '</button>'
       + delBtn
-      + '<a class="ghost callbtn" href="' + escapeHtml(it.preview) + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Open</a>'
       + '</div></div></article>';
   }).join("");
   updateBulkBar();
@@ -2601,6 +2628,38 @@ async function bulkFavorite(on) {
   toast((on ? "Favorited " : "Unfavorited ") + data.changed);
   await loadAssets();
 }
+
+function assetPreviewUrl(it) {
+  if (!it) return "";
+  const h = it.hero || {};
+  return h.jpg928 || h.jpg1080 || h.jpg1400 || h.jpg700 || h.jpg640 || (it.square && it.square.jpg) || it.preview || "";
+}
+
+function openAssetLightbox(id) {
+  if (!ASSET_LIB) return;
+  const it = ASSET_LIB.items.find(function(x) { return x.id === id; });
+  if (!it) return;
+  const box = $("asset-lightbox");
+  const img = $("asset-lightbox-img");
+  const cap = $("asset-lightbox-cap");
+  img.src = assetPreviewUrl(it);
+  img.alt = it.label || "";
+  cap.textContent = it.label || id;
+  box.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeAssetLightbox() {
+  const box = $("asset-lightbox");
+  if (!box || box.hidden) return;
+  box.hidden = true;
+  $("asset-lightbox-img").src = "";
+  document.body.style.overflow = "";
+}
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") closeAssetLightbox();
+});
 
 async function toggleFavorite(id) {
   const it = ASSET_LIB.items.find(function(x) { return x.id === id; });
@@ -2722,7 +2781,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "103",
+          "X-Yolko-Admin": "104",
         },
       });
     }
