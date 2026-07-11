@@ -49,6 +49,10 @@ under `assets/chalk-tray/{N}-*`. After regenerating masters, bump `CHALK_ASSET_V
 `?v=` in `index.html`, extend `infra/asset-registry.json`, re-embed `ASSET_REGISTRY` in the
 worker, pin `DEPLOY_SHA`, bump `X-Yolko-Build`, then `npx wrangler deploy`.
 
+**FOUC note:** HTML no longer hardcodes `$12` chalk srcs. An inline bootstrap next to the
+hero/order chalk `<picture>` picks `localStorage.yolko.tray1Price` (else `$14` fallback)
+before first paint; `applySettings` refreshes that cache.
+
 
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder

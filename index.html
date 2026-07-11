@@ -94,7 +94,7 @@
         <div class="hero-copy">
           <p class="hero-kicker">Fresh every Friday &amp; Saturday</p>
           <h1>Fresh eggs,<br><span>worth the trip.</span></h1>
-          <p class="hero-sub">A tray of 30 <b>Pace Farm</b> eggs for <strong>$12</strong>. Book in a minute, collect at Flemington Markets.</p>
+          <p class="hero-sub">A tray of 30 <b>Pace Farm</b> eggs for <strong>$14</strong>. Book in a minute, collect at Flemington Markets.</p>
 
           <div class="hero-cta">
             <a class="btn btn-solid" href="#order">
@@ -104,7 +104,7 @@
           </div>
 
           <dl class="hero-stats">
-            <div><dt>$12</dt><dd>30 egg tray</dd></div>
+            <div><dt>$14</dt><dd>30 egg tray</dd></div>
             <div><dt>40¢</dt><dd>per egg</dd></div>
             <div><dt>2 days</dt><dd>Fri + Sat pickup</dd></div>
           </dl>
@@ -114,9 +114,34 @@
           <div class="showcase-card">
             <div class="showcase-rotator" data-rotator="hero" aria-live="polite">
               <picture class="showcase-photo is-active" data-chalk-price="hero">
-                <source type="image/webp" srcset="assets/chalk-tray/12-640.webp?v=106 640w, assets/chalk-tray/12-928.webp?v=106 928w, assets/chalk-tray/12-1536.webp?v=106 1536w" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)">
-                <img id="hero-tray-img" src="assets/chalk-tray/12-928.jpg?v=106" srcset="assets/chalk-tray/12-640.jpg?v=106 640w, assets/chalk-tray/12-928.jpg?v=106 928w, assets/chalk-tray/12-1536.jpg?v=106 1536w" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)" alt="Fresh eggs · $12/tray at the YOLKO stall" width="928" height="928" fetchpriority="high" decoding="async">
+                <source type="image/webp" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)">
+                <img id="hero-tray-img" width="928" height="928" fetchpriority="high" decoding="async" alt="Fresh eggs tray at the YOLKO stall">
               </picture>
+              <script>
+              (function () {
+                var FALLBACK = 14, VER = "106", MIN = 1, MAX = 30;
+                var p = FALLBACK;
+                try {
+                  var c = Math.round(Number(localStorage.getItem("yolko.tray1Price")));
+                  if (c >= MIN && c <= MAX) p = c;
+                } catch (e) {}
+                window.__YOLKO_TRAY1 = p;
+                var sizes = "(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)";
+                var pic = document.currentScript.previousElementSibling;
+                var source = pic && pic.querySelector("source");
+                var img = pic && pic.querySelector("img");
+                if (source) {
+                  source.srcset = "assets/chalk-tray/" + p + "-640.webp?v=" + VER + " 640w, assets/chalk-tray/" + p + "-928.webp?v=" + VER + " 928w, assets/chalk-tray/" + p + "-1536.webp?v=" + VER + " 1536w";
+                  source.sizes = sizes;
+                }
+                if (img) {
+                  img.src = "assets/chalk-tray/" + p + "-928.jpg?v=" + VER;
+                  img.srcset = "assets/chalk-tray/" + p + "-640.jpg?v=" + VER + " 640w, assets/chalk-tray/" + p + "-928.jpg?v=" + VER + " 928w, assets/chalk-tray/" + p + "-1536.jpg?v=" + VER + " 1536w";
+                  img.sizes = sizes;
+                  img.alt = "Fresh eggs · $" + p + "/tray at the YOLKO stall";
+                }
+              })();
+              </script>
               <picture class="showcase-photo">
                 <source type="image/webp" srcset="assets/studio-tray-v2-640.webp?v=94 640w, assets/studio-tray-v2-928.webp?v=94 928w" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)">
                 <img src="assets/studio-tray-v2-928.jpg?v=94" srcset="assets/studio-tray-v2-640.jpg?v=94 640w, assets/studio-tray-v2-928.jpg?v=94 928w" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)" alt="YOLKO bulk boxes and stacked egg trays at the market stall" width="928" height="1242" loading="lazy" decoding="async">
@@ -171,7 +196,7 @@
               <li>Friday or Saturday pickup</li>
             </ul>
             <div class="price-block">
-              <p class="price-big">$12</p>
+              <p class="price-big">$14</p>
               <p class="price-per">40¢ per egg</p>
             </div>
             <a class="btn btn-line" href="#order" data-bundle="tray1">
@@ -318,9 +343,28 @@
           <div class="order-tray-note">
             <div class="order-tray-rotator" data-rotator="order" aria-hidden="true">
               <picture class="order-tray-photo is-active" data-chalk-price="order">
-                <source type="image/webp" srcset="assets/chalk-tray/12-square-560.webp?v=106">
-                <img id="order-tray-img" src="assets/chalk-tray/12-square-560.jpg?v=106" alt="Fresh eggs · $12/tray" width="560" height="560" loading="lazy" decoding="async">
+                <source type="image/webp">
+                <img id="order-tray-img" width="560" height="560" loading="lazy" decoding="async" alt="Fresh eggs tray">
               </picture>
+              <script>
+              (function () {
+                var FALLBACK = 14, VER = "106", MIN = 1, MAX = 30;
+                var p = (window.__YOLKO_TRAY1 >= MIN && window.__YOLKO_TRAY1 <= MAX) ? window.__YOLKO_TRAY1 : FALLBACK;
+                try {
+                  var c = Math.round(Number(localStorage.getItem("yolko.tray1Price")));
+                  if (c >= MIN && c <= MAX) p = c;
+                } catch (e) {}
+                window.__YOLKO_TRAY1 = p;
+                var pic = document.currentScript.previousElementSibling;
+                var source = pic && pic.querySelector("source");
+                var img = pic && pic.querySelector("img");
+                if (source) source.srcset = "assets/chalk-tray/" + p + "-square-560.webp?v=" + VER;
+                if (img) {
+                  img.src = "assets/chalk-tray/" + p + "-square-560.jpg?v=" + VER;
+                  img.alt = "Fresh eggs · $" + p + "/tray";
+                }
+              })();
+              </script>
               <picture class="order-tray-photo">
                 <source type="image/webp" srcset="assets/studio-tray-v2-square-560.webp?v=94">
                 <img src="assets/studio-tray-v2-square-560.jpg?v=94" alt="" width="560" height="560" loading="lazy" decoding="async">
@@ -349,7 +393,7 @@
               <input type="radio" name="bundle" value="tray1">
               <span class="bo-name">1 tray</span>
               <span class="bo-eggs">30 eggs</span>
-              <span class="bo-price" id="bp-tray1">$12</span>
+              <span class="bo-price" id="bp-tray1">$14</span>
             </label>
             <label class="bundle-opt">
               <input type="radio" name="bundle" value="tray2" checked>
@@ -538,7 +582,7 @@
 
   <div class="mobile-cta" id="mobile-cta" inert>
     <div class="mobile-cta-text">
-      <strong>30 eggs · $12</strong>
+      <strong>30 eggs · $14</strong>
       <span>Pickup Fri + Sat</span>
     </div>
     <a class="btn btn-small" href="#order">Book now ↗</a>
@@ -584,6 +628,6 @@
   </footer>
 
   <script src="config.js?v=86"></script>
-  <script src="app.js?v=102"></script>
+  <script src="app.js?v=107"></script>
 </body>
 </html>

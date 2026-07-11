@@ -1,9 +1,9 @@
 const DOZENS_PER_CASE = 15;
 
 const BUNDLES = {
-  tray1: { label: "1 tray (30 eggs)", price: 12, eggs: 30, kind: "tray" },
-  tray2: { label: "2 trays (60 eggs)", price: 23, eggs: 60, kind: "tray" },
-  box: { label: "Full box (6 trays, 180 eggs)", price: 66, eggs: 180, kind: "tray" },
+  tray1: { label: "1 tray (30 eggs)", price: 14, eggs: 30, kind: "tray" },
+  tray2: { label: "2 trays (60 eggs)", price: 27, eggs: 60, kind: "tray" },
+  box: { label: "Full box (6 trays, 180 eggs)", price: 77, eggs: 180, kind: "tray" },
   cage600: { label: "Cage dozen 600g", price: 6, eggs: 12, kind: "dozen", housing: "cage", weight: "600g" },
   cage700: { label: "Cage dozen 700g", price: 7, eggs: 12, kind: "dozen", housing: "cage", weight: "700g" },
   cage800: { label: "Cage dozen 800g", price: 8, eggs: 12, kind: "dozen", housing: "cage", weight: "800g" },
@@ -103,15 +103,35 @@ initImageRotators();
 /* Chalkboard hero swaps to match live tray1 price ($1–$30); dozens unchanged */
 const CHALK_PRICES = Array.from({ length: 30 }, (_, i) => i + 1);
 const CHALK_ASSET_VER = "106";
+const TRAY1_PRICE_CACHE_KEY = "yolko.tray1Price";
 
 function chalkPriceKey(price) {
   const n = Math.round(Number(price));
   if (CHALK_PRICES.includes(n)) return n;
-  if (!Number.isFinite(n)) return 12;
+  if (!Number.isFinite(n)) return 14;
   if (n < 1) return 1;
   if (n > 30) return 30;
-  return 12;
+  return 14;
 }
+
+function readCachedTray1Price() {
+  try {
+    const n = Math.round(Number(localStorage.getItem(TRAY1_PRICE_CACHE_KEY)));
+    if (CHALK_PRICES.includes(n)) return n;
+  } catch (_) {}
+  const boot = Math.round(Number(window.__YOLKO_TRAY1));
+  if (CHALK_PRICES.includes(boot)) return boot;
+  return null;
+}
+
+function cacheTray1Price(price) {
+  try {
+    localStorage.setItem(TRAY1_PRICE_CACHE_KEY, String(chalkPriceKey(price)));
+  } catch (_) {}
+}
+
+const cachedTray1 = readCachedTray1Price();
+if (cachedTray1 != null) BUNDLES.tray1.price = cachedTray1;
 
 function withVer(path) {
   if (!path) return "";
@@ -173,7 +193,8 @@ function buildHeroPicture(item, index) {
   const idAttr = index === 0 ? ' id="hero-tray-img"' : "";
   const loading = index === 0 ? ' fetchpriority="high"' : ' loading="lazy"';
   if (isChalk) {
-    const p = chalkPriceKey(item.chalkPrice || BUNDLES.tray1.price);
+    // Always use live tray1 price — asset chalkPrice is only the registry id (e.g. chalk-tray/12).
+    const p = chalkPriceKey(BUNDLES.tray1.price);
     return `<picture class="showcase-photo${active}"${chalkAttr}>
       <source type="image/webp" srcset="assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w" sizes="${HERO_SIZES}">
       <img${idAttr} src="assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}" srcset="assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w" sizes="${HERO_SIZES}" alt="Fresh eggs · $${p}/tray at the YOLKO stall" width="928" height="928"${loading} decoding="async">
@@ -234,7 +255,7 @@ applyChalkPriceImage(BUNDLES.tray1.price);
 /* ---------- Ticker: always covers the screen, loops seamlessly ---------- */
 const TICKER_ITEMS = [
   "Fresh eggs every week",
-  "30 eggs for $12",
+  "30 eggs for $14",
   "Pickup Friday & Saturday",
   "Paddy's Markets Flemington",
 ];
@@ -510,6 +531,7 @@ function applySettings(settings) {
   const perEgg = Math.round((p1 / 30) * 100);
   const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
 
+  cacheTray1Price(p1);
   applyChalkPriceImage(p1);
 
   // Hero
