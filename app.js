@@ -100,16 +100,16 @@ function initImageRotators() {
 
 initImageRotators();
 
-/* Chalkboard hero swaps to match live tray1 price ($12–$20) */
-const CHALK_PRICES = [12, 13, 14, 15, 16, 17, 18, 19, 20];
-const CHALK_ASSET_VER = "94";
+/* Chalkboard hero swaps to match live tray1 price ($8–$24); dozens unchanged */
+const CHALK_PRICES = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
+const CHALK_ASSET_VER = "105";
 
 function chalkPriceKey(price) {
   const n = Math.round(Number(price));
   if (CHALK_PRICES.includes(n)) return n;
   if (!Number.isFinite(n)) return 12;
-  if (n < 12) return 12;
-  if (n > 20) return 20;
+  if (n < 8) return 8;
+  if (n > 24) return 24;
   return 12;
 }
 

@@ -486,7 +486,8 @@ h3 {
 
 .showcase-photo img {
   object-fit: cover;
-  object-position: center center;
+  /* Bias up/left so chalkboard ($N/TRAY) stays in the cover crop */
+  object-position: left 28% top 18%;
   transition: transform 700ms var(--ease);
 }
 

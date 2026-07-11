@@ -59,29 +59,32 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
 
 **User request (not finished):** On shop hero boxes, make **YOLKO** a **tiny bottom-corner**
 mark (not large/centered). On the closeup tray-on-box slide, also remove any
-**“Fresh eggs Flemington”** subline. Keep chalkboard price heroes working ($12–$20).
+**“Fresh eggs Flemington”** subline. Keep chalkboard price heroes working ($8–$24).
 
 **Do this with Higgsfield MCP only** (`generate_image` / media tools). Do **not** use Cursor
 `GenerateImage` — user rejected those assets and we reverted them (build 94). Do **not**
 fall back to local OpenCV/Pillow redraws unless the user explicitly allows it.
 
-**Verified current assets (still wrong):**
-- `assets/chalk-tray/{12–20}-*.jpg` — large centered **YOLKO** on the box face
+**Chalk-tray status (done):** `assets/chalk-tray/{8–24}-*` — plain kraft box (no large
+YOLKO), three stacked clear trays, chalkboard upper-left `FRESH EGGS — $N / TRAY`.
+Wired via `CHALK_PRICES` / `CHALK_ASSET_VER` in `app.js` (tray1 price only; dozens
+unchanged). Hero cover uses `object-position: left 28% top 18%` so the board stays in frame.
+
+**Still pending (studio heroes):**
 - `assets/studio-tray-v2-*` — large centered **YOLKO** on each box
 - `assets/studio-tray-v5-*` — large framed centered **YOLKO** stamps on boxes
 - `assets/studio-tray-v6-*` — large centered **YOLKO** + **“Fresh eggs Flemington”** subline
 - Classic `studio-tray` (no box brand) can stay as-is
 
-**Target look:** same market/shop scenes, but **YOLKO** is a small quiet mark in the
-**bottom-left or bottom-right corner** of each visible cardboard box face (≈5–8% of box
-width). No centered mega-logo. No Flemington subline on v6. Chalkboard `$N/TRAY` copy
-must stay readable on chalk-tray ($12–$20 set).
+**Target look (studio):** same market/shop scenes, but **YOLKO** is a small quiet mark in
+the **bottom-left or bottom-right corner** of each visible cardboard box face (≈5–8% of
+box width). No centered mega-logo. No Flemington subline on v6.
 
 **Export pipeline after Higgsfield masters:** for each master, write
 `{name}-928.jpg` (hero), `{name}-640.jpg`, `{name}-square-560.jpg` + matching `.webp`
-(quality ~88). Chalk set needs all prices 12–20. Bust `?v=` in `index.html` and
+(quality ~88). Chalk set needs all prices 8–24. Bust `?v=` in `index.html` and
 `CHALK_ASSET_VER` in `app.js`. Then pin `DEPLOY_SHA` in `infra/cloudflare-worker.mjs` to
-the asset commit, bump `X-Yolko-Build` (next is **96**), `npx wrangler deploy`.
+the asset commit, bump `X-Yolko-Build`, `npx wrangler deploy`.
 
 **Higgsfield auth note (blocking):** Cloud agents load MCP OAuth **only at start**.
 This run and the prior handoff run both saw `needsAuth`; interactive `mcp_auth` is
