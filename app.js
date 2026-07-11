@@ -45,7 +45,20 @@ let lastOrderId = null;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- Hero / order tray image auto-rotate ---------- */
+const rotatorTimers = [];
+const HERO_SIZES = "(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)";
+const ASSET_CACHE_VER = "102";
+
+function clearImageRotators() {
+  while (rotatorTimers.length) {
+    const t = rotatorTimers.pop();
+    window.clearTimeout(t.timeoutId);
+    window.clearInterval(t.intervalId);
+  }
+}
+
 function initImageRotators() {
+  clearImageRotators();
   if (reducedMotion) return;
 
   document.querySelectorAll("[data-rotator]").forEach((root) => {
@@ -61,15 +74,16 @@ function initImageRotators() {
     const intervalMs = root.dataset.rotator === "order" ? 14000 : 12000;
     const offsetMs = root.dataset.rotator === "order" ? 3500 : 0;
     const fadeMs = 900;
+    const state = { timeoutId: 0, intervalId: 0 };
 
-    window.setTimeout(() => {
-      window.setInterval(() => {
+    state.timeoutId = window.setTimeout(() => {
+      state.intervalId = window.setInterval(() => {
         const prev = slides[index];
         index = (index + 1) % slides.length;
         const next = slides[index];
 
         // Keep outgoing slide under the incoming one until fade finishes
-        // so the price badge / frame never flash empty mid-transition.
+        // so the frame never flashes empty mid-transition.
         prev.classList.add("is-leaving");
         prev.classList.remove("is-active");
         next.classList.add("is-active");
@@ -79,6 +93,8 @@ function initImageRotators() {
         }, fadeMs);
       }, intervalMs);
     }, offsetMs);
+
+    rotatorTimers.push(state);
   });
 }
 
@@ -97,6 +113,12 @@ function chalkPriceKey(price) {
   return 12;
 }
 
+function withVer(path) {
+  if (!path) return "";
+  const clean = path.startsWith("/") ? path.slice(1) : path;
+  return `${clean}${clean.includes("?") ? "&" : "?"}v=${ASSET_CACHE_VER}`;
+}
+
 function applyChalkPriceImage(trayPrice) {
   const p = chalkPriceKey(trayPrice);
   document.querySelectorAll("[data-chalk-price]").forEach((pic) => {
@@ -106,12 +128,12 @@ function applyChalkPriceImage(trayPrice) {
     if (kind === "hero") {
       if (source) {
         source.srcset = `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w`;
-        source.sizes = "(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)";
+        source.sizes = HERO_SIZES;
       }
       if (img) {
         img.src = `assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}`;
         img.srcset = `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w`;
-        img.sizes = "(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)";
+        img.sizes = HERO_SIZES;
         img.alt = `Fresh eggs · $${p}/tray at the YOLKO stall`;
       }
     } else {
@@ -122,6 +144,87 @@ function applyChalkPriceImage(trayPrice) {
       }
     }
   });
+}
+
+function heroSrcset(item) {
+  const h = item.hero || {};
+  if (h.webp640 && h.webp928) {
+    return {
+      webp: `${withVer(h.webp640)} 640w, ${withVer(h.webp928)} 928w`,
+      jpg: `${withVer(h.jpg640 || h.jpg928)} 640w, ${withVer(h.jpg928 || h.jpg640)} 928w`,
+      src: withVer(h.jpg928 || h.jpg640 || h.jpg1080 || h.jpg1400),
+    };
+  }
+  const jpg = h.jpg1080 || h.jpg1400 || h.jpg700 || h.jpg540 || (item.square && item.square.jpg) || item.preview;
+  const webp = h.webp1080 || h.webp640 || (item.square && item.square.webp);
+  return {
+    webp: webp ? `${withVer(webp)} 1080w` : "",
+    jpg: jpg ? `${withVer(jpg)} 1080w` : "",
+    src: withVer(jpg),
+  };
+}
+
+function buildHeroPicture(item, index) {
+  const isChalk = item.kind === "chalk";
+  const active = index === 0 ? " is-active" : "";
+  const chalkAttr = isChalk ? ' data-chalk-price="hero"' : "";
+  const idAttr = index === 0 ? ' id="hero-tray-img"' : "";
+  const loading = index === 0 ? ' fetchpriority="high"' : ' loading="lazy"';
+  if (isChalk) {
+    const p = chalkPriceKey(item.chalkPrice || BUNDLES.tray1.price);
+    return `<picture class="showcase-photo${active}"${chalkAttr}>
+      <source type="image/webp" srcset="assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w" sizes="${HERO_SIZES}">
+      <img${idAttr} src="assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}" srcset="assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w" sizes="${HERO_SIZES}" alt="Fresh eggs · $${p}/tray at the YOLKO stall" width="928" height="1242"${loading} decoding="async">
+    </picture>`;
+  }
+  const src = heroSrcset(item);
+  const source = src.webp
+    ? `<source type="image/webp" srcset="${src.webp}" sizes="${HERO_SIZES}">`
+    : "";
+  return `<picture class="showcase-photo${active}">
+      ${source}
+      <img${idAttr} src="${src.src}" ${src.jpg ? `srcset="${src.jpg}"` : ""} sizes="${HERO_SIZES}" alt="${item.label || "YOLKO eggs"}" width="928" height="1242"${loading} decoding="async">
+    </picture>`;
+}
+
+function buildOrderPicture(item, index) {
+  const isChalk = item.kind === "chalk";
+  const active = index === 0 ? " is-active" : "";
+  const chalkAttr = isChalk ? ' data-chalk-price="order"' : "";
+  const idAttr = index === 0 ? ' id="order-tray-img"' : "";
+  if (isChalk) {
+    const p = chalkPriceKey(item.chalkPrice || BUNDLES.tray1.price);
+    return `<picture class="order-tray-photo${active}"${chalkAttr}>
+      <source type="image/webp" srcset="assets/chalk-tray/${p}-square-560.webp?v=${CHALK_ASSET_VER}">
+      <img${idAttr} src="assets/chalk-tray/${p}-square-560.jpg?v=${CHALK_ASSET_VER}" alt="Fresh eggs · $${p}/tray" width="560" height="560" loading="lazy" decoding="async">
+    </picture>`;
+  }
+  const sq = item.square || {};
+  const jpg = withVer(sq.jpg || item.preview);
+  const webp = sq.webp ? withVer(sq.webp) : "";
+  return `<picture class="order-tray-photo${active}">
+      ${webp ? `<source type="image/webp" srcset="${webp}">` : ""}
+      <img${idAttr} src="${jpg}" alt="" width="560" height="560" loading="lazy" decoding="async">
+    </picture>`;
+}
+
+async function applyPublishedAssets(apiBase) {
+  try {
+    const res = await fetch(`${apiBase}/api/assets`, { credentials: "omit" });
+    if (!res.ok) return;
+    const data = await res.json();
+    const published = Array.isArray(data.published) ? data.published : [];
+    if (!published.length) return;
+
+    const heroRoot = document.querySelector('.showcase-rotator[data-rotator="hero"]');
+    const orderRoot = document.querySelector('.order-tray-rotator[data-rotator="order"]');
+    if (heroRoot) heroRoot.innerHTML = published.map(buildHeroPicture).join("");
+    if (orderRoot) orderRoot.innerHTML = published.map(buildOrderPicture).join("");
+    applyChalkPriceImage(BUNDLES.tray1.price);
+    initImageRotators();
+  } catch (_) {
+    // Keep HTML defaults if the asset API is unavailable.
+  }
 }
 
 applyChalkPriceImage(BUNDLES.tray1.price);
@@ -368,6 +471,7 @@ if (Number.isFinite(traysLeft) && traysLeft > 0) {
 
 /* ---------- Live prices and stock from the shop API ---------- */
 const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://getyolko.com";
+applyPublishedAssets(API_BASE);
 
 const DOZEN_PUBLIC_KEYS = ["cage600", "cage700", "cage800", "fr600", "fr700", "fr800"];
 

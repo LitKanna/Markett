@@ -109,6 +109,114 @@ function isAdmin(request, env) {
   return env.ADMIN_KEY && auth === `Bearer ${env.ADMIN_KEY}`;
 }
 
+
+/* ---------- Asset library (admin + live publish) ---------- */
+const ASSET_REGISTRY = [{"id":"chalk-tray/12","label":"chalk-tray/12","preview":"/assets/chalk-tray/12-square-560.jpg","kind":"chalk","defaultCategory":"Hero","hero":{"jpg928":"/assets/chalk-tray/12-928.jpg","jpg640":"/assets/chalk-tray/12-640.jpg","webp928":"/assets/chalk-tray/12-928.webp","webp640":"/assets/chalk-tray/12-640.webp"},"square":{"jpg":"/assets/chalk-tray/12-square-560.jpg","webp":"/assets/chalk-tray/12-square-560.webp"},"rotatable":true,"chalkPrice":12},{"id":"chalk-tray/13","label":"chalk-tray/13","preview":"/assets/chalk-tray/13-square-560.jpg","kind":"chalk","defaultCategory":"Hero","hero":{"jpg928":"/assets/chalk-tray/13-928.jpg","jpg640":"/assets/chalk-tray/13-640.jpg","webp928":"/assets/chalk-tray/13-928.webp","webp640":"/assets/chalk-tray/13-640.webp"},"square":{"jpg":"/assets/chalk-tray/13-square-560.jpg","webp":"/assets/chalk-tray/13-square-560.webp"},"rotatable":true,"chalkPrice":13},{"id":"chalk-tray/14","label":"chalk-tray/14","preview":"/assets/chalk-tray/14-square-560.jpg","kind":"chalk","defaultCategory":"Hero","hero":{"jpg928":"/assets/chalk-tray/14-928.jpg","jpg640":"/assets/chalk-tray/14-640.jpg","webp928":"/assets/chalk-tray/14-928.webp","webp640":"/assets/chalk-tray/14-640.webp"},"square":{"jpg":"/assets/chalk-tray/14-square-560.jpg","webp":"/assets/chalk-tray/14-square-560.webp"},"rotatable":true,"chalkPrice":14},{"id":"chalk-tray/15","label":"chalk-tray/15","preview":"/assets/chalk-tray/15-square-560.jpg","kind":"chalk","defaultCategory":"Hero","hero":{"jpg928":"/assets/chalk-tray/15-928.jpg","jpg640":"/assets/chalk-tray/15-640.jpg","webp928":"/assets/chalk-tray/15-928.webp","webp640":"/assets/chalk-tray/15-640.webp"},"square":{"jpg":"/assets/chalk-tray/15-square-560.jpg","webp":"/assets/chalk-tray/15-square-560.webp"},"rotatable":true,"chalkPrice":15},{"id":"chalk-tray/16","label":"chalk-tray/16","preview":"/assets/chalk-tray/16-square-560.jpg","kind":"chalk","defaultCategory":"Hero","hero":{"jpg928":"/assets/chalk-tray/16-928.jpg","jpg640":"/assets/chalk-tray/16-640.jpg","webp928":"/assets/chalk-tray/16-928.webp","webp640":"/assets/chalk-tray/16-640.webp"},"square":{"jpg":"/assets/chalk-tray/16-square-560.jpg","webp":"/assets/chalk-tray/16-square-560.webp"},"rotatable":true,"chalkPrice":16},{"id":"chalk-tray/17","label":"chalk-tray/17","preview":"/assets/chalk-tray/17-square-560.jpg","kind":"chalk","defaultCategory":"Hero","hero":{"jpg928":"/assets/chalk-tray/17-928.jpg","jpg640":"/assets/chalk-tray/17-640.jpg","webp928":"/assets/chalk-tray/17-928.webp","webp640":"/assets/chalk-tray/17-640.webp"},"square":{"jpg":"/assets/chalk-tray/17-square-560.jpg","webp":"/assets/chalk-tray/17-square-560.webp"},"rotatable":true,"chalkPrice":17},{"id":"chalk-tray/18","label":"chalk-tray/18","preview":"/assets/chalk-tray/18-square-560.jpg","kind":"chalk","defaultCategory":"Hero","hero":{"jpg928":"/assets/chalk-tray/18-928.jpg","jpg640":"/assets/chalk-tray/18-640.jpg","webp928":"/assets/chalk-tray/18-928.webp","webp640":"/assets/chalk-tray/18-640.webp"},"square":{"jpg":"/assets/chalk-tray/18-square-560.jpg","webp":"/assets/chalk-tray/18-square-560.webp"},"rotatable":true,"chalkPrice":18},{"id":"chalk-tray/19","label":"chalk-tray/19","preview":"/assets/chalk-tray/19-square-560.jpg","kind":"chalk","defaultCategory":"Hero","hero":{"jpg928":"/assets/chalk-tray/19-928.jpg","jpg640":"/assets/chalk-tray/19-640.jpg","webp928":"/assets/chalk-tray/19-928.webp","webp640":"/assets/chalk-tray/19-640.webp"},"square":{"jpg":"/assets/chalk-tray/19-square-560.jpg","webp":"/assets/chalk-tray/19-square-560.webp"},"rotatable":true,"chalkPrice":19},{"id":"chalk-tray/20","label":"chalk-tray/20","preview":"/assets/chalk-tray/20-square-560.jpg","kind":"chalk","defaultCategory":"Hero","hero":{"jpg928":"/assets/chalk-tray/20-928.jpg","jpg640":"/assets/chalk-tray/20-640.jpg","webp928":"/assets/chalk-tray/20-928.webp","webp640":"/assets/chalk-tray/20-640.webp"},"square":{"jpg":"/assets/chalk-tray/20-square-560.jpg","webp":"/assets/chalk-tray/20-square-560.webp"},"rotatable":true,"chalkPrice":20},{"id":"hero-eggs","label":"hero-eggs","preview":"/assets/hero-eggs-700.jpg","kind":"brand","defaultCategory":"Brand","hero":{"jpg1400":"/assets/hero-eggs-1400.jpg","jpg700":"/assets/hero-eggs-700.jpg"},"square":{"jpg":"/assets/hero-eggs-700.jpg"},"rotatable":true},{"id":"hero-tray-real","label":"hero-tray-real","preview":"/assets/hero-tray-real-540.jpg","kind":"brand","defaultCategory":"Brand","hero":{"jpg1080":"/assets/hero-tray-real-1080.jpg","webp1080":"/assets/hero-tray-real-1080.webp","jpg1400":"/assets/hero-tray-real-1400.jpg","jpg700":"/assets/hero-tray-real-700.jpg","jpg540":"/assets/hero-tray-real-540.jpg"},"square":{"jpg":"/assets/hero-tray-real-540.jpg"},"rotatable":true},{"id":"market-sign","label":"market-sign","preview":"/assets/market-sign.png","kind":"brand","defaultCategory":"Brand","hero":{},"square":{"jpg":"/assets/market-sign.png"},"rotatable":true},{"id":"pace-farm-tray","label":"pace-farm-tray","preview":"/assets/pace-farm-tray-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1400":"/assets/pace-farm-tray-1400.jpg","jpg700":"/assets/pace-farm-tray-700.jpg","jpg540":"/assets/pace-farm-tray-540.jpg"},"square":{"jpg":"/assets/pace-farm-tray-540.jpg"},"rotatable":true},{"id":"pace-tray-150kg","label":"pace-tray-150kg","preview":"/assets/pace-tray-150kg-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1080":"/assets/pace-tray-150kg-1080.jpg","webp1080":"/assets/pace-tray-150kg-1080.webp","jpg1400":"/assets/pace-tray-150kg-1400.jpg","jpg700":"/assets/pace-tray-150kg-700.jpg","jpg540":"/assets/pace-tray-150kg-540.jpg"},"square":{"jpg":"/assets/pace-tray-150kg-540.jpg"},"rotatable":true},{"id":"pace-tray-175kg","label":"pace-tray-175kg","preview":"/assets/pace-tray-175kg-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1080":"/assets/pace-tray-175kg-1080.jpg","webp1080":"/assets/pace-tray-175kg-1080.webp","jpg1400":"/assets/pace-tray-175kg-1400.jpg","jpg700":"/assets/pace-tray-175kg-700.jpg","jpg540":"/assets/pace-tray-175kg-540.jpg"},"square":{"jpg":"/assets/pace-tray-175kg-540.jpg"},"rotatable":true},{"id":"references/fairdinks-cage-175-1280","label":"references/fairdinks-cage-175-1280","preview":"/assets/references/fairdinks-cage-175-1280.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/fairdinks-cage-175-1280.jpg"},"rotatable":true},{"id":"references/fairdinks-cagefree-175-1280","label":"references/fairdinks-cagefree-175-1280","preview":"/assets/references/fairdinks-cagefree-175-1280.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/fairdinks-cagefree-175-1280.jpg"},"rotatable":true},{"id":"references/fairdinks-pace-cage-175","label":"references/fairdinks-pace-cage-175","preview":"/assets/references/fairdinks-pace-cage-175.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/fairdinks-pace-cage-175.jpg"},"rotatable":true},{"id":"references/fairdinks-pace-cage-175-hi","label":"references/fairdinks-pace-cage-175-hi","preview":"/assets/references/fairdinks-pace-cage-175-hi.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/fairdinks-pace-cage-175-hi.jpg"},"rotatable":true},{"id":"references/gourmet-farmfresh-cage-xl-30-175","label":"references/gourmet-farmfresh-cage-xl-30-175","preview":"/assets/references/gourmet-farmfresh-cage-xl-30-175.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/gourmet-farmfresh-cage-xl-30-175.jpg"},"rotatable":true},{"id":"references/pace-150-ref","label":"references/pace-150-ref","preview":"/assets/references/pace-150-ref.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-150-ref.jpg"},"rotatable":true},{"id":"references/pace-175-ref","label":"references/pace-175-ref","preview":"/assets/references/pace-175-ref.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-175-ref.jpg"},"rotatable":true},{"id":"references/pace-175-ref2","label":"references/pace-175-ref2","preview":"/assets/references/pace-175-ref2.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-175-ref2.jpg"},"rotatable":true},{"id":"references/pace-cage-175-hi","label":"references/pace-cage-175-hi","preview":"/assets/references/pace-cage-175-hi.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-cage-175-hi.jpg"},"rotatable":true},{"id":"references/pace-cage-175-retail","label":"references/pace-cage-175-retail","preview":"/assets/references/pace-cage-175-retail.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-cage-175-retail.jpg"},"rotatable":true},{"id":"references/pace-cage-175-retail-hi","label":"references/pace-cage-175-retail-hi","preview":"/assets/references/pace-cage-175-retail-hi.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-cage-175-retail-hi.jpg"},"rotatable":true},{"id":"references/pace-caged-150-hi","label":"references/pace-caged-150-hi","preview":"/assets/references/pace-caged-150-hi.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-caged-150-hi.jpg"},"rotatable":true},{"id":"references/pace-caged-150-woolies","label":"references/pace-caged-150-woolies","preview":"/assets/references/pace-caged-150-woolies.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-caged-150-woolies.jpg"},"rotatable":true},{"id":"references/pace-cagefree-175-retail","label":"references/pace-cagefree-175-retail","preview":"/assets/references/pace-cagefree-175-retail.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-cagefree-175-retail.jpg"},"rotatable":true},{"id":"references/pace-logo-retail-extract","label":"references/pace-logo-retail-extract","preview":"/assets/references/pace-logo-retail-extract.png","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-logo-retail-extract.png"},"rotatable":true},{"id":"references/pace-logo-retail-packaging","label":"references/pace-logo-retail-packaging","preview":"/assets/references/pace-logo-retail-packaging.png","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-logo-retail-packaging.png"},"rotatable":true},{"id":"references/pace-logo-retail-wide","label":"references/pace-logo-retail-wide","preview":"/assets/references/pace-logo-retail-wide.png","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-logo-retail-wide.png"},"rotatable":true},{"id":"references/pace-official-farm-fresh-cage","label":"references/pace-official-farm-fresh-cage","preview":"/assets/references/pace-official-farm-fresh-cage.png","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-official-farm-fresh-cage.png"},"rotatable":true},{"id":"references/pace-official-favicon","label":"references/pace-official-favicon","preview":"/assets/references/pace-official-favicon.png","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/pace-official-favicon.png"},"rotatable":true},{"id":"references/umall-pace-cage-30-150","label":"references/umall-pace-cage-30-150","preview":"/assets/references/umall-pace-cage-30-150.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/umall-pace-cage-30-150.jpg"},"rotatable":true},{"id":"references/wool-701985-alt","label":"references/wool-701985-alt","preview":"/assets/references/wool-701985-alt.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-701985-alt.jpg"},"rotatable":true},{"id":"references/wool-701985-front","label":"references/wool-701985-front","preview":"/assets/references/wool-701985-front.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-701985-front.jpg"},"rotatable":true},{"id":"references/wool-701985-hi","label":"references/wool-701985-hi","preview":"/assets/references/wool-701985-hi.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-701985-hi.jpg"},"rotatable":true},{"id":"references/wool-92940-xl12","label":"references/wool-92940-xl12","preview":"/assets/references/wool-92940-xl12.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-92940-xl12.jpg"},"rotatable":true},{"id":"references/wool-92940-xl12-alt","label":"references/wool-92940-xl12-alt","preview":"/assets/references/wool-92940-xl12-alt.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-92940-xl12-alt.jpg"},"rotatable":true},{"id":"references/wool-caged-701985","label":"references/wool-caged-701985","preview":"/assets/references/wool-caged-701985.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-caged-701985.jpg"},"rotatable":true},{"id":"references/wool-caged-701985_1","label":"references/wool-caged-701985_1","preview":"/assets/references/wool-caged-701985_1.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-caged-701985_1.jpg"},"rotatable":true},{"id":"references/wool-caged-701985_2","label":"references/wool-caged-701985_2","preview":"/assets/references/wool-caged-701985_2.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-caged-701985_2.jpg"},"rotatable":true},{"id":"references/wool-caged-701985_3","label":"references/wool-caged-701985_3","preview":"/assets/references/wool-caged-701985_3.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-caged-701985_3.jpg"},"rotatable":true},{"id":"references/wool-caged-701985_4","label":"references/wool-caged-701985_4","preview":"/assets/references/wool-caged-701985_4.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-caged-701985_4.jpg"},"rotatable":true},{"id":"references/wool-caged-701985_5","label":"references/wool-caged-701985_5","preview":"/assets/references/wool-caged-701985_5.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-caged-701985_5.jpg"},"rotatable":true},{"id":"references/wool-caged-701985_6","label":"references/wool-caged-701985_6","preview":"/assets/references/wool-caged-701985_6.jpg","kind":"reference","defaultCategory":"References","hero":{},"square":{"jpg":"/assets/references/wool-caged-701985_6.jpg"},"rotatable":true},{"id":"social-eggs","label":"social-eggs","preview":"/assets/social-eggs-540.jpg","kind":"brand","defaultCategory":"Brand","hero":{"jpg1080":"/assets/social-eggs-1080.jpg","webp1080":"/assets/social-eggs-1080.webp","jpg540":"/assets/social-eggs-540.jpg"},"square":{"jpg":"/assets/social-eggs-540.jpg"},"rotatable":true},{"id":"studio-tray","label":"studio-tray","preview":"/assets/studio-tray-square-560.jpg","kind":"studio","defaultCategory":"Hero","hero":{"jpg928":"/assets/studio-tray-928.jpg","jpg640":"/assets/studio-tray-640.jpg","webp928":"/assets/studio-tray-928.webp","webp640":"/assets/studio-tray-640.webp"},"square":{"jpg":"/assets/studio-tray-square-560.jpg","webp":"/assets/studio-tray-square-560.webp"},"rotatable":true},{"id":"studio-tray-v2","label":"studio-tray-v2","preview":"/assets/studio-tray-v2-square-560.jpg","kind":"studio","defaultCategory":"Hero","hero":{"jpg928":"/assets/studio-tray-v2-928.jpg","jpg640":"/assets/studio-tray-v2-640.jpg","webp928":"/assets/studio-tray-v2-928.webp","webp640":"/assets/studio-tray-v2-640.webp"},"square":{"jpg":"/assets/studio-tray-v2-square-560.jpg","webp":"/assets/studio-tray-v2-square-560.webp"},"rotatable":true},{"id":"studio-tray-v3","label":"studio-tray-v3","preview":"/assets/studio-tray-v3-square-560.jpg","kind":"studio","defaultCategory":"Hero","hero":{"jpg928":"/assets/studio-tray-v3-928.jpg","jpg640":"/assets/studio-tray-v3-640.jpg","webp928":"/assets/studio-tray-v3-928.webp","webp640":"/assets/studio-tray-v3-640.webp"},"square":{"jpg":"/assets/studio-tray-v3-square-560.jpg","webp":"/assets/studio-tray-v3-square-560.webp"},"rotatable":true},{"id":"studio-tray-v5","label":"studio-tray-v5","preview":"/assets/studio-tray-v5-square-560.jpg","kind":"studio","defaultCategory":"Hero","hero":{"jpg928":"/assets/studio-tray-v5-928.jpg","jpg640":"/assets/studio-tray-v5-640.jpg","webp928":"/assets/studio-tray-v5-928.webp","webp640":"/assets/studio-tray-v5-640.webp"},"square":{"jpg":"/assets/studio-tray-v5-square-560.jpg","webp":"/assets/studio-tray-v5-square-560.webp"},"rotatable":true},{"id":"studio-tray-v6","label":"studio-tray-v6","preview":"/assets/studio-tray-v6-square-560.jpg","kind":"studio","defaultCategory":"Hero","hero":{"jpg928":"/assets/studio-tray-v6-928.jpg","jpg640":"/assets/studio-tray-v6-640.jpg","webp928":"/assets/studio-tray-v6-928.webp","webp640":"/assets/studio-tray-v6-640.webp"},"square":{"jpg":"/assets/studio-tray-v6-square-560.jpg","webp":"/assets/studio-tray-v6-square-560.webp"},"rotatable":true},{"id":"tray","label":"tray","preview":"/assets/tray-order-400.jpg","kind":"other","defaultCategory":"Other","hero":{},"square":{"jpg":"/assets/tray-order-400.jpg"},"rotatable":true},{"id":"tray-orange-amber","label":"tray-orange-amber","preview":"/assets/tray-orange-amber-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1080":"/assets/tray-orange-amber-1080.jpg","webp1080":"/assets/tray-orange-amber-1080.webp","jpg1400":"/assets/tray-orange-amber-1400.jpg","jpg700":"/assets/tray-orange-amber-700.jpg","jpg540":"/assets/tray-orange-amber-540.jpg"},"square":{"jpg":"/assets/tray-orange-amber-540.jpg"},"rotatable":true},{"id":"tray-orange-golden","label":"tray-orange-golden","preview":"/assets/tray-orange-golden-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1080":"/assets/tray-orange-golden-1080.jpg","webp1080":"/assets/tray-orange-golden-1080.webp","jpg1400":"/assets/tray-orange-golden-1400.jpg","jpg700":"/assets/tray-orange-golden-700.jpg","jpg540":"/assets/tray-orange-golden-540.jpg"},"square":{"jpg":"/assets/tray-orange-golden-540.jpg"},"rotatable":true},{"id":"tray-orange-market","label":"tray-orange-market","preview":"/assets/tray-orange-market-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1080":"/assets/tray-orange-market-1080.jpg","webp1080":"/assets/tray-orange-market-1080.webp","jpg1400":"/assets/tray-orange-market-1400.jpg","jpg700":"/assets/tray-orange-market-700.jpg","jpg540":"/assets/tray-orange-market-540.jpg"},"square":{"jpg":"/assets/tray-orange-market-540.jpg"},"rotatable":true},{"id":"tray-orange-premium","label":"tray-orange-premium","preview":"/assets/tray-orange-premium-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1080":"/assets/tray-orange-premium-1080.jpg","webp1080":"/assets/tray-orange-premium-1080.webp","jpg1400":"/assets/tray-orange-premium-1400.jpg","jpg700":"/assets/tray-orange-premium-700.jpg","jpg540":"/assets/tray-orange-premium-540.jpg"},"square":{"jpg":"/assets/tray-orange-premium-540.jpg"},"rotatable":true},{"id":"tray-orange-retail","label":"tray-orange-retail","preview":"/assets/tray-orange-retail-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1080":"/assets/tray-orange-retail-1080.jpg","webp1080":"/assets/tray-orange-retail-1080.webp","jpg1400":"/assets/tray-orange-retail-1400.jpg","jpg700":"/assets/tray-orange-retail-700.jpg","jpg540":"/assets/tray-orange-retail-540.jpg"},"square":{"jpg":"/assets/tray-orange-retail-540.jpg"},"rotatable":true},{"id":"tray-orange-sunset","label":"tray-orange-sunset","preview":"/assets/tray-orange-sunset-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1080":"/assets/tray-orange-sunset-1080.jpg","webp1080":"/assets/tray-orange-sunset-1080.webp","jpg1400":"/assets/tray-orange-sunset-1400.jpg","jpg700":"/assets/tray-orange-sunset-700.jpg","jpg540":"/assets/tray-orange-sunset-540.jpg"},"square":{"jpg":"/assets/tray-orange-sunset-540.jpg"},"rotatable":true},{"id":"tray-product","label":"tray-product","preview":"/assets/tray-product-540.jpg","kind":"product","defaultCategory":"Product","hero":{"jpg1080":"/assets/tray-product-1080.jpg","webp1080":"/assets/tray-product-1080.webp","jpg1400":"/assets/tray-product-1400.jpg","jpg700":"/assets/tray-product-700.jpg","jpg540":"/assets/tray-product-540.jpg"},"square":{"jpg":"/assets/tray-product-540.jpg"},"rotatable":true},{"id":"variants/tray-a-real30-market","label":"variants/tray-a-real30-market","preview":"/assets/variants/tray-a-real30-market-540.jpg","kind":"variant","defaultCategory":"Variants","hero":{"jpg1080":"/assets/variants/tray-a-real30-market-1080.jpg","webp1080":"/assets/variants/tray-a-real30-market-1080.webp","jpg1400":"/assets/variants/tray-a-real30-market-1400.jpg","jpg700":"/assets/variants/tray-a-real30-market-700.jpg","jpg540":"/assets/variants/tray-a-real30-market-540.jpg"},"square":{"jpg":"/assets/variants/tray-a-real30-market-540.jpg"},"rotatable":true},{"id":"variants/tray-c-orange-market-30","label":"variants/tray-c-orange-market-30","preview":"/assets/variants/tray-c-orange-market-30-540.jpg","kind":"variant","defaultCategory":"Variants","hero":{"jpg1080":"/assets/variants/tray-c-orange-market-30-1080.jpg","webp1080":"/assets/variants/tray-c-orange-market-30-1080.webp","jpg1400":"/assets/variants/tray-c-orange-market-30-1400.jpg","jpg700":"/assets/variants/tray-c-orange-market-30-700.jpg","jpg540":"/assets/variants/tray-c-orange-market-30-540.jpg"},"square":{"jpg":"/assets/variants/tray-c-orange-market-30-540.jpg"},"rotatable":true},{"id":"variants/tray-d-authentic-plastic-175kg","label":"variants/tray-d-authentic-plastic-175kg","preview":"/assets/variants/tray-d-authentic-plastic-175kg-540.jpg","kind":"variant","defaultCategory":"Variants","hero":{"jpg1080":"/assets/variants/tray-d-authentic-plastic-175kg-1080.jpg","webp1080":"/assets/variants/tray-d-authentic-plastic-175kg-1080.webp","jpg1400":"/assets/variants/tray-d-authentic-plastic-175kg-1400.jpg","jpg700":"/assets/variants/tray-d-authentic-plastic-175kg-700.jpg","jpg540":"/assets/variants/tray-d-authentic-plastic-175kg-540.jpg"},"square":{"jpg":"/assets/variants/tray-d-authentic-plastic-175kg-540.jpg"},"rotatable":true},{"id":"yolko-app-icon-1024","label":"yolko-app-icon-1024","preview":"/assets/yolko-app-icon-1024.png","kind":"brand","defaultCategory":"Brand","hero":{},"square":{"jpg":"/assets/yolko-app-icon-1024.png"},"rotatable":true}];
+const DEFAULT_ASSET_CATEGORIES = ["Hero", "Product", "Brand", "Variants", "References", "Other"];
+const DEFAULT_LIVE_ASSETS = ["chalk-tray/12", "studio-tray-v2", "studio-tray-v5", "studio-tray-v6", "studio-tray"];
+
+function registryById() {
+  const map = Object.create(null);
+  for (const item of ASSET_REGISTRY) map[item.id] = item;
+  return map;
+}
+
+async function getAssetLibrary(env) {
+  const stored = (await env.DATA.get("assets:library", "json")) || {};
+  const byId = registryById();
+  const categories = Array.isArray(stored.categories) && stored.categories.length
+    ? stored.categories.map(String).filter(Boolean)
+    : DEFAULT_ASSET_CATEGORIES.slice();
+  for (const c of DEFAULT_ASSET_CATEGORIES) {
+    if (!categories.includes(c)) categories.push(c);
+  }
+  const itemMeta = stored.items && typeof stored.items === "object" ? stored.items : {};
+  const items = ASSET_REGISTRY.map((base) => {
+    const meta = itemMeta[base.id] || {};
+    const category = typeof meta.category === "string" && meta.category
+      ? meta.category
+      : base.defaultCategory;
+    return {
+      ...base,
+      category,
+      favorite: meta.favorite === true,
+      deleted: meta.deleted === true,
+    };
+  });
+  const cleanIds = (arr) => {
+    if (!Array.isArray(arr)) return null;
+    const out = [];
+    for (const id of arr) {
+      if (typeof id !== "string" || !byId[id]) continue;
+      if (out.includes(id)) continue;
+      out.push(id);
+    }
+    return out;
+  };
+  let draft = cleanIds(stored.draft);
+  let published = cleanIds(stored.published);
+  if (!draft) draft = DEFAULT_LIVE_ASSETS.filter((id) => byId[id]);
+  if (!published) published = draft.slice();
+  // Drop deleted from selections
+  const deleted = new Set(items.filter((i) => i.deleted).map((i) => i.id));
+  draft = draft.filter((id) => !deleted.has(id));
+  published = published.filter((id) => !deleted.has(id));
+  return {
+    categories,
+    items,
+    draft,
+    published,
+    publishedAt: typeof stored.publishedAt === "string" ? stored.publishedAt : null,
+  };
+}
+
+async function saveAssetLibrary(env, lib) {
+  const items = {};
+  for (const it of lib.items) {
+    const base = ASSET_REGISTRY.find((r) => r.id === it.id);
+    const cat = it.category || (base && base.defaultCategory) || "Other";
+    const favorite = it.favorite === true;
+    const deleted = it.deleted === true;
+    const defaultCat = (base && base.defaultCategory) || "Other";
+    if (favorite || deleted || cat !== defaultCat) {
+      items[it.id] = { category: cat, favorite, deleted };
+    }
+  }
+  await env.DATA.put("assets:library", JSON.stringify({
+    categories: lib.categories,
+    items,
+    draft: lib.draft,
+    published: lib.published,
+    publishedAt: lib.publishedAt,
+  }));
+}
+
+function resolveLiveAssets(lib) {
+  const byId = Object.fromEntries(lib.items.map((i) => [i.id, i]));
+  const seenChalk = { hero: false };
+  const out = [];
+  for (const id of lib.published) {
+    const it = byId[id];
+    if (!it || it.deleted) continue;
+    // Only one chalk slide — price swap handles $12–$20
+    if (it.kind === "chalk") {
+      if (seenChalk.hero) continue;
+      seenChalk.hero = true;
+    }
+    out.push({
+      id: it.id,
+      label: it.label,
+      kind: it.kind,
+      chalkPrice: it.chalkPrice || null,
+      preview: it.preview,
+      hero: it.hero,
+      square: it.square,
+    });
+  }
+  return out;
+}
+
+
 const HOSTING_ASN_RE = /amazon|aws|google\s*(cloud|llc)|microsoft|azure|digitalocean|ovh|hetzner|linode|vultr|hosting|datacenter|data centre|\bvps\b|colocation|dedicated server/i;
 
 const ALLOWED_ORIGINS = [
@@ -789,6 +897,98 @@ async function handleApi(request, env, url) {
     return json({ ok: true, trays: traysFor(order), stockDelta: stock.delta, traysAvailable: stock.traysAvailable });
   }
 
+
+  // Public: published hero/order images
+  if (url.pathname === "/api/assets" && request.method === "GET") {
+    const lib = await getAssetLibrary(env);
+    return json({
+      published: resolveLiveAssets(lib),
+      publishedAt: lib.publishedAt,
+    });
+  }
+
+  // Admin: full asset library
+  if (url.pathname === "/api/admin/assets" && request.method === "GET") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const lib = await getAssetLibrary(env);
+    return json({
+      ...lib,
+      live: resolveLiveAssets(lib),
+      dirty: JSON.stringify(lib.draft) !== JSON.stringify(lib.published),
+    });
+  }
+
+  // Admin: update one asset (favorite / category / delete / restore)
+  if (url.pathname === "/api/admin/assets/item" && request.method === "PATCH") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const body = await request.json().catch(() => null);
+    const id = body && typeof body.id === "string" ? body.id : "";
+    const lib = await getAssetLibrary(env);
+    const item = lib.items.find((i) => i.id === id);
+    if (!item) return json({ error: "not found" }, 404);
+    if (typeof body.favorite === "boolean") item.favorite = body.favorite;
+    if (typeof body.category === "string" && body.category.trim()) {
+      const cat = body.category.trim().slice(0, 40);
+      if (!lib.categories.includes(cat)) lib.categories.push(cat);
+      item.category = cat;
+    }
+    if (typeof body.deleted === "boolean") {
+      item.deleted = body.deleted;
+      if (body.deleted) {
+        lib.draft = lib.draft.filter((x) => x !== id);
+        lib.published = lib.published.filter((x) => x !== id);
+      }
+    }
+    await saveAssetLibrary(env, lib);
+    return json({ ok: true, item, dirty: JSON.stringify(lib.draft) !== JSON.stringify(lib.published) });
+  }
+
+  // Admin: set draft live selection (order = rotator order)
+  if (url.pathname === "/api/admin/assets/draft" && request.method === "PUT") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const body = await request.json().catch(() => null);
+    const lib = await getAssetLibrary(env);
+    const byId = Object.fromEntries(lib.items.map((i) => [i.id, i]));
+    const draft = [];
+    for (const id of Array.isArray(body?.draft) ? body.draft : []) {
+      if (typeof id !== "string" || !byId[id] || byId[id].deleted) continue;
+      if (draft.includes(id)) continue;
+      draft.push(id);
+    }
+    lib.draft = draft;
+    await saveAssetLibrary(env, lib);
+    return json({ ok: true, draft: lib.draft, dirty: JSON.stringify(lib.draft) !== JSON.stringify(lib.published) });
+  }
+
+  // Admin: create category
+  if (url.pathname === "/api/admin/assets/category" && request.method === "POST") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const body = await request.json().catch(() => null);
+    const name = typeof body?.name === "string" ? body.name.trim().slice(0, 40) : "";
+    if (!name) return json({ error: "name required" }, 400);
+    const lib = await getAssetLibrary(env);
+    if (!lib.categories.includes(name)) lib.categories.push(name);
+    await saveAssetLibrary(env, lib);
+    return json({ ok: true, categories: lib.categories });
+  }
+
+  // Admin: publish draft → live storefront
+  if (url.pathname === "/api/admin/assets/publish" && request.method === "POST") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const lib = await getAssetLibrary(env);
+    if (!lib.draft.length) return json({ error: "select at least one image" }, 400);
+    lib.published = lib.draft.slice();
+    lib.publishedAt = new Date().toISOString();
+    await saveAssetLibrary(env, lib);
+    return json({
+      ok: true,
+      published: lib.published,
+      publishedAt: lib.publishedAt,
+      live: resolveLiveAssets(lib),
+      dirty: false,
+    });
+  }
+
   return json({ error: "not found" }, 404);
 }
 
@@ -1074,6 +1274,54 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 .login { max-width:420px; margin:40px auto 0; }
 .login h2 { margin-bottom:8px; }
 .login-lead { margin:0 0 16px; color:var(--muted); font-size:14px; }
+
+.admin-tabs { display:flex; gap:8px; margin:0 0 16px; flex-wrap:wrap; }
+.admin-tabs button {
+  min-height:40px; padding:0 16px; border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+  font:inherit; font-weight:800; font-size:12px; letter-spacing:.06em; text-transform:uppercase; cursor:pointer;
+  box-shadow:none;
+}
+.admin-tabs button.on { background:var(--ink); color:var(--paper); }
+.view[hidden] { display:none !important; }
+.asset-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 14px; }
+.asset-toolbar select, .asset-toolbar input[type=text] {
+  min-height:36px; border:1px solid var(--line); background:var(--paper); padding:0 10px; font:inherit; font-size:13px;
+}
+.asset-publish {
+  display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+  padding:12px 14px; margin:0 0 14px; border:1px solid var(--ink); background:var(--yellow);
+}
+.asset-publish p { margin:0; font-size:13px; font-weight:700; }
+.asset-publish .muted { color:var(--muted); font-weight:600; }
+.draft-row { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 16px; min-height:44px; align-items:center; }
+.draft-chip {
+  display:inline-flex; align-items:center; gap:8px; padding:6px 8px 6px 6px; border:1px solid var(--ink);
+  background:var(--paper); font-size:12px; font-weight:700;
+}
+.draft-chip img { width:36px; height:36px; object-fit:cover; border:1px solid var(--line); }
+.draft-chip button { min-height:28px; padding:0 8px; font-size:11px; box-shadow:none; }
+.asset-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
+.asset-card {
+  border:1px solid var(--ink); background:var(--paper); display:flex; flex-direction:column; overflow:hidden;
+}
+.asset-card.fav { outline:2px solid var(--orange); outline-offset:-2px; }
+.asset-card.in-draft { box-shadow:4px 4px 0 var(--yellow); }
+.asset-card.deleted { opacity:.45; }
+.asset-card .thumb { aspect-ratio:1; background:#111; position:relative; }
+.asset-card .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.asset-card .badges { position:absolute; top:8px; left:8px; display:flex; gap:4px; flex-wrap:wrap; }
+.asset-card .badge {
+  padding:2px 6px; font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;
+  background:var(--ink); color:var(--paper);
+}
+.asset-card .badge.live { background:var(--green); }
+.asset-card .badge.fav { background:var(--orange); }
+.asset-card .meta { padding:10px; display:flex; flex-direction:column; gap:8px; flex:1; }
+.asset-card .meta strong { font-size:12px; line-height:1.25; word-break:break-word; }
+.asset-card .meta select { width:100%; min-height:32px; font-size:12px; border:1px solid var(--line); }
+.asset-card .actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.asset-card .actions button { min-height:32px; padding:0 6px; font-size:11px; box-shadow:none; }
+.asset-empty { padding:28px 12px; text-align:center; color:var(--muted); }
 </style>
 
 </head>
@@ -1084,9 +1332,8 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
       <span class="brand-dot" aria-hidden="true"></span>
       <span class="brand-name">YOLKO</span>
     </a>
-    <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
       <small>Admin</small>
-      <a id="assets-link" href="/admin/assets" class="ghost" style="display:none;min-height:36px;padding:6px 12px;font-size:12px;text-decoration:none;align-items:center">Assets</a>
       <button class="ghost out" id="signout" onclick="logout()" style="display:none">Sign out</button>
     </div>
   </div>
@@ -1101,6 +1348,12 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
   </div>
 
   <div id="panel" style="display:none">
+    <div class="admin-tabs" role="tablist">
+      <button type="button" class="on" id="tab-shop" onclick="showAdminView('shop')">Orders &amp; stock</button>
+      <button type="button" id="tab-assets" onclick="showAdminView('assets')">Assets</button>
+    </div>
+
+    <div id="view-shop" class="view">
     <div class="stats" id="stats"></div>
 
     <div class="cols">
@@ -1184,6 +1437,45 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
       <button onclick="saveSettings()" style="width:100%">Save changes</button><span class="msg" id="save-msg"></span>
       <p class="note">Saved changes show on the website within seconds.</p>
     </div>
+    </div>
+    </div>
+
+    <div id="view-assets" class="view" hidden>
+      <div class="card">
+        <div class="topline">
+          <h2>Assets</h2>
+          <button class="ghost" onclick="loadAssets()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
+        </div>
+        <p class="orders-hint">Favourite images, pick which ones rotate on the website, organise categories, then publish to go live. Delete hides an image from admin and live (files stay in the repo).</p>
+
+        <div class="asset-publish">
+          <div>
+            <p id="publish-status">Loading…</p>
+            <p class="muted" id="publish-meta"></p>
+          </div>
+          <button type="button" id="publish-btn" onclick="publishAssets()">Publish to live</button>
+        </div>
+
+        <h3 class="ps-title">Live rotator (draft)</h3>
+        <p class="ps-sub">Order = slideshow order on the homepage. Tap Use on a card to add/remove.</p>
+        <div class="draft-row" id="draft-row"></div>
+
+        <div class="asset-toolbar">
+          <select id="asset-filter-cat" onchange="renderAssets()"></select>
+          <select id="asset-filter-view" onchange="renderAssets()">
+            <option value="active">Active</option>
+            <option value="favorites">Favorites</option>
+            <option value="draft">In draft</option>
+            <option value="deleted">Deleted</option>
+            <option value="all">All</option>
+          </select>
+          <input id="asset-filter-q" type="text" placeholder="Search…" oninput="renderAssets()" style="flex:1;min-width:140px">
+          <input id="new-cat-name" type="text" placeholder="New category" style="width:140px">
+          <button type="button" class="ghost" onclick="createCategory()">Add category</button>
+        </div>
+        <div class="asset-grid" id="asset-grid"></div>
+        <p class="asset-empty" id="asset-empty" hidden>No images match.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -2027,17 +2319,213 @@ async function saveSettings() {
 
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 
+
+let ASSET_LIB = null;
+
+function showAdminView(name) {
+  const shop = name !== "assets";
+  $("view-shop").hidden = !shop;
+  $("view-assets").hidden = shop;
+  $("tab-shop").classList.toggle("on", shop);
+  $("tab-assets").classList.toggle("on", !shop);
+  if (!shop) loadAssets();
+  try { history.replaceState(null, "", shop ? "/admin" : "/admin#assets"); } catch (e) {}
+}
+
+async function loadAssets() {
+  const res = await fetch("/api/admin/assets", { headers: authHeaders() });
+  if (!res.ok) {
+    $("publish-status").textContent = "Could not load assets";
+    return;
+  }
+  ASSET_LIB = await res.json();
+  const sel = $("asset-filter-cat");
+  const cur = sel.value || "all";
+  sel.innerHTML = '<option value="all">All categories</option>' + ASSET_LIB.categories.map(function(c) {
+    return '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>';
+  }).join("");
+  sel.value = ASSET_LIB.categories.includes(cur) || cur === "all" ? cur : "all";
+  renderAssets();
+}
+
+function draftItems() {
+  if (!ASSET_LIB) return [];
+  const byId = {};
+  ASSET_LIB.items.forEach(function(i) { byId[i.id] = i; });
+  return ASSET_LIB.draft.map(function(id) { return byId[id]; }).filter(Boolean);
+}
+
+function renderAssets() {
+  if (!ASSET_LIB) return;
+  const draftSet = {};
+  ASSET_LIB.draft.forEach(function(id) { draftSet[id] = true; });
+  const publishedSet = {};
+  ASSET_LIB.published.forEach(function(id) { publishedSet[id] = true; });
+
+  const dirty = ASSET_LIB.dirty || (JSON.stringify(ASSET_LIB.draft) !== JSON.stringify(ASSET_LIB.published));
+  $("publish-status").textContent = dirty
+    ? "Draft differs from live — publish to update the website"
+    : "Live site matches this draft";
+  $("publish-meta").textContent = ASSET_LIB.publishedAt
+    ? ("Last published " + new Date(ASSET_LIB.publishedAt).toLocaleString())
+    : "Not published yet — using defaults until you publish";
+  $("publish-btn").disabled = !ASSET_LIB.draft.length;
+
+  const row = $("draft-row");
+  const drafts = draftItems();
+  row.innerHTML = drafts.length ? drafts.map(function(it, idx) {
+    return '<span class="draft-chip" data-id="' + escapeHtml(it.id) + '">'
+      + '<img src="' + escapeHtml(it.preview) + '" alt="">'
+      + '<span>' + (idx + 1) + '. ' + escapeHtml(it.label) + '</span>'
+      + '<button type="button" class="ghost" onclick="moveDraft(\\'' + escapeHtml(it.id) + '\\',-1)">↑</button>'
+      + '<button type="button" class="ghost" onclick="moveDraft(\\'' + escapeHtml(it.id) + '\\',1)">↓</button>'
+      + '<button type="button" class="danger" onclick="toggleDraft(\\'' + escapeHtml(it.id) + '\\')">Remove</button>'
+      + '</span>';
+  }).join("") : '<span class="muted">No images selected for the rotator yet.</span>';
+
+  const cat = $("asset-filter-cat").value;
+  const view = $("asset-filter-view").value;
+  const q = ($("asset-filter-q").value || "").trim().toLowerCase();
+  const list = ASSET_LIB.items.filter(function(it) {
+    if (cat !== "all" && it.category !== cat) return false;
+    if (view === "active" && it.deleted) return false;
+    if (view === "favorites" && (!it.favorite || it.deleted)) return false;
+    if (view === "draft" && !draftSet[it.id]) return false;
+    if (view === "deleted" && !it.deleted) return false;
+    if (q && it.id.toLowerCase().indexOf(q) < 0 && it.label.toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
+
+  $("asset-empty").hidden = list.length > 0;
+  $("asset-grid").innerHTML = list.map(function(it) {
+    const cats = ASSET_LIB.categories.map(function(c) {
+      return '<option value="' + escapeHtml(c) + '"' + (c === it.category ? ' selected' : '') + '>' + escapeHtml(c) + '</option>';
+    }).join("");
+    const cls = ["asset-card"];
+    if (it.favorite) cls.push("fav");
+    if (draftSet[it.id]) cls.push("in-draft");
+    if (it.deleted) cls.push("deleted");
+    const badges = [];
+    if (draftSet[it.id]) badges.push('<span class="badge">Draft</span>');
+    if (publishedSet[it.id]) badges.push('<span class="badge live">Live</span>');
+    if (it.favorite) badges.push('<span class="badge fav">Fav</span>');
+    const useLabel = draftSet[it.id] ? "Remove" : "Use";
+    const delBtn = it.deleted
+      ? '<button type="button" class="ghost" onclick="setDeleted(\\'' + escapeHtml(it.id) + '\\',false)">Restore</button>'
+      : '<button type="button" class="danger" onclick="setDeleted(\\'' + escapeHtml(it.id) + '\\',true)">Delete</button>';
+    return '<article class="' + cls.join(" ") + '">'
+      + '<div class="thumb"><img src="' + escapeHtml(it.preview) + '" alt="" loading="lazy"><div class="badges">' + badges.join("") + '</div></div>'
+      + '<div class="meta"><strong>' + escapeHtml(it.label) + '</strong>'
+      + '<select onchange="setCategory(\\'' + escapeHtml(it.id) + '\\', this.value)">' + cats + '</select>'
+      + '<div class="actions">'
+      + '<button type="button" class="ghost" onclick="toggleFavorite(\\'' + escapeHtml(it.id) + '\\')">' + (it.favorite ? "Unfav" : "Favorite") + '</button>'
+      + '<button type="button" onclick="toggleDraft(\\'' + escapeHtml(it.id) + '\\')">' + useLabel + '</button>'
+      + delBtn
+      + '<a class="ghost callbtn" href="' + escapeHtml(it.preview) + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Open</a>'
+      + '</div></div></article>';
+  }).join("");
+}
+
+async function patchAssetItem(body) {
+  const res = await fetch("/api/admin/assets/item", {
+    method: "PATCH", headers: authHeaders(), body: JSON.stringify(body),
+  });
+  if (!res.ok) { toast("Update failed"); return null; }
+  return res.json();
+}
+
+async function toggleFavorite(id) {
+  const it = ASSET_LIB.items.find(function(x) { return x.id === id; });
+  if (!it) return;
+  const data = await patchAssetItem({ id: id, favorite: !it.favorite });
+  if (!data) return;
+  it.favorite = data.item.favorite;
+  ASSET_LIB.dirty = data.dirty;
+  renderAssets();
+}
+
+async function setCategory(id, category) {
+  const data = await patchAssetItem({ id: id, category: category });
+  if (!data) return;
+  const it = ASSET_LIB.items.find(function(x) { return x.id === id; });
+  if (it) it.category = data.item.category;
+  renderAssets();
+}
+
+async function setDeleted(id, deleted) {
+  if (deleted && !confirm("Hide this image from admin and live selections?")) return;
+  const data = await patchAssetItem({ id: id, deleted: deleted });
+  if (!data) return;
+  await loadAssets();
+}
+
+async function saveDraft(draft) {
+  const res = await fetch("/api/admin/assets/draft", {
+    method: "PUT", headers: authHeaders(), body: JSON.stringify({ draft: draft }),
+  });
+  if (!res.ok) { toast("Could not save selection"); return; }
+  const data = await res.json();
+  ASSET_LIB.draft = data.draft;
+  ASSET_LIB.dirty = data.dirty;
+  renderAssets();
+}
+
+async function toggleDraft(id) {
+  if (!ASSET_LIB) return;
+  const draft = ASSET_LIB.draft.slice();
+  const idx = draft.indexOf(id);
+  if (idx >= 0) draft.splice(idx, 1);
+  else draft.push(id);
+  await saveDraft(draft);
+}
+
+async function moveDraft(id, dir) {
+  const draft = ASSET_LIB.draft.slice();
+  const idx = draft.indexOf(id);
+  if (idx < 0) return;
+  const next = idx + dir;
+  if (next < 0 || next >= draft.length) return;
+  const tmp = draft[idx]; draft[idx] = draft[next]; draft[next] = tmp;
+  await saveDraft(draft);
+}
+
+async function createCategory() {
+  const name = ($("new-cat-name").value || "").trim();
+  if (!name) return;
+  const res = await fetch("/api/admin/assets/category", {
+    method: "POST", headers: authHeaders(), body: JSON.stringify({ name: name }),
+  });
+  if (!res.ok) { toast("Could not add category"); return; }
+  $("new-cat-name").value = "";
+  await loadAssets();
+  $("asset-filter-cat").value = name;
+  renderAssets();
+}
+
+async function publishAssets() {
+  if (!confirm("Publish this rotator to the live website?")) return;
+  const res = await fetch("/api/admin/assets/publish", { method: "POST", headers: authHeaders() });
+  const data = await res.json().catch(function() { return null; });
+  if (!res.ok) { toast((data && data.error) || "Publish failed"); return; }
+  ASSET_LIB.published = data.published;
+  ASSET_LIB.publishedAt = data.publishedAt;
+  ASSET_LIB.dirty = false;
+  ASSET_LIB.live = data.live;
+  renderAssets();
+  toast("Published to live site");
+}
+
+
 async function boot() {
   const res = await fetch("/api/admin/ping", { headers: authHeaders() });
   if (!res.ok) return;
   $("login-card").style.display = "none";
   $("panel").style.display = "block";
   $("signout").style.display = "inline-flex";
-  const assetsLink = $("assets-link");
-  if (assetsLink) assetsLink.style.display = "inline-flex";
   loadSettings();
   loadOrders();
   setInterval(loadOrders, 30000);
+  if (location.hash === "#assets") showAdminView("assets");
 }
 
 if (KEY) boot();
@@ -2064,32 +2552,13 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "101",
+          "X-Yolko-Admin": "102",
         },
       });
     }
 
-    // Asset browser for signed-in admin (HTML soft-gates on ADMIN_KEY)
     if (url.pathname === "/admin/assets" || url.pathname === "/admin/assets/") {
-      const upstream = await fetch(`${UPSTREAM_LIVE}/assets-gallery.html?_${Date.now()}`, {
-        headers: { "User-Agent": "yolko-edge" },
-        cf: { cacheTtl: 0 },
-      });
-      if (!upstream.ok) {
-        return new Response("Asset gallery not found — redeploy after committing assets-gallery.html", {
-          status: 404,
-          headers: { "Content-Type": "text/plain; charset=utf-8", "X-Robots-Tag": "noindex" },
-        });
-      }
-      return new Response(upstream.body, {
-        status: 200,
-        headers: {
-          "Content-Type": "text/html; charset=utf-8",
-          "X-Robots-Tag": "noindex",
-          "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin-Assets": "101",
-        },
-      });
+      return Response.redirect(url.origin + "/admin#assets", 302);
     }
 
     if (url.pathname.startsWith("/api/")) {
@@ -2118,7 +2587,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "101",
+        "X-Yolko-Build": "102",
       },
     });
   },
