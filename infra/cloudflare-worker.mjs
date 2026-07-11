@@ -28,6 +28,7 @@ const DEFAULT_SETTINGS = {
   prices: { tray1: 12, tray2: 23, box: 66 },
   traysAvailable: 24,
   trayWeight: "1.75",
+  boxCost: 55,
   pickup: {
     Monday: { enabled: false, open: "09:00", close: "14:00" },
     Tuesday: { enabled: false, open: "09:00", close: "14:00" },
@@ -701,6 +702,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <div><label>1 tray ($)</label><input id="p1" type="number" min="1" step="0.5"></div>
         <div><label>2 trays ($)</label><input id="p2" type="number" min="1" step="0.5"></div>
         <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="0.5"></div>
+        <div><label>Your box cost ($)</label><input id="box-cost" type="number" min="0" step="0.5" value="55" title="Wholesale cost for a 6-tray box"></div>
         <div><label>Trays available</label><input id="stock" type="number" min="0" step="1"></div>
         <div style="grid-column:1/-1"><label>Product</label>
           <select id="tray-weight">
@@ -711,6 +713,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
           </select>
         </div>
       </div>
+      <p class="hint" id="price-hint">Change 1 tray — 2 trays and full box follow your bulk discounts. Edit any price by hand if you want.</p>
 
       <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
       <p class="hint">Tap a day to open or close it</p>
@@ -1236,15 +1239,66 @@ async function loadSettings() {
   const stat = $("stat-stock");
   if (stat) stat.textContent = s.traysAvailable;
   $("tray-weight").value = s.trayWeight || "1.75";
+  if (s.boxCost != null && $("box-cost")) $("box-cost").value = s.boxCost;
   PICKUP = s.pickup || {};
   renderDays();
+  updatePriceHint();
 }
+
+// Keep the same bulk discounts as $12 / $23 / $66:
+// 2 trays = 2×1-tray − $1 · full box = 6×1-tray − $6
+function pricesFromTray1(tray1) {
+  const p1 = Math.round(Number(tray1) * 2) / 2;
+  if (!Number.isFinite(p1) || p1 <= 0) return null;
+  return {
+    tray1: p1,
+    tray2: Math.round((p1 * 2 - 1) * 2) / 2,
+    box: Math.round((p1 * 6 - 6) * 2) / 2,
+  };
+}
+
+function money(n) {
+  return Number.isFinite(n) ? ("$" + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0)) : "–";
+}
+
+function updatePriceHint() {
+  const el = $("price-hint");
+  if (!el) return;
+  const p1 = +$("p1").value, p2 = +$("p2").value, p3 = +$("p3").value;
+  const cost = +(($("box-cost") && $("box-cost").value) || 55);
+  const c1 = cost / 6;
+  if (!(p1 > 0) || !(cost >= 0)) {
+    el.textContent = "Change 1 tray — 2 trays and full box follow your bulk discounts.";
+    return;
+  }
+  const n1 = p1 - c1;
+  const n2 = p2 - c1 * 2;
+  const n3 = p3 - cost;
+  el.innerHTML = "At these prices vs " + money(cost) + " box cost: " +
+    "<b>1 tray " + money(n1) + "</b> · <b>2 trays " + money(n2) + "</b> · <b>box " + money(n3) + "</b> net" +
+    " <span style=\"color:var(--muted)\">(2 trays = 2× − $1 · box = 6× − $6)</span>";
+}
+
+function onTray1PriceInput() {
+  const next = pricesFromTray1($("p1").value);
+  if (!next) return;
+  $("p1").value = next.tray1;
+  $("p2").value = next.tray2;
+  $("p3").value = next.box;
+  updatePriceHint();
+}
+
+$("p1") && $("p1").addEventListener("input", onTray1PriceInput);
+$("p2") && $("p2").addEventListener("input", updatePriceHint);
+$("p3") && $("p3").addEventListener("input", updatePriceHint);
+$("box-cost") && $("box-cost").addEventListener("input", updatePriceHint);
 
 async function saveSettings() {
   const body = {
     prices: { tray1: +$("p1").value, tray2: +$("p2").value, box: +$("p3").value },
     traysAvailable: +$("stock").value,
     trayWeight: $("tray-weight").value,
+    boxCost: +(($("box-cost") && $("box-cost").value) || 55),
     pickup: collectDayRows(),
   };
   const res = await fetch("/api/settings", { method: "PUT", headers: authHeaders(), body: JSON.stringify(body) });
