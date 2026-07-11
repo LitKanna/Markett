@@ -276,6 +276,8 @@ async function syncStock(env, order, newStatus) {
 async function getSettings(env) {
   const stored = (await env.DATA.get("settings", "json")) || {};
   const prices = { ...DEFAULT_SETTINGS.prices, ...(stored.prices || {}) };
+  // Legendary exception: $13 single tray → $69 full box (not ratio $72)
+  if (Number(prices.tray1) === 13) prices.box = 69;
   // Fill missing case sell prices from matching dozen × 15
   for (const caseKey of CASE_KEYS) {
     const unitKey = CASE_UNIT[caseKey];
@@ -324,6 +326,8 @@ async function handleApi(request, env, url) {
       const n = Number(body?.prices?.[key]);
       if (Number.isFinite(n) && n > 0) prices[key] = Math.round(n);
     }
+    // Legendary exception: $13 single tray → $69 full box
+    if (Number(prices.tray1) === 13) prices.box = 69;
     const next = {
       prices,
       traysAvailable: Number.isFinite(Number(body?.traysAvailable))
@@ -1058,7 +1062,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
           </select>
         </div>
       </div>
-      <p class="hint" id="price-hint">Tray ratio 12 : 23 : 66 from box cost.</p>
+      <p class="hint" id="price-hint">Tray ratio 12 : 23 : 66 from box cost. Exception: $13 tray → $69 box.</p>
 
       <h2 style="font-size:16px;margin:18px 0 8px">Dozen packs (12 eggs) · cases of 15</h2>
       <p class="hint" style="margin-bottom:10px">Hidden on the website until <b>dozen packs available</b> is above 0. Set case cost + sell prices here first, then stock them to go live.</p>
@@ -1731,22 +1735,31 @@ function pricesFromTrayAnchor(which, value) {
   const v = Number(value);
   if (!Number.isFinite(v) || v <= 0 || !PRICE_RATIO[which]) return null;
   const scale = v / PRICE_RATIO[which];
-  return {
+  return applyTrayExceptions({
     tray1: roundMoney(PRICE_RATIO.tray1 * scale),
     tray2: roundMoney(PRICE_RATIO.tray2 * scale),
     box: roundMoney(PRICE_RATIO.box * scale),
-  };
+  });
 }
 
 function pricesFromBoxCost(cost) {
   const c = Number(cost);
   if (!Number.isFinite(c) || c < 0) return null;
   const scale = c / BASE_BOX_COST;
-  return {
+  return applyTrayExceptions({
     tray1: roundMoney(PRICE_RATIO.tray1 * scale),
     tray2: roundMoney(PRICE_RATIO.tray2 * scale),
     box: roundMoney(PRICE_RATIO.box * scale),
-  };
+  });
+}
+
+/** Special case: $13 single tray → $69 full box (legendary), not ratio $72. */
+function applyTrayExceptions(prices) {
+  if (!prices) return prices;
+  if (Number(prices.tray1) === 13) {
+    return Object.assign({}, prices, { box: 69 });
+  }
+  return prices;
 }
 
 function pricesFromDozenAnchor(which, value) {
@@ -1821,7 +1834,8 @@ function updatePriceHint() {
     el.textContent = "Tray prices stay in % sync (12 : 23 : 66). Separate from dozens.";
     return;
   }
-  el.innerHTML = "Trays · net vs " + money(cost) + " box: <b>1 tray " + money(p1 - c1) + "</b> · <b>2 trays " + money(p2 - c1 * 2) + "</b> · <b>box " + money(p3 - cost) + "</b>";
+  const legend = p1 === 13 && p3 === 69 ? ' · <b>$13 tray → $69 box</b> (legendary)' : '';
+  el.innerHTML = "Trays · net vs " + money(cost) + " box: <b>1 tray " + money(p1 - c1) + "</b> · <b>2 trays " + money(p2 - c1 * 2) + "</b> · <b>box " + money(p3 - cost) + "</b>" + legend;
 }
 
 function updateDozenHint() {
@@ -1961,7 +1975,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "83",
+        "X-Yolko-Build": "84",
       },
     });
   },
