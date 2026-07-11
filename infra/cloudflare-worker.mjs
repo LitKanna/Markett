@@ -1033,7 +1033,7 @@ document.addEventListener("click", function(e) {
   const row = e.target.closest("#orders .order, #orders-archive .order");
   if (!row) return;
   if (e.target.closest(".o-detail")) return;
-  // Keep <details class="archive"> from toggling closed when tapping a row.
+  // Capture-phase + stopPropagation so <details class="archive"> does not toggle.
   e.preventDefault();
   e.stopPropagation();
   const id = row.dataset.id;
@@ -1046,7 +1046,7 @@ document.addEventListener("click", function(e) {
     row.classList.add("open");
     hydrateStripeReceipt(id);
   }
-});
+}, true);
 
 async function hydrateStripeReceipt(orderId) {
   const order = ALL_ORDERS.find(function(o) { return o.id === orderId; });
