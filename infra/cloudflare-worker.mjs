@@ -929,7 +929,12 @@ export default {
 
     if (url.pathname === "/admin" || url.pathname === "/admin/") {
       return new Response(ADMIN_HTML, {
-        headers: { "Content-Type": "text/html; charset=utf-8", "X-Robots-Tag": "noindex" },
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "X-Robots-Tag": "noindex",
+          "Cache-Control": "no-store, max-age=0",
+          "X-Yolko-Admin": "77",
+        },
       });
     }
 
