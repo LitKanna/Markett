@@ -21,7 +21,6 @@
 
 html {
   scroll-behavior: smooth;
-  touch-action: manipulation;
 }
 
 body {
@@ -31,19 +30,13 @@ body {
   font-family: var(--body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  touch-action: manipulation;
 }
 
-a,
-button,
-input,
-select,
-textarea,
-summary,
-label,
-.btn,
-.seg-opt,
-.price-card {
+/* Kill double-tap zoom on mobile (not inherited — must cover all nodes).
+   Pinch-to-zoom still works. */
+*,
+*::before,
+*::after {
   touch-action: manipulation;
 }
 
