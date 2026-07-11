@@ -42,6 +42,13 @@ datacenter ASNs, known test phones, and repeat IPs. Rate limits: 5 orders / IP /
 3 / phone / 24h. Do **not** place test bookings against production — local Reserve hits
 `https://getyolko.com/api/orders`.
 
+### Chalk-tray price heroes ($8–$24)
+Changing **tray1** price in admin swaps hero/order chalk images via `applyChalkPriceImage`
+(`CHALK_PRICES` / `CHALK_ASSET_VER` in `app.js`). Dozens images are unaffected. Assets live
+under `assets/chalk-tray/{N}-*`. After regenerating masters, bump `CHALK_ASSET_VER` and
+`?v=` in `index.html`, extend `infra/asset-registry.json`, re-embed `ASSET_REGISTRY` in the
+worker, pin `DEPLOY_SHA`, bump `X-Yolko-Build`, then `npx wrangler deploy`.
+
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
 that intentionally fails (`echo "Error: no test specified" && exit 1`) — do not treat that as
