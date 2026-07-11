@@ -323,7 +323,8 @@ h3 {
   min-height: calc(100svh - var(--topbar-h) - clamp(40px, 8svh, 88px));
   min-height: calc(100dvh - var(--topbar-h) - clamp(40px, 8svh, 88px));
   display: grid;
-  grid-template-columns: minmax(0, 0.88fr) minmax(min(100%, 320px), 1.12fr);
+  /* Always two columns on desktop/tablet landscape — image sits beside copy */
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: clamp(16px, 2.5vw, 32px);
   align-items: stretch;
 }
@@ -434,32 +435,19 @@ h3 {
   min-width: 0;
   width: 100%;
   align-self: stretch;
-  display: flex;
+  /* Guarantee visible height so the image isn't collapsed beside the copy */
+  min-height: clamp(360px, 70svh, 820px);
 }
 
 .showcase-card {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  flex: 1 1 auto;
-  height: auto;
-  /* Portrait asset ratio (928×1242) — scales with container width */
-  aspect-ratio: 928 / 1242;
-  max-height: min(78svh, 860px);
-  min-height: clamp(240px, 42svh, 520px);
+  height: 100%;
   overflow: hidden;
   border-radius: var(--radius);
   background: #1a1a18;
   box-shadow: 0 clamp(16px, 3vw, 32px) clamp(32px, 6vw, 80px) rgba(23, 23, 20, 0.15);
-}
-
-/* Desktop: fill the hero column height instead of locking to intrinsic ratio */
-@media (min-width: 1001px) {
-  .showcase-card {
-    aspect-ratio: auto;
-    height: 100%;
-    max-height: none;
-    min-height: 0;
-  }
 }
 
 .showcase-rotator {
@@ -1740,7 +1728,8 @@ h3 {
 }
 
 /* Responsive — fluid first; breakpoints only change layout structure */
-@media (max-width: 1000px) {
+/* Stack hero only on narrower screens so image stays beside copy on desktop */
+@media (max-width: 900px) {
   .hero {
     min-height: auto;
   }
@@ -1758,11 +1747,19 @@ h3 {
     max-width: 7ch;
   }
 
+  .hero-showcase {
+    min-height: 0;
+    width: 100%;
+  }
+
   .showcase-card {
-    aspect-ratio: 928 / 1242;
+    position: relative;
+    inset: auto;
+    width: 100%;
     height: auto;
-    max-height: min(70svh, 720px);
-    min-height: clamp(260px, 48svh, 560px);
+    aspect-ratio: 3 / 4;
+    max-height: min(70svh, 640px);
+    min-height: clamp(260px, 48svh, 520px);
   }
 
   .price-card {
@@ -1857,7 +1854,9 @@ h3 {
   }
 
   .showcase-card {
-    aspect-ratio: 928 / 1242;
+    position: relative;
+    inset: auto;
+    aspect-ratio: 3 / 4;
     max-height: min(62svh, 560px);
     min-height: clamp(220px, 42svh, 480px);
   }
@@ -2056,14 +2055,13 @@ h3 {
   }
 }
 
-@media (max-height: 700px) and (min-width: 1001px) {
+@media (max-height: 700px) and (min-width: 901px) {
   .hero-grid {
     min-height: calc(100dvh - var(--topbar-h) - 24px);
   }
 
-  .showcase-card {
-    min-height: 0;
-    max-height: calc(100dvh - var(--topbar-h) - 48px);
+  .hero-showcase {
+    min-height: calc(100dvh - var(--topbar-h) - 48px);
   }
 
   .hero-copy {
