@@ -24,11 +24,20 @@ const MIME = {
 
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
+const BUNDLE_KEYS = ["tray1", "tray2", "box", "cage600", "cage700", "cage800", "fr600", "fr700", "fr800"];
+const DOZEN_KEYS = ["cage600", "cage700", "cage800", "fr600", "fr700", "fr800"];
+const TRAY_KEYS = ["tray1", "tray2", "box"];
+
 const DEFAULT_SETTINGS = {
-  prices: { tray1: 12, tray2: 23, box: 66 },
+  prices: {
+    tray1: 12, tray2: 23, box: 66,
+    cage600: 6, cage700: 7, cage800: 8,
+    fr600: 8, fr700: 9, fr800: 10,
+  },
   traysAvailable: 24,
   trayWeight: "1.75",
   boxCost: 55,
+  dozenCost: 5,
   pickup: {
     Monday: { enabled: false, open: "09:00", close: "14:00" },
     Tuesday: { enabled: false, open: "09:00", close: "14:00" },
@@ -192,9 +201,11 @@ async function ensureStripeBranding(env) {
   };
 }
 
-// How many physical trays an order consumes
+// How many physical trays an order consumes (dozen packs do not use tray stock)
 function traysFor(order) {
-  const perUnit = order.bundle === "box" ? 6 : order.bundle === "tray2" ? 2 : 1;
+  const b = order.bundle;
+  if (DOZEN_KEYS.includes(b)) return 0;
+  const perUnit = b === "box" ? 6 : b === "tray2" ? 2 : 1;
   return perUnit * (order.quantity || 1);
 }
 
@@ -251,12 +262,13 @@ async function handleApi(request, env, url) {
     if (!body) return json({ error: "bad json" }, 400);
 
     const current = await getSettings(env);
+    const prices = { ...current.prices };
+    for (const key of BUNDLE_KEYS) {
+      const n = Number(body?.prices?.[key]);
+      if (Number.isFinite(n) && n > 0) prices[key] = Math.round(n);
+    }
     const next = {
-      prices: {
-        tray1: Number(body?.prices?.tray1) || current.prices.tray1,
-        tray2: Number(body?.prices?.tray2) || current.prices.tray2,
-        box: Number(body?.prices?.box) || current.prices.box,
-      },
+      prices,
       traysAvailable: Number.isFinite(Number(body?.traysAvailable))
         ? Math.max(0, Math.floor(Number(body.traysAvailable)))
         : current.traysAvailable,
@@ -266,6 +278,9 @@ async function handleApi(request, env, url) {
       boxCost: Number.isFinite(Number(body?.boxCost))
         ? Math.max(0, Number(body.boxCost))
         : (current.boxCost ?? 55),
+      dozenCost: Number.isFinite(Number(body?.dozenCost))
+        ? Math.max(0, Number(body.dozenCost))
+        : (current.dozenCost ?? 5),
       pickup: Object.fromEntries(
         WEEK_DAYS.map((d) => [d, cleanPickupDay((body?.pickup || {})[d], current.pickup[d])])
       ),
@@ -294,7 +309,7 @@ async function handleApi(request, env, url) {
     const body = await request.json().catch(() => null);
     const name = String(body?.name || "").trim().slice(0, 80);
     const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
-    const bundle = ["tray1", "tray2", "box"].includes(body?.bundle) ? body.bundle : null;
+    const bundle = BUNDLE_KEYS.includes(body?.bundle) ? body.bundle : null;
     const pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
     const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
     const pickupDate = String(body?.pickupDate || "").replace(/[^0-9A-Za-z ]/g, "").slice(0, 12);
@@ -394,7 +409,17 @@ async function handleApi(request, env, url) {
 
     const quantity = order.quantity || 1;
     const unitAmount = Math.round((order.price / quantity) * 100);
-    const labels = { tray1: "Egg tray (30 eggs)", tray2: "2 egg trays (60 eggs)", box: "Full box (180 eggs)" };
+    const labels = {
+      tray1: "Egg tray (30 eggs)",
+      tray2: "2 egg trays (60 eggs)",
+      box: "Full box (180 eggs)",
+      cage600: "Cage dozen 600g (12 eggs)",
+      cage700: "Cage dozen 700g (12 eggs)",
+      cage800: "Cage dozen 800g (12 eggs)",
+      fr600: "Free range dozen 600g (12 eggs)",
+      fr700: "Free range dozen 700g (12 eggs)",
+      fr800: "Free range dozen 800g (12 eggs)",
+    };
 
     const params = new URLSearchParams({
       mode: "payment",
@@ -938,13 +963,15 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 
     <div class="card">
       <h2>Prices &amp; stock</h2>
+      <p class="hint" style="margin-bottom:10px">Trays and dozens use <b>separate</b> price maths. Change a tray price or box cost → trays update. Change a dozen price or dozen cost → dozens update.</p>
+      <h2 style="font-size:16px;margin:0 0 8px">Trays (30 eggs)</h2>
       <div class="grid2">
         <div><label>1 tray ($)</label><input id="p1" type="number" min="1" step="1"></div>
         <div><label>2 trays ($)</label><input id="p2" type="number" min="1" step="1"></div>
         <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="1"></div>
-        <div><label>Your box cost ($)</label><input id="box-cost" type="number" min="0" step="1" value="55" title="Wholesale cost for a 6-tray box"></div>
+        <div><label>Box cost ($)</label><input id="box-cost" type="number" min="0" step="1" value="55" title="Wholesale cost for a 6-tray box"></div>
         <div><label>Trays available</label><input id="stock" type="number" min="0" step="1"></div>
-        <div style="grid-column:1/-1"><label>Product</label>
+        <div style="grid-column:1/-1"><label>Featured tray product (hero)</label>
           <select id="tray-weight">
             <option value="1.75">Cage · 1.75kg (Extra Large)</option>
             <option value="1.5">Cage · 1.5kg (Large)</option>
@@ -953,7 +980,19 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
           </select>
         </div>
       </div>
-      <p class="hint" id="price-hint">Enter box cost to set sell prices (same markup as $55 → $12 / $23 / $66). Or change any sell price — all stay ratio-locked 12 : 23 : 66.</p>
+      <p class="hint" id="price-hint">Tray ratio 12 : 23 : 66 from box cost.</p>
+
+      <h2 style="font-size:16px;margin:18px 0 8px">Dozen packs (12 eggs)</h2>
+      <div class="grid2">
+        <div><label>Cage 600g ($)</label><input id="p-cage600" type="number" min="1" step="1"></div>
+        <div><label>Cage 700g ($)</label><input id="p-cage700" type="number" min="1" step="1"></div>
+        <div><label>Cage 800g ($)</label><input id="p-cage800" type="number" min="1" step="1"></div>
+        <div><label>FR 600g ($)</label><input id="p-fr600" type="number" min="1" step="1"></div>
+        <div><label>FR 700g ($)</label><input id="p-fr700" type="number" min="1" step="1"></div>
+        <div><label>FR 800g ($)</label><input id="p-fr800" type="number" min="1" step="1"></div>
+        <div><label>Dozen cost ($)</label><input id="dozen-cost" type="number" min="0" step="1" value="5" title="Wholesale cost for cage 700g dozen — scales all dozen sell prices"></div>
+      </div>
+      <p class="hint" id="dozen-hint">Dozen ratio 6 : 7 : 8 (cage) and 8 : 9 : 10 (free range) from dozen cost.</p>
 
       <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
       <p class="hint">Tap a day to open or close it</p>
@@ -971,11 +1010,28 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 const $ = (id) => document.getElementById(id);
 let KEY = localStorage.getItem("yolko_admin_key") || "";
 
+const BUNDLE_META = {
+  tray1: { eggs: 30, kind: "tray" },
+  tray2: { eggs: 60, kind: "tray" },
+  box: { eggs: 180, kind: "tray" },
+  cage600: { eggs: 12, kind: "dozen", label: "Cage dozen 600g" },
+  cage700: { eggs: 12, kind: "dozen", label: "Cage dozen 700g" },
+  cage800: { eggs: 12, kind: "dozen", label: "Cage dozen 800g" },
+  fr600: { eggs: 12, kind: "dozen", label: "Free range dozen 600g" },
+  fr700: { eggs: 12, kind: "dozen", label: "Free range dozen 700g" },
+  fr800: { eggs: 12, kind: "dozen", label: "Free range dozen 800g" },
+};
+
 function describeOrder(bundle, qty) {
   qty = qty || 1;
-  if (bundle === "box") return qty === 1 ? "1 box (180 eggs)" : qty + " boxes (" + (180 * qty).toLocaleString() + " eggs)";
+  const meta = BUNDLE_META[bundle] || BUNDLE_META.tray1;
+  const eggs = (meta.eggs * qty).toLocaleString();
+  if (meta.kind === "dozen") {
+    return qty === 1 ? meta.label + " (12 eggs)" : qty + "× " + meta.label + " (" + eggs + " eggs)";
+  }
+  if (bundle === "box") return qty === 1 ? "1 box (180 eggs)" : qty + " boxes (" + eggs + " eggs)";
   const trays = (bundle === "tray2" ? 2 : 1) * qty;
-  return trays === 1 ? "1 tray (30 eggs)" : trays + " trays (" + (30 * trays).toLocaleString() + " eggs)";
+  return trays === 1 ? "1 tray (30 eggs)" : trays + " trays (" + eggs + " eggs)";
 }
 
 const WEEK_DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -1035,6 +1091,7 @@ function collectDayRows() {
 }
 
 function traysFor(o) {
+  if (BUNDLE_META[o.bundle] && BUNDLE_META[o.bundle].kind === "dozen") return 0;
   return (o.bundle === "box" ? 6 : o.bundle === "tray2" ? 2 : 1) * (o.quantity || 1);
 }
 
@@ -1156,6 +1213,11 @@ function groupByPickup(list) {
 }
 
 function shortBundle(o) {
+  const meta = BUNDLE_META[o.bundle];
+  if (meta && meta.kind === "dozen") {
+    const n = o.quantity || 1;
+    return n + "× " + (meta.label || o.bundle).replace(" dozen", "");
+  }
   if (o.bundle === "box") return ((o.quantity || 1) * 6) + "tr box";
   const trays = traysFor(o);
   return trays + (trays === 1 ? " tray" : " trays");
@@ -1410,7 +1472,7 @@ function renderBuyers(orders) {
     return;
   }
 
-  const BUNDLE_WORD = { tray1: "single trays", tray2: "2-tray packs", box: "full boxes" };
+  const BUNDLE_WORD = { tray1: "single trays", tray2: "2-tray packs", box: "full boxes", cage600: "cage 600g", cage700: "cage 700g", cage800: "cage 800g", fr600: "FR 600g", fr700: "FR 700g", fr800: "FR 800g" };
 
   $("buyers").innerHTML = buyers.map(function(b, i) {
     b.history.sort(function(x, y) { return x.t - y.t; });
@@ -1525,24 +1587,32 @@ async function loadSettings() {
   $("p1").value = s.prices.tray1;
   $("p2").value = s.prices.tray2;
   $("p3").value = s.prices.box;
+  ["cage600","cage700","cage800","fr600","fr700","fr800"].forEach(function(k) {
+    const el = $("p-" + k);
+    if (el && s.prices[k] != null) el.value = s.prices[k];
+  });
   $("stock").value = s.traysAvailable;
   window.TRAYS_LEFT = s.traysAvailable;
   const stat = $("stat-stock");
   if (stat) stat.textContent = s.traysAvailable;
   $("tray-weight").value = s.trayWeight || "1.75";
   if (s.boxCost != null && $("box-cost")) $("box-cost").value = s.boxCost;
+  if (s.dozenCost != null && $("dozen-cost")) $("dozen-cost").value = s.dozenCost;
   PICKUP = s.pickup || {};
   renderDays();
   updatePriceHint();
+  updateDozenHint();
 }
 
-// Canonical sell ratios: 12 : 23 : 66, calibrated to $55 box cost.
+// Trays: 12 : 23 : 66 from $55 box cost. Dozens: 6:7:8 cage + 8:9:10 FR from $5 dozen cost.
 const PRICE_RATIO = { tray1: 12, tray2: 23, box: 66 };
+const DOZEN_RATIO = { cage600: 6, cage700: 7, cage800: 8, fr600: 8, fr700: 9, fr800: 10 };
 const BASE_BOX_COST = 55;
+const BASE_DOZEN_COST = 5;
 let SYNCING_PRICES = false;
 
 function roundMoney(n) {
-  return Math.max(1, Math.round(Number(n))); // whole dollars only — never .50
+  return Math.max(1, Math.round(Number(n)));
 }
 
 function money(n) {
@@ -1551,12 +1621,10 @@ function money(n) {
   return "$" + (r % 1 ? r.toFixed(2) : String(r));
 }
 
-function pricesFromAnchor(which, value) {
+function pricesFromTrayAnchor(which, value) {
   const v = Number(value);
-  if (!Number.isFinite(v) || v <= 0) return null;
-  const base = PRICE_RATIO[which];
-  if (!base) return null;
-  const scale = v / base;
+  if (!Number.isFinite(v) || v <= 0 || !PRICE_RATIO[which]) return null;
+  const scale = v / PRICE_RATIO[which];
   return {
     tray1: roundMoney(PRICE_RATIO.tray1 * scale),
     tray2: roundMoney(PRICE_RATIO.tray2 * scale),
@@ -1564,8 +1632,7 @@ function pricesFromAnchor(which, value) {
   };
 }
 
-// Same overall markup as $55 cost → $12 / $23 / $66 sell.
-function pricesFromCost(cost) {
+function pricesFromBoxCost(cost) {
   const c = Number(cost);
   if (!Number.isFinite(c) || c < 0) return null;
   const scale = c / BASE_BOX_COST;
@@ -1576,7 +1643,25 @@ function pricesFromCost(cost) {
   };
 }
 
-function applySyncedPrices(next, keep) {
+function pricesFromDozenAnchor(which, value) {
+  const v = Number(value);
+  if (!Number.isFinite(v) || v <= 0 || !DOZEN_RATIO[which]) return null;
+  const scale = v / DOZEN_RATIO[which];
+  const out = {};
+  Object.keys(DOZEN_RATIO).forEach(function(k) { out[k] = roundMoney(DOZEN_RATIO[k] * scale); });
+  return out;
+}
+
+function pricesFromDozenCost(cost) {
+  const c = Number(cost);
+  if (!Number.isFinite(c) || c < 0) return null;
+  const scale = c / BASE_DOZEN_COST;
+  const out = {};
+  Object.keys(DOZEN_RATIO).forEach(function(k) { out[k] = roundMoney(DOZEN_RATIO[k] * scale); });
+  return out;
+}
+
+function applyTrayPrices(next) {
   if (!next) return;
   SYNCING_PRICES = true;
   $("p1").value = next.tray1;
@@ -1586,6 +1671,17 @@ function applySyncedPrices(next, keep) {
   updatePriceHint();
 }
 
+function applyDozenPrices(next) {
+  if (!next) return;
+  SYNCING_PRICES = true;
+  Object.keys(DOZEN_RATIO).forEach(function(k) {
+    const el = $("p-" + k);
+    if (el) el.value = next[k];
+  });
+  SYNCING_PRICES = false;
+  updateDozenHint();
+}
+
 function updatePriceHint() {
   const el = $("price-hint");
   if (!el) return;
@@ -1593,39 +1689,60 @@ function updatePriceHint() {
   const cost = +(($("box-cost") && $("box-cost").value) || BASE_BOX_COST);
   const c1 = cost / 6;
   if (!(p1 > 0)) {
-    el.textContent = "Enter box cost to set sell prices (ratio-locked). Or change any sell price — others follow.";
+    el.textContent = "Tray prices stay in % sync (12 : 23 : 66). Separate from dozens.";
     return;
   }
-  const n1 = p1 - c1;
-  const n2 = p2 - c1 * 2;
-  const n3 = p3 - cost;
-  const markup = cost > 0 ? Math.round((p3 / cost - 1) * 100) : 0;
-  el.innerHTML = "Ratio-locked · box markup ~" + markup + "% · net: " +
-    "<b>1 tray " + money(n1) + "</b> · <b>2 trays " + money(n2) + "</b> · <b>box " + money(n3) + "</b>";
+  el.innerHTML = "Trays · net vs " + money(cost) + " box: <b>1 tray " + money(p1 - c1) + "</b> · <b>2 trays " + money(p2 - c1 * 2) + "</b> · <b>box " + money(p3 - cost) + "</b>";
 }
 
-function onPriceInput(which) {
+function updateDozenHint() {
+  const el = $("dozen-hint");
+  if (!el) return;
+  const cost = +(($("dozen-cost") && $("dozen-cost").value) || BASE_DOZEN_COST);
+  const p700 = +(($("p-cage700") && $("p-cage700").value) || 0);
+  const pfr = +(($("p-fr700") && $("p-fr700").value) || 0);
+  el.innerHTML = "Dozens · net vs " + money(cost) + " dozen cost: <b>cage 700g " + money(p700 - cost) + "</b> · <b>FR 700g " + money(pfr - cost) + "</b> (ratio 6:7:8 / 8:9:10)";
+}
+
+function onTrayPriceInput(which) {
   if (SYNCING_PRICES) return;
   const val = which === "tray1" ? $("p1").value : which === "tray2" ? $("p2").value : $("p3").value;
-  applySyncedPrices(pricesFromAnchor(which, val), which);
+  applyTrayPrices(pricesFromTrayAnchor(which, val));
 }
 
-function onCostInput() {
+function onDozenPriceInput(which) {
   if (SYNCING_PRICES) return;
-  applySyncedPrices(pricesFromCost($("box-cost").value), "cost");
+  const el = $("p-" + which);
+  applyDozenPrices(pricesFromDozenAnchor(which, el && el.value));
 }
 
-$("p1") && $("p1").addEventListener("input", function() { onPriceInput("tray1"); });
-$("p2") && $("p2").addEventListener("input", function() { onPriceInput("tray2"); });
-$("p3") && $("p3").addEventListener("input", function() { onPriceInput("box"); });
-$("box-cost") && $("box-cost").addEventListener("input", onCostInput);
+$("p1") && $("p1").addEventListener("input", function() { onTrayPriceInput("tray1"); });
+$("p2") && $("p2").addEventListener("input", function() { onTrayPriceInput("tray2"); });
+$("p3") && $("p3").addEventListener("input", function() { onTrayPriceInput("box"); });
+$("box-cost") && $("box-cost").addEventListener("input", function() {
+  if (SYNCING_PRICES) return;
+  applyTrayPrices(pricesFromBoxCost($("box-cost").value));
+});
+Object.keys(DOZEN_RATIO).forEach(function(k) {
+  const el = $("p-" + k);
+  if (el) el.addEventListener("input", function() { onDozenPriceInput(k); });
+});
+$("dozen-cost") && $("dozen-cost").addEventListener("input", function() {
+  if (SYNCING_PRICES) return;
+  applyDozenPrices(pricesFromDozenCost($("dozen-cost").value));
+});
 
 async function saveSettings() {
   const body = {
-    prices: { tray1: +$("p1").value, tray2: +$("p2").value, box: +$("p3").value },
+    prices: {
+      tray1: +$("p1").value, tray2: +$("p2").value, box: +$("p3").value,
+      cage600: +$("p-cage600").value, cage700: +$("p-cage700").value, cage800: +$("p-cage800").value,
+      fr600: +$("p-fr600").value, fr700: +$("p-fr700").value, fr800: +$("p-fr800").value,
+    },
     traysAvailable: +$("stock").value,
     trayWeight: $("tray-weight").value,
     boxCost: +(($("box-cost") && $("box-cost").value) || BASE_BOX_COST),
+    dozenCost: +(($("dozen-cost") && $("dozen-cost").value) || BASE_DOZEN_COST),
     pickup: collectDayRows(),
   };
   const res = await fetch("/api/settings", { method: "PUT", headers: authHeaders(), body: JSON.stringify(body) });
@@ -1672,7 +1789,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "93",
+          "X-Yolko-Admin": "94",
         },
       });
     }
@@ -1703,7 +1820,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "79",
+        "X-Yolko-Build": "80",
       },
     });
   },

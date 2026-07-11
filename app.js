@@ -1,8 +1,16 @@
 const BUNDLES = {
-  tray1: { label: "1 tray (30 eggs)", price: 12 },
-  tray2: { label: "2 trays (60 eggs)", price: 23 },
-  box: { label: "Full box (6 trays, 180 eggs)", price: 66 },
+  tray1: { label: "1 tray (30 eggs)", price: 12, eggs: 30, kind: "tray" },
+  tray2: { label: "2 trays (60 eggs)", price: 23, eggs: 60, kind: "tray" },
+  box: { label: "Full box (6 trays, 180 eggs)", price: 66, eggs: 180, kind: "tray" },
+  cage600: { label: "Cage dozen 600g", price: 6, eggs: 12, kind: "dozen", housing: "cage", weight: "600g" },
+  cage700: { label: "Cage dozen 700g", price: 7, eggs: 12, kind: "dozen", housing: "cage", weight: "700g" },
+  cage800: { label: "Cage dozen 800g", price: 8, eggs: 12, kind: "dozen", housing: "cage", weight: "800g" },
+  fr600: { label: "Free range dozen 600g", price: 8, eggs: 12, kind: "dozen", housing: "free range", weight: "600g" },
+  fr700: { label: "Free range dozen 700g", price: 9, eggs: 12, kind: "dozen", housing: "free range", weight: "700g" },
+  fr800: { label: "Free range dozen 800g", price: 10, eggs: 12, kind: "dozen", housing: "free range", weight: "800g" },
 };
+
+const BUNDLE_KEYS = Object.keys(BUNDLES);
 
 const config = typeof SITE_CONFIG === "object" && SITE_CONFIG !== null ? SITE_CONFIG : {};
 
@@ -175,12 +183,18 @@ document.getElementById("qty-minus").addEventListener("click", () => setQuantity
 document.getElementById("qty-plus").addEventListener("click", () => setQuantity(currentQuantity() + 1));
 
 function eggCount(bundleKey) {
-  return bundleKey === "box" ? 180 : bundleKey === "tray2" ? 60 : 30;
+  const b = BUNDLES[bundleKey];
+  return b && b.eggs ? b.eggs : 30;
 }
 
-// Human-clear order description: "20 trays (600 eggs)", "3 full boxes (540 eggs)"
+// Human-clear order description
 function describeOrder(bundleKey, qty) {
+  const b = BUNDLES[bundleKey] || BUNDLES.tray1;
   const eggs = (eggCount(bundleKey) * qty).toLocaleString("en-AU");
+  if (b.kind === "dozen") {
+    const unit = `${b.housing === "cage" ? "Cage" : "Free range"} dozen ${b.weight}`;
+    return qty === 1 ? `${unit} (12 eggs)` : `${qty}× ${unit} (${eggs} eggs)`;
+  }
   if (bundleKey === "box") {
     return qty === 1
       ? `Full box (6 trays, 180 eggs)`
@@ -261,9 +275,11 @@ const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://gety
 
 function applySettings(settings) {
   const p = settings.prices || {};
-  if (p.tray1) BUNDLES.tray1.price = p.tray1;
-  if (p.tray2) BUNDLES.tray2.price = p.tray2;
-  if (p.box) BUNDLES.box.price = p.box;
+  BUNDLE_KEYS.forEach((key) => {
+    if (Number.isFinite(Number(p[key])) && Number(p[key]) > 0) {
+      BUNDLES[key].price = Number(p[key]);
+    }
+  });
 
   const p1 = BUNDLES.tray1.price;
   const perEgg = Math.round((p1 / 30) * 100);
@@ -284,15 +300,15 @@ function applySettings(settings) {
   const ctaStrong = document.querySelector(".mobile-cta-text strong");
   if (ctaStrong) ctaStrong.textContent = `30 eggs · $${p1}`;
 
-  // Price cards
-  const bigs = document.querySelectorAll(".price-big");
-  const pers = document.querySelectorAll(".price-per");
-  if (bigs[0]) bigs[0].textContent = `$${BUNDLES.tray1.price}`;
-  if (bigs[1]) bigs[1].textContent = `$${BUNDLES.tray2.price}`;
-  if (bigs[2]) bigs[2].textContent = `$${BUNDLES.box.price}`;
-  if (pers[0]) pers[0].innerHTML = `30 eggs · ${perEgg}&cent; each`;
-  if (pers[1]) pers[1].textContent = saving > 0 ? `60 eggs · save $${saving}` : "60 eggs";
-  if (pers[2]) pers[2].textContent = "6 trays · 180 eggs";
+  // Price cards — trays only (dozen cards use #price-* ids)
+  const trayCards = document.querySelectorAll(".price-grid:not(.dozen-grid) .price-big");
+  const trayPers = document.querySelectorAll(".price-grid:not(.dozen-grid) .price-per");
+  if (trayCards[0]) trayCards[0].textContent = `$${BUNDLES.tray1.price}`;
+  if (trayCards[1]) trayCards[1].textContent = `$${BUNDLES.tray2.price}`;
+  if (trayCards[2]) trayCards[2].textContent = `$${BUNDLES.box.price}`;
+  if (trayPers[0]) trayPers[0].innerHTML = `30 eggs · ${perEgg}&cent; each`;
+  if (trayPers[1]) trayPers[1].textContent = saving > 0 ? `60 eggs · save $${saving}` : "60 eggs";
+  if (trayPers[2]) trayPers[2].textContent = "6 trays · 180 eggs";
 
   // Form options and submit chip
   const bpTray1 = document.getElementById("bp-tray1");
@@ -301,6 +317,12 @@ function applySettings(settings) {
   if (bpTray1) bpTray1.textContent = `$${BUNDLES.tray1.price}`;
   if (bpTray2) bpTray2.textContent = `$${BUNDLES.tray2.price}`;
   if (bpBox) bpBox.textContent = `$${BUNDLES.box.price}`;
+  BUNDLE_KEYS.forEach((key) => {
+    const el = document.getElementById("bp-" + key);
+    if (el) el.textContent = "$" + BUNDLES[key].price;
+    const card = document.getElementById("price-" + key);
+    if (card) card.textContent = "$" + BUNDLES[key].price;
+  });
   refreshSubmitPrice();
 
   // Stock note
