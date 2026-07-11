@@ -391,49 +391,98 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 .toast { position:fixed; left:50%; bottom:22px; transform:translate(-50%,16px); z-index:300; max-width:90vw; padding:12px 18px; background:var(--ink); color:var(--paper); font-weight:700; font-size:13.5px; border-radius:0; box-shadow:6px 6px 0 var(--yellow); opacity:0; transition:opacity .3s ease, transform .3s ease; }
 .toast.show { opacity:1; transform:translate(-50%,0); }
 
-.orders-toolbar { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.orders-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 12px; }
 .filter-chip {
-  min-height:36px; padding:0 12px; border:1px solid var(--line); background:var(--paper); color:var(--muted);
-  font:inherit; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.04em; cursor:pointer;
+  min-height:34px; padding:0 11px; border:1px solid var(--line); background:var(--paper); color:var(--muted);
+  font:inherit; font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:.04em; cursor:pointer;
 }
 .filter-chip b { font-family:var(--display); margin-left:6px; color:var(--ink); }
 .filter-chip.on { background:var(--ink); border-color:var(--ink); color:var(--paper); }
 .filter-chip.on b { color:var(--yellow); }
-#orders { display:flex; flex-direction:column; gap:0; border-top:1px solid var(--ink); }
-.order {
-  display:grid; grid-template-columns:1fr auto; gap:8px 16px; align-items:center;
-  padding:14px 0; border-bottom:1px solid var(--line); background:transparent; border-left:0; border-right:0; border-radius:0;
+.orders-hint { width:100%; margin:0; font-size:12px; color:var(--muted); }
+
+#orders { display:grid; grid-template-columns:1fr 1fr; gap:14px; border-top:0; align-items:start; }
+@media (max-width:900px) { #orders { grid-template-columns:1fr; } }
+
+.lane {
+  border:1px solid var(--ink); background:var(--paper); min-height:120px;
 }
-.order.prio { background:transparent; box-shadow:none; border-bottom-color:var(--ink); }
-.order.sus { background:rgba(246,83,47,.04); }
-.order.done-row, .order.cancelled-row { opacity:.55; }
-.o-main { min-width:0; }
-.o-top { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin:0; }
-.o-name { font-weight:800; font-size:15px; }
-.o-price { font-family:var(--display); font-weight:800; font-size:18px; color:var(--orange); letter-spacing:-.03em; margin-left:auto; }
-.o-time { display:none; }
-.o-what { font-weight:600; font-size:13px; color:var(--muted); margin:4px 0 0; }
-.o-what span { font-weight:600; color:var(--muted); }
-.o-tags { display:flex; flex-wrap:wrap; gap:5px; margin:8px 0 0; }
-.pill { display:inline-block; padding:3px 8px; border-radius:0; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; border:1px solid transparent; }
+.lane-head {
+  display:flex; align-items:baseline; justify-content:space-between; gap:8px;
+  padding:10px 12px; border-bottom:1px solid var(--ink); background:var(--canvas);
+}
+.lane-head h3 {
+  margin:0; font-family:var(--display); font-size:14px; font-weight:800;
+  letter-spacing:-.02em; text-transform:uppercase;
+}
+.lane-head span { font-size:11px; font-weight:800; color:var(--muted); }
+.lane.waiting .lane-head { background:var(--yellow); }
+.lane.waiting .lane-head span { color:var(--ink); }
+.lane-body { padding:0; }
+.lane-empty { padding:18px 12px; color:var(--muted); font-size:13px; }
+
+.day-group { border-bottom:1px solid var(--line); }
+.day-group:last-child { border-bottom:0; }
+.day-head {
+  display:flex; align-items:baseline; justify-content:space-between; gap:8px;
+  padding:8px 12px 4px; font-size:11px; font-weight:800; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--muted); background:var(--canvas);
+}
+.day-head b { color:var(--ink); font-family:var(--display); letter-spacing:-.02em; text-transform:none; font-size:13px; }
+
+.order {
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 10px; align-items:center;
+  padding:8px 12px; border-bottom:1px solid var(--line); border-left:3px solid transparent;
+  cursor:pointer; background:transparent;
+}
+.order:last-child { border-bottom:0; }
+.order:hover { background:rgba(23,23,20,.03); }
+.order.open { background:rgba(255,211,42,.18); }
+.order.st-new { border-left-color:var(--yellow); }
+.order.st-confirmed { border-left-color:var(--green); }
+.order.st-done { border-left-color:var(--line); opacity:.7; }
+.order.st-cancelled { border-left-color:var(--red); opacity:.55; }
+.order.prio { box-shadow:inset 0 0 0 1px var(--ink); }
+.order.sus { background:rgba(246,83,47,.06); }
+
+.o-name { font-weight:800; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.o-sub { font-size:11.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.o-right { text-align:right; }
+.o-price { display:block; font-family:var(--display); font-weight:800; font-size:15px; color:var(--orange); letter-spacing:-.03em; line-height:1.1; }
+.o-flag { display:block; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-top:2px; }
+.o-flag.paid { color:var(--green); }
+.o-flag.warn { color:var(--orange); }
+
+.o-detail {
+  display:none; grid-column:1 / -1; gap:8px; padding:8px 0 4px;
+  border-top:1px dashed var(--line); margin-top:4px;
+}
+.order.open .o-detail { display:grid; }
+.o-meta { font-size:11px; color:var(--muted); word-break:break-all; margin:0; }
+.o-actions { display:flex; flex-wrap:wrap; gap:6px; }
+.o-actions a, .o-actions button { flex:0 1 auto; min-height:34px; padding:6px 10px; font-size:12px; }
+.callbtn { background:var(--yellow); color:var(--ink); }
+
+.archive {
+  margin-top:14px; border-top:1px solid var(--line); padding-top:10px;
+}
+.archive summary {
+  cursor:pointer; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+  list-style:none;
+}
+.archive summary::-webkit-details-marker { display:none; }
+.archive summary::before { content:"+ "; color:var(--ink); }
+.archive[open] summary::before { content:"– "; }
+.archive .lane { margin-top:8px; }
+
+.pill { display:inline-block; padding:2px 7px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
 .pill.new { background:var(--yellow); color:var(--ink); }
-.pill.confirmed { background:var(--blue-soft); color:var(--blue); }
-.pill.done { background:var(--green-soft); color:var(--green); }
+.pill.confirmed { background:var(--green-soft); color:var(--green); }
+.pill.done { background:var(--canvas); color:var(--muted); }
 .pill.cancelled { background:var(--red-soft); color:var(--red); }
 .pill.paid { background:var(--ink); color:var(--paper); }
-.pill.day { background:transparent; color:var(--ink); border-color:var(--line); }
-.pill.warn { background:var(--warn); color:var(--ink); border-color:var(--orange); }
-.pill.meta { background:transparent; color:var(--muted); font-weight:700; text-transform:none; letter-spacing:0; }
-.o-meta { font-size:11px; color:var(--muted); margin:6px 0 0; word-break:break-all; }
-.o-side { display:flex; flex-direction:column; align-items:stretch; gap:6px; min-width:148px; }
-.o-actions { display:flex; flex-wrap:wrap; gap:6px; margin:0; }
-.o-actions a, .o-actions button { flex:1 1 auto; min-width:0; min-height:36px; padding:7px 10px; font-size:12px; }
-.callbtn { min-width:100%; }
-@media (max-width:640px) {
-  .order { grid-template-columns:1fr; }
-  .o-side { min-width:0; }
-  .o-price { margin-left:0; }
-}
+.pill.warn { background:var(--warn); color:var(--ink); }
+
 
 button, .callbtn {
   display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 14px;
@@ -545,9 +594,10 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <h2>Orders</h2>
         <button class="ghost" onclick="loadOrders()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
       </div>
-      <div class="orders-toolbar" id="order-filters"></div>
+      <p class="orders-hint">Grouped by pickup day. Tap a row for call and status actions.</p>
       <div id="orders"></div>
-      <p class="empty" id="empty" style="display:none">No orders in this view.</p>
+      <div id="orders-archive" class="archive"></div>
+      <p class="empty" id="empty" style="display:none">No open orders.</p>
     </div>
 
     <div class="card">
@@ -691,7 +741,7 @@ function fmtTime(iso) {
 function fmtPhone(p) { return p.replace(/(\\d{4})(\\d{3})(\\d{3})/, "$1 $2 $3"); }
 
 let ALL_ORDERS = [];
-let ORDER_FILTER = localStorage.getItem("yolko_order_filter") || "new";
+let OPEN_ORDER_ID = null;
 
 async function loadOrders() {
   const res = await fetch("/api/orders", { headers: authHeaders() });
@@ -699,13 +749,9 @@ async function loadOrders() {
   const { orders } = await res.json();
 
   orders.sort((a, b) => {
-    const rank = (o) => {
-      if (o.status === "cancelled") return 4;
-      if (o.status === "done") return 3;
-      if (o.status === "confirmed") return 1;
-      return o.paymentStatus === "paid" ? 0 : 2;
-    };
-    return rank(a) - rank(b) || b.createdAt.localeCompare(a.createdAt);
+    const day = (o) => (o.pickupDate || "") + " " + (o.pickupDay || "");
+    const rank = (o) => (o.status === "cancelled" ? 4 : o.status === "done" ? 3 : o.status === "confirmed" ? 1 : 0);
+    return rank(a) - rank(b) || day(a).localeCompare(day(b)) || b.createdAt.localeCompare(a.createdAt);
   });
   ALL_ORDERS = orders;
 
@@ -720,78 +766,102 @@ async function loadOrders() {
     '<div class="stat"><b>$' + revenue + '</b><span>confirmed</span></div>' +
     '<div class="stat"><b>$' + paidOnline + '</b><span>paid online</span></div>';
 
-  renderOrderFilters();
-  renderOrderList();
+  renderOrderBoard();
   renderBuyers(orders);
 }
 
-function filterOrders(list, filter) {
-  if (filter === "active") return list.filter(o => o.status === "new" || o.status === "confirmed");
-  if (filter === "all") return list;
-  return list.filter(o => o.status === filter);
+function pickupKey(o) {
+  return (o.pickupDay || "TBD") + "|" + (o.pickupDate || "");
 }
 
-function renderOrderFilters() {
-  const counts = {
-    active: ALL_ORDERS.filter(o => o.status === "new" || o.status === "confirmed").length,
-    new: ALL_ORDERS.filter(o => o.status === "new").length,
-    confirmed: ALL_ORDERS.filter(o => o.status === "confirmed").length,
-    done: ALL_ORDERS.filter(o => o.status === "done").length,
-    cancelled: ALL_ORDERS.filter(o => o.status === "cancelled").length,
-    all: ALL_ORDERS.length,
-  };
-  const tabs = [
-    ["new", "Waiting"],
-    ["confirmed", "Confirmed"],
-    ["active", "Active"],
-    ["done", "Done"],
-    ["cancelled", "Cancelled"],
-    ["all", "All"],
-  ];
-  $("order-filters").innerHTML = tabs.map(function(tab) {
-    const key = tab[0], label = tab[1];
-    return '<button type="button" class="filter-chip' + (ORDER_FILTER === key ? ' on' : '') + '" data-filter="' + key + '">' +
-      label + '<b>' + counts[key] + '</b></button>';
-  }).join("");
+function pickupLabel(o) {
+  if (o.pickupDate) return o.pickupDay + " " + o.pickupDate;
+  return o.pickupDay || "Pickup TBD";
+}
+
+function groupByPickup(list) {
+  const map = {};
+  list.forEach(function(o) {
+    const k = pickupKey(o);
+    (map[k] = map[k] || { key: k, label: pickupLabel(o), orders: [], trays: 0 }).orders.push(o);
+    map[k].trays += traysFor(o);
+  });
+  return Object.keys(map).sort().map(function(k) { return map[k]; });
+}
+
+function shortBundle(o) {
+  if (o.bundle === "box") return ((o.quantity || 1) * 6) + "tr box";
+  const trays = traysFor(o);
+  return trays + (trays === 1 ? " tray" : " trays");
+}
+
+function orderRow(o) {
+  const signals = orderSignals(o, ALL_ORDERS);
+  const prio = o.paymentStatus === "paid" && o.status !== "cancelled";
+  const open = OPEN_ORDER_ID === o.id;
+  let flag = "";
+  if (prio) flag = '<span class="o-flag paid">paid</span>';
+  else if (signals.suspicious) flag = '<span class="o-flag warn">check</span>';
+  else flag = '<span class="o-flag">' + fmtTime(o.createdAt).replace(/,.*/, "") + '</span>';
+
+  return '<div class="order st-' + o.status + (prio ? ' prio' : '') + (signals.suspicious ? ' sus' : '') +
+    (open ? ' open' : '') + '" data-id="' + escapeHtml(o.id) + '">' +
+    '<div class="o-main">' +
+      '<div class="o-name">' + escapeHtml(o.name) + '</div>' +
+      '<div class="o-sub">' + shortBundle(o) + (signals.tags[0] ? ' · ' + escapeHtml(signals.tags[0].text) : '') + '</div>' +
+    '</div>' +
+    '<div class="o-right"><span class="o-price">$' + o.price + '</span>' + flag + '</div>' +
+    '<div class="o-detail" onclick="event.stopPropagation()">' +
+      (signals.metaLine ? '<p class="o-meta">' + escapeHtml(signals.metaLine) + '</p>' : '') +
+      '<div class="o-actions">' +
+        '<a class="callbtn" href="tel:' + o.phone + '">' + fmtPhone(o.phone) + '</a>' +
+        actionButtons(o) +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function laneHtml(title, cls, list) {
+  const groups = groupByPickup(list);
+  const trays = list.reduce(function(s, o) { return s + traysFor(o); }, 0);
+  const body = groups.length
+    ? groups.map(function(g) {
+        return '<div class="day-group">' +
+          '<div class="day-head"><b>' + escapeHtml(g.label) + '</b><span>' + g.trays + (g.trays === 1 ? ' tray' : ' trays') + ' · ' + g.orders.length + '</span></div>' +
+          g.orders.map(orderRow).join('') +
+        '</div>';
+      }).join('')
+    : '<p class="lane-empty">Nothing here.</p>';
+  return '<section class="lane ' + cls + '">' +
+    '<div class="lane-head"><h3>' + title + '</h3><span>' + list.length + ' · ' + trays + ' trays</span></div>' +
+    '<div class="lane-body">' + body + '</div></section>';
+}
+
+function renderOrderBoard() {
+  const waiting = ALL_ORDERS.filter(o => o.status === "new");
+  const confirmed = ALL_ORDERS.filter(o => o.status === "confirmed");
+  const archived = ALL_ORDERS.filter(o => o.status === "done" || o.status === "cancelled");
+
+  $("orders").innerHTML = laneHtml("Waiting", "waiting", waiting) + laneHtml("Confirmed", "confirmed", confirmed);
+  $("empty").style.display = (waiting.length || confirmed.length) ? "none" : "block";
+
+  if (archived.length) {
+    $("orders-archive").innerHTML =
+      '<details class="archive"><summary>Done &amp; cancelled · ' + archived.length + '</summary>' +
+      laneHtml("Archive", "archive-lane", archived) + '</details>';
+  } else {
+    $("orders-archive").innerHTML = "";
+  }
 }
 
 document.addEventListener("click", function(e) {
-  const chip = e.target.closest("#order-filters .filter-chip");
-  if (!chip) return;
-  ORDER_FILTER = chip.dataset.filter;
-  localStorage.setItem("yolko_order_filter", ORDER_FILTER);
-  renderOrderFilters();
-  renderOrderList();
+  const row = e.target.closest("#orders .order, #orders-archive .order");
+  if (!row) return;
+  if (e.target.closest(".o-detail")) return;
+  const id = row.dataset.id;
+  OPEN_ORDER_ID = OPEN_ORDER_ID === id ? null : id;
+  renderOrderBoard();
 });
-
-function renderOrderList() {
-  const orders = filterOrders(ALL_ORDERS, ORDER_FILTER);
-  $("orders").innerHTML = orders.map(function(o) {
-    const prio = o.paymentStatus === "paid" && o.status !== "cancelled";
-    const signals = orderSignals(o, ALL_ORDERS);
-    const pickup = o.pickupDay + (o.pickupDate ? " " + o.pickupDate : "");
-    return '<div class="order' + (prio ? ' prio' : '') + (signals.suspicious ? ' sus' : '') +
-      (o.status === "done" ? ' done-row' : '') + (o.status === "cancelled" ? ' cancelled-row' : '') + '">' +
-      '<div class="o-main">' +
-        '<div class="o-top">' +
-          '<span class="pill ' + o.status + '">' + o.status + '</span>' +
-          (prio ? '<span class="pill paid">paid</span>' : '') +
-          signals.tags.map(function(t) { return '<span class="pill ' + t.cls + '">' + escapeHtml(t.text) + '</span>'; }).join('') +
-          '<span class="o-name">' + escapeHtml(o.name) + '</span>' +
-          '<span class="o-price">$' + o.price + '</span>' +
-        '</div>' +
-        '<div class="o-what">' + describeOrder(o.bundle, o.quantity) +
-          ' <span>· ' + pickup + ' · ' + fmtTime(o.createdAt) + '</span></div>' +
-        (signals.metaLine ? '<div class="o-meta">' + escapeHtml(signals.metaLine) + '</div>' : '') +
-      '</div>' +
-      '<div class="o-side">' +
-        '<a class="callbtn" href="tel:' + o.phone + '">' + fmtPhone(o.phone) + '</a>' +
-        '<div class="o-actions">' + actionButtons(o) + '</div>' +
-      '</div>' +
-    '</div>';
-  }).join("");
-  $("empty").style.display = orders.length ? "none" : "block";
-}
 
 const TEST_PHONES = { "0412345678": 1, "0498765432": 1 };
 const HOSTING_RE = /amazon|google|microsoft|digitalocean|ovh|hetzner|linode|vultr|cloudflare|hosting|datacenter|vps|colo/i;
@@ -1016,7 +1086,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "80",
+          "X-Yolko-Admin": "81",
         },
       });
     }
