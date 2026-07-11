@@ -198,6 +198,9 @@ async function handleApi(request, env, url) {
       trayWeight: ["1.5", "1.75", "fr-700", "fr-600"].includes(body?.trayWeight)
         ? body.trayWeight
         : current.trayWeight,
+      boxCost: Number.isFinite(Number(body?.boxCost))
+        ? Math.max(0, Number(body.boxCost))
+        : (current.boxCost ?? 55),
       pickup: Object.fromEntries(
         WEEK_DAYS.map((d) => [d, cleanPickupDay((body?.pickup || {})[d], current.pickup[d])])
       ),
@@ -713,7 +716,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
           </select>
         </div>
       </div>
-      <p class="hint" id="price-hint">Change 1 tray — 2 trays and full box follow your bulk discounts. Edit any price by hand if you want.</p>
+      <p class="hint" id="price-hint">Prices stay in % sync (12 : 23 : 66). Change any one — the others follow.</p>
 
       <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
       <p class="hint">Tap a day to open or close it</p>
@@ -1245,20 +1248,45 @@ async function loadSettings() {
   updatePriceHint();
 }
 
-// Keep the same bulk discounts as $12 / $23 / $66:
-// 2 trays = 2×1-tray − $1 · full box = 6×1-tray − $6
-function pricesFromTray1(tray1) {
-  const p1 = Math.round(Number(tray1) * 2) / 2;
-  if (!Number.isFinite(p1) || p1 <= 0) return null;
-  return {
-    tray1: p1,
-    tray2: Math.round((p1 * 2 - 1) * 2) / 2,
-    box: Math.round((p1 * 6 - 6) * 2) / 2,
-  };
+// Canonical sell ratios (same % margins relative to each other): 12 : 23 : 66
+const PRICE_RATIO = { tray1: 12, tray2: 23, box: 66 };
+let SYNCING_PRICES = false;
+
+function roundMoney(n) {
+  return Math.round(Number(n) * 2) / 2; // nearest $0.50
 }
 
 function money(n) {
-  return Number.isFinite(n) ? ("$" + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0)) : "–";
+  if (!Number.isFinite(n)) return "–";
+  const r = Math.round(n * 100) / 100;
+  return "$" + (r % 1 ? r.toFixed(2) : String(r));
+}
+
+function pricesFromAnchor(which, value) {
+  const v = Number(value);
+  if (!Number.isFinite(v) || v <= 0) return null;
+  const base = PRICE_RATIO[which];
+  if (!base) return null;
+  const scale = v / base;
+  return {
+    tray1: roundMoney(PRICE_RATIO.tray1 * scale),
+    tray2: roundMoney(PRICE_RATIO.tray2 * scale),
+    box: roundMoney(PRICE_RATIO.box * scale),
+  };
+}
+
+function applySyncedPrices(next, keep) {
+  if (!next) return;
+  SYNCING_PRICES = true;
+  if (keep !== "tray1") $("p1").value = next.tray1;
+  if (keep !== "tray2") $("p2").value = next.tray2;
+  if (keep !== "box") $("p3").value = next.box;
+  // Keep the edited field on the same rounded scale too
+  if (keep === "tray1") $("p1").value = next.tray1;
+  if (keep === "tray2") $("p2").value = next.tray2;
+  if (keep === "box") $("p3").value = next.box;
+  SYNCING_PRICES = false;
+  updatePriceHint();
 }
 
 function updatePriceHint() {
@@ -1267,30 +1295,26 @@ function updatePriceHint() {
   const p1 = +$("p1").value, p2 = +$("p2").value, p3 = +$("p3").value;
   const cost = +(($("box-cost") && $("box-cost").value) || 55);
   const c1 = cost / 6;
-  if (!(p1 > 0) || !(cost >= 0)) {
-    el.textContent = "Change 1 tray — 2 trays and full box follow your bulk discounts.";
+  if (!(p1 > 0)) {
+    el.textContent = "Prices stay in % sync (12 : 23 : 66). Change any one — the others follow.";
     return;
   }
   const n1 = p1 - c1;
   const n2 = p2 - c1 * 2;
   const n3 = p3 - cost;
-  el.innerHTML = "At these prices vs " + money(cost) + " box cost: " +
-    "<b>1 tray " + money(n1) + "</b> · <b>2 trays " + money(n2) + "</b> · <b>box " + money(n3) + "</b> net" +
-    " <span style=\"color:var(--muted)\">(2 trays = 2× − $1 · box = 6× − $6)</span>";
+  el.innerHTML = "Synced % · net vs " + money(cost) + " box cost: " +
+    "<b>1 tray " + money(n1) + "</b> · <b>2 trays " + money(n2) + "</b> · <b>box " + money(n3) + "</b>";
 }
 
-function onTray1PriceInput() {
-  const next = pricesFromTray1($("p1").value);
-  if (!next) return;
-  $("p1").value = next.tray1;
-  $("p2").value = next.tray2;
-  $("p3").value = next.box;
-  updatePriceHint();
+function onPriceInput(which) {
+  if (SYNCING_PRICES) return;
+  const val = which === "tray1" ? $("p1").value : which === "tray2" ? $("p2").value : $("p3").value;
+  applySyncedPrices(pricesFromAnchor(which, val), which);
 }
 
-$("p1") && $("p1").addEventListener("input", onTray1PriceInput);
-$("p2") && $("p2").addEventListener("input", updatePriceHint);
-$("p3") && $("p3").addEventListener("input", updatePriceHint);
+$("p1") && $("p1").addEventListener("input", function() { onPriceInput("tray1"); });
+$("p2") && $("p2").addEventListener("input", function() { onPriceInput("tray2"); });
+$("p3") && $("p3").addEventListener("input", function() { onPriceInput("box"); });
 $("box-cost") && $("box-cost").addEventListener("input", updatePriceHint);
 
 async function saveSettings() {
@@ -1345,7 +1369,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "86",
+          "X-Yolko-Admin": "88",
         },
       });
     }
