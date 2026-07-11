@@ -972,6 +972,42 @@ async function handleApi(request, env, url) {
     return json({ ok: true, categories: lib.categories });
   }
 
+
+  // Admin: bulk update (multi-select delete / restore / favorite)
+  if (url.pathname === "/api/admin/assets/bulk" && request.method === "POST") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const body = await request.json().catch(() => null);
+    const ids = Array.isArray(body?.ids) ? body.ids.filter((id) => typeof id === "string") : [];
+    if (!ids.length) return json({ error: "ids required" }, 400);
+    const lib = await getAssetLibrary(env);
+    const byId = Object.fromEntries(lib.items.map((i) => [i.id, i]));
+    let changed = 0;
+    for (const id of ids) {
+      const item = byId[id];
+      if (!item) continue;
+      changed += 1;
+      if (typeof body.favorite === "boolean") item.favorite = body.favorite;
+      if (typeof body.deleted === "boolean") {
+        item.deleted = body.deleted;
+        if (body.deleted) {
+          lib.draft = lib.draft.filter((x) => x !== id);
+          lib.published = lib.published.filter((x) => x !== id);
+        }
+      }
+      if (typeof body.category === "string" && body.category.trim()) {
+        const cat = body.category.trim().slice(0, 40);
+        if (!lib.categories.includes(cat)) lib.categories.push(cat);
+        item.category = cat;
+      }
+    }
+    await saveAssetLibrary(env, lib);
+    return json({
+      ok: true,
+      changed,
+      dirty: JSON.stringify(lib.draft) !== JSON.stringify(lib.published),
+    });
+  }
+
   // Admin: publish draft → live storefront
   if (url.pathname === "/api/admin/assets/publish" && request.method === "POST") {
     if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
@@ -1322,6 +1358,22 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 .asset-card .actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
 .asset-card .actions button { min-height:32px; padding:0 6px; font-size:11px; box-shadow:none; }
 .asset-empty { padding:28px 12px; text-align:center; color:var(--muted); }
+
+.asset-bulk {
+  display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  padding:10px 12px; margin:0 0 12px; border:1px solid var(--line); background:var(--canvas);
+}
+.asset-bulk .count { font-size:12.5px; font-weight:800; margin-right:auto; }
+.asset-bulk label.chk-all {
+  display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:800;
+  text-transform:none; letter-spacing:0; padding:0; color:var(--ink); cursor:pointer;
+}
+.asset-bulk label.chk-all input { width:18px; height:18px; min-height:0; accent-color:var(--orange); }
+.asset-card.selected { box-shadow:4px 4px 0 var(--orange); }
+.asset-card .pick {
+  position:absolute; top:8px; right:8px; z-index:2;
+  width:22px; height:22px; accent-color:var(--orange); cursor:pointer;
+}
 </style>
 
 </head>
@@ -1472,6 +1524,15 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
           <input id="asset-filter-q" type="text" placeholder="Search…" oninput="renderAssets()" style="flex:1;min-width:140px">
           <input id="new-cat-name" type="text" placeholder="New category" style="width:140px">
           <button type="button" class="ghost" onclick="createCategory()">Add category</button>
+        </div>
+        <div class="asset-bulk" id="asset-bulk">
+          <label class="chk-all"><input type="checkbox" id="asset-select-all" onchange="toggleSelectAll(this.checked)"> Select all</label>
+          <span class="count" id="asset-selected-count">0 selected</span>
+          <button type="button" class="ghost" onclick="clearAssetSelection()">Clear</button>
+          <button type="button" class="ghost" onclick="bulkFavorite(true)">Favorite</button>
+          <button type="button" class="ghost" onclick="bulkFavorite(false)">Unfav</button>
+          <button type="button" class="danger" id="bulk-delete-btn" onclick="bulkDeleteSelected()">Delete selected</button>
+          <button type="button" class="ghost" id="bulk-restore-btn" onclick="bulkRestoreSelected()" hidden>Restore selected</button>
         </div>
         <div class="asset-grid" id="asset-grid"></div>
         <p class="asset-empty" id="asset-empty" hidden>No images match.</p>
@@ -2321,6 +2382,8 @@ function escapeHtml(t) { const d = document.createElement("div"); d.textContent 
 
 
 let ASSET_LIB = null;
+let ASSET_SELECTED = {};
+let ASSET_VISIBLE_IDS = [];
 
 function showAdminView(name) {
   const shop = name !== "assets";
@@ -2345,6 +2408,12 @@ async function loadAssets() {
     return '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>';
   }).join("");
   sel.value = ASSET_LIB.categories.includes(cur) || cur === "all" ? cur : "all";
+  // Drop selections for ids that no longer exist
+  const valid = {};
+  ASSET_LIB.items.forEach(function(it) { valid[it.id] = true; });
+  Object.keys(ASSET_SELECTED).forEach(function(id) {
+    if (!valid[id]) delete ASSET_SELECTED[id];
+  });
   renderAssets();
 }
 
@@ -2353,6 +2422,68 @@ function draftItems() {
   const byId = {};
   ASSET_LIB.items.forEach(function(i) { byId[i.id] = i; });
   return ASSET_LIB.draft.map(function(id) { return byId[id]; }).filter(Boolean);
+}
+
+function selectedIds() {
+  return Object.keys(ASSET_SELECTED).filter(function(id) { return ASSET_SELECTED[id]; });
+}
+
+function updateBulkBar() {
+  const ids = selectedIds();
+  const countEl = $("asset-selected-count");
+  if (countEl) countEl.textContent = ids.length + " selected";
+  const allBox = $("asset-select-all");
+  if (allBox) {
+    const visible = ASSET_VISIBLE_IDS;
+    const allOn = visible.length > 0 && visible.every(function(id) { return ASSET_SELECTED[id]; });
+    const someOn = visible.some(function(id) { return ASSET_SELECTED[id]; });
+    allBox.checked = allOn;
+    allBox.indeterminate = someOn && !allOn;
+  }
+  const view = $("asset-filter-view") && $("asset-filter-view").value;
+  const delBtn = $("bulk-delete-btn");
+  const restoreBtn = $("bulk-restore-btn");
+  if (delBtn) delBtn.hidden = view === "deleted";
+  if (restoreBtn) restoreBtn.hidden = view !== "deleted";
+}
+
+function toggleAssetSelected(id, on) {
+  if (on) ASSET_SELECTED[id] = true;
+  else delete ASSET_SELECTED[id];
+  const card = document.querySelector('.asset-card[data-id="' + CSS.escape(id) + '"]');
+  if (card) card.classList.toggle("selected", !!on);
+  updateBulkBar();
+}
+
+function toggleSelectAll(on) {
+  ASSET_VISIBLE_IDS.forEach(function(id) {
+    if (on) ASSET_SELECTED[id] = true;
+    else delete ASSET_SELECTED[id];
+  });
+  renderAssets();
+}
+
+function clearAssetSelection() {
+  ASSET_SELECTED = {};
+  renderAssets();
+}
+
+function filteredAssetList() {
+  if (!ASSET_LIB) return [];
+  const draftSet = {};
+  ASSET_LIB.draft.forEach(function(id) { draftSet[id] = true; });
+  const cat = $("asset-filter-cat").value;
+  const view = $("asset-filter-view").value;
+  const q = ($("asset-filter-q").value || "").trim().toLowerCase();
+  return ASSET_LIB.items.filter(function(it) {
+    if (cat !== "all" && it.category !== cat) return false;
+    if (view === "active" && it.deleted) return false;
+    if (view === "favorites" && (!it.favorite || it.deleted)) return false;
+    if (view === "draft" && !draftSet[it.id]) return false;
+    if (view === "deleted" && !it.deleted) return false;
+    if (q && it.id.toLowerCase().indexOf(q) < 0 && it.label.toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
 }
 
 function renderAssets() {
@@ -2377,24 +2508,14 @@ function renderAssets() {
     return '<span class="draft-chip" data-id="' + escapeHtml(it.id) + '">'
       + '<img src="' + escapeHtml(it.preview) + '" alt="">'
       + '<span>' + (idx + 1) + '. ' + escapeHtml(it.label) + '</span>'
-      + '<button type="button" class="ghost" onclick="moveDraft(\\'' + escapeHtml(it.id) + '\\',-1)">↑</button>'
-      + '<button type="button" class="ghost" onclick="moveDraft(\\'' + escapeHtml(it.id) + '\\',1)">↓</button>'
-      + '<button type="button" class="danger" onclick="toggleDraft(\\'' + escapeHtml(it.id) + '\\')">Remove</button>'
+      + '<button type="button" class="ghost" onclick="moveDraft(\'' + escapeHtml(it.id) + '\',-1)">↑</button>'
+      + '<button type="button" class="ghost" onclick="moveDraft(\'' + escapeHtml(it.id) + '\',1)">↓</button>'
+      + '<button type="button" class="danger" onclick="toggleDraft(\'' + escapeHtml(it.id) + '\')">Remove</button>'
       + '</span>';
   }).join("") : '<span class="muted">No images selected for the rotator yet.</span>';
 
-  const cat = $("asset-filter-cat").value;
-  const view = $("asset-filter-view").value;
-  const q = ($("asset-filter-q").value || "").trim().toLowerCase();
-  const list = ASSET_LIB.items.filter(function(it) {
-    if (cat !== "all" && it.category !== cat) return false;
-    if (view === "active" && it.deleted) return false;
-    if (view === "favorites" && (!it.favorite || it.deleted)) return false;
-    if (view === "draft" && !draftSet[it.id]) return false;
-    if (view === "deleted" && !it.deleted) return false;
-    if (q && it.id.toLowerCase().indexOf(q) < 0 && it.label.toLowerCase().indexOf(q) < 0) return false;
-    return true;
-  });
+  const list = filteredAssetList();
+  ASSET_VISIBLE_IDS = list.map(function(it) { return it.id; });
 
   $("asset-empty").hidden = list.length > 0;
   $("asset-grid").innerHTML = list.map(function(it) {
@@ -2405,25 +2526,30 @@ function renderAssets() {
     if (it.favorite) cls.push("fav");
     if (draftSet[it.id]) cls.push("in-draft");
     if (it.deleted) cls.push("deleted");
+    if (ASSET_SELECTED[it.id]) cls.push("selected");
     const badges = [];
     if (draftSet[it.id]) badges.push('<span class="badge">Draft</span>');
     if (publishedSet[it.id]) badges.push('<span class="badge live">Live</span>');
     if (it.favorite) badges.push('<span class="badge fav">Fav</span>');
     const useLabel = draftSet[it.id] ? "Remove" : "Use";
     const delBtn = it.deleted
-      ? '<button type="button" class="ghost" onclick="setDeleted(\\'' + escapeHtml(it.id) + '\\',false)">Restore</button>'
-      : '<button type="button" class="danger" onclick="setDeleted(\\'' + escapeHtml(it.id) + '\\',true)">Delete</button>';
-    return '<article class="' + cls.join(" ") + '">'
-      + '<div class="thumb"><img src="' + escapeHtml(it.preview) + '" alt="" loading="lazy"><div class="badges">' + badges.join("") + '</div></div>'
+      ? '<button type="button" class="ghost" onclick="setDeleted(\'' + escapeHtml(it.id) + '\',false)">Restore</button>'
+      : '<button type="button" class="danger" onclick="setDeleted(\'' + escapeHtml(it.id) + '\',true)">Delete</button>';
+    const checked = ASSET_SELECTED[it.id] ? " checked" : "";
+    return '<article class="' + cls.join(" ") + '" data-id="' + escapeHtml(it.id) + '">'
+      + '<div class="thumb">'
+      + '<input class="pick" type="checkbox" aria-label="Select ' + escapeHtml(it.label) + '"' + checked + ' onchange="toggleAssetSelected(\'' + escapeHtml(it.id) + '\', this.checked)">'
+      + '<img src="' + escapeHtml(it.preview) + '" alt="" loading="lazy"><div class="badges">' + badges.join("") + '</div></div>'
       + '<div class="meta"><strong>' + escapeHtml(it.label) + '</strong>'
-      + '<select onchange="setCategory(\\'' + escapeHtml(it.id) + '\\', this.value)">' + cats + '</select>'
+      + '<select onchange="setCategory(\'' + escapeHtml(it.id) + '\', this.value)">' + cats + '</select>'
       + '<div class="actions">'
-      + '<button type="button" class="ghost" onclick="toggleFavorite(\\'' + escapeHtml(it.id) + '\\')">' + (it.favorite ? "Unfav" : "Favorite") + '</button>'
-      + '<button type="button" onclick="toggleDraft(\\'' + escapeHtml(it.id) + '\\')">' + useLabel + '</button>'
+      + '<button type="button" class="ghost" onclick="toggleFavorite(\'' + escapeHtml(it.id) + '\')">' + (it.favorite ? "Unfav" : "Favorite") + '</button>'
+      + '<button type="button" onclick="toggleDraft(\'' + escapeHtml(it.id) + '\')">' + useLabel + '</button>'
       + delBtn
       + '<a class="ghost callbtn" href="' + escapeHtml(it.preview) + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Open</a>'
       + '</div></div></article>';
   }).join("");
+  updateBulkBar();
 }
 
 async function patchAssetItem(body) {
@@ -2432,6 +2558,48 @@ async function patchAssetItem(body) {
   });
   if (!res.ok) { toast("Update failed"); return null; }
   return res.json();
+}
+
+async function bulkPatch(body) {
+  const res = await fetch("/api/admin/assets/bulk", {
+    method: "POST", headers: authHeaders(), body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(function() { return null; });
+    toast((data && data.error) || "Bulk update failed");
+    return null;
+  }
+  return res.json();
+}
+
+async function bulkDeleteSelected() {
+  const ids = selectedIds();
+  if (!ids.length) { toast("Select images first"); return; }
+  if (!confirm("Hide " + ids.length + " image" + (ids.length === 1 ? "" : "s") + " from admin and live selections?")) return;
+  const data = await bulkPatch({ ids: ids, deleted: true });
+  if (!data) return;
+  ASSET_SELECTED = {};
+  toast("Deleted " + data.changed + " image" + (data.changed === 1 ? "" : "s"));
+  await loadAssets();
+}
+
+async function bulkRestoreSelected() {
+  const ids = selectedIds();
+  if (!ids.length) { toast("Select images first"); return; }
+  const data = await bulkPatch({ ids: ids, deleted: false });
+  if (!data) return;
+  ASSET_SELECTED = {};
+  toast("Restored " + data.changed);
+  await loadAssets();
+}
+
+async function bulkFavorite(on) {
+  const ids = selectedIds();
+  if (!ids.length) { toast("Select images first"); return; }
+  const data = await bulkPatch({ ids: ids, favorite: !!on });
+  if (!data) return;
+  toast((on ? "Favorited " : "Unfavorited ") + data.changed);
+  await loadAssets();
 }
 
 async function toggleFavorite(id) {
@@ -2456,8 +2624,10 @@ async function setDeleted(id, deleted) {
   if (deleted && !confirm("Hide this image from admin and live selections?")) return;
   const data = await patchAssetItem({ id: id, deleted: deleted });
   if (!data) return;
+  delete ASSET_SELECTED[id];
   await loadAssets();
 }
+
 
 async function saveDraft(draft) {
   const res = await fetch("/api/admin/assets/draft", {
@@ -2552,7 +2722,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "102",
+          "X-Yolko-Admin": "103",
         },
       });
     }
