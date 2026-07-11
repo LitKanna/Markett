@@ -50,7 +50,11 @@ const DEFAULT_SETTINGS = {
   dozensAvailable: 0, // 0 = hide dozen packs on the public website
   trayWeight: "1.75",
   boxCost: 55,
-  dozenCost: 75, // wholesale case of 15 dozen packs (per-dozen = /15)
+  // Wholesale case cost (15 dozen packs) per product — each SKU is independent
+  dozenCosts: {
+    cage600: 75, cage700: 75, cage800: 75,
+    fr600: 90, fr700: 90, fr800: 90,
+  },
   pickup: {
     Monday: { enabled: false, open: "09:00", close: "14:00" },
     Tuesday: { enabled: false, open: "09:00", close: "14:00" },
@@ -273,6 +277,35 @@ async function syncStock(env, order, newStatus) {
   };
 }
 
+function normalizeDozenCosts(stored) {
+  const defaults = DEFAULT_SETTINGS.dozenCosts;
+  const fromMap = stored?.dozenCosts && typeof stored.dozenCosts === "object" ? stored.dozenCosts : null;
+  // Migrate legacy single dozenCost → all SKUs
+  let legacy = stored?.dozenCost != null ? Number(stored.dozenCost) : null;
+  if (Number.isFinite(legacy) && legacy > 0 && legacy < 30) {
+    legacy = Math.round(legacy * DOZENS_PER_CASE * 100) / 100;
+  }
+  const out = {};
+  for (const key of DOZEN_KEYS) {
+    const n = Number(fromMap?.[key]);
+    if (Number.isFinite(n) && n >= 0) {
+      out[key] = Math.round(n * 100) / 100;
+    } else if (Number.isFinite(legacy) && legacy >= 0) {
+      out[key] = legacy;
+    } else {
+      out[key] = defaults[key];
+    }
+  }
+  return out;
+}
+
+/** Suggested whole-dollar sell for one dozen from its case cost (15 packs). */
+function suggestDozenSell(caseCost) {
+  const per = Number(caseCost) / DOZENS_PER_CASE;
+  if (!Number.isFinite(per) || per < 0) return 1;
+  return Math.max(1, Math.round(per + 1));
+}
+
 async function getSettings(env) {
   const stored = (await env.DATA.get("settings", "json")) || {};
   const prices = { ...DEFAULT_SETTINGS.prices, ...(stored.prices || {}) };
@@ -286,18 +319,12 @@ async function getSettings(env) {
       if (Number.isFinite(unit) && unit > 0) prices[caseKey] = Math.round(unit * DOZENS_PER_CASE);
     }
   }
-  // Migrate old per-dozen cost (e.g. $5) → wholesale case cost of 15 packs
-  let dozenCost = stored.dozenCost != null ? Number(stored.dozenCost) : DEFAULT_SETTINGS.dozenCost;
-  if (Number.isFinite(dozenCost) && dozenCost > 0 && dozenCost < 30) {
-    dozenCost = Math.round(dozenCost * DOZENS_PER_CASE * 100) / 100;
-  } else if (!Number.isFinite(dozenCost) || dozenCost < 0) {
-    dozenCost = DEFAULT_SETTINGS.dozenCost;
-  }
+  const dozenCosts = normalizeDozenCosts(stored);
   return {
     ...DEFAULT_SETTINGS,
     ...stored,
     prices,
-    dozenCost,
+    dozenCosts,
     pickup: Object.fromEntries(
       WEEK_DAYS.map((d) => [d, cleanPickupDay((stored.pickup || {})[d], DEFAULT_SETTINGS.pickup[d])])
     ),
@@ -328,6 +355,13 @@ async function handleApi(request, env, url) {
     }
     // Legendary exception: $13 single tray → $69 full box
     if (Number(prices.tray1) === 13) prices.box = 69;
+    const dozenCosts = { ...current.dozenCosts };
+    if (body?.dozenCosts && typeof body.dozenCosts === "object") {
+      for (const key of DOZEN_KEYS) {
+        const n = Number(body.dozenCosts[key]);
+        if (Number.isFinite(n) && n >= 0) dozenCosts[key] = Math.round(n * 100) / 100;
+      }
+    }
     const next = {
       prices,
       traysAvailable: Number.isFinite(Number(body?.traysAvailable))
@@ -342,9 +376,7 @@ async function handleApi(request, env, url) {
       boxCost: Number.isFinite(Number(body?.boxCost))
         ? Math.max(0, Number(body.boxCost))
         : (current.boxCost ?? 55),
-      dozenCost: Number.isFinite(Number(body?.dozenCost))
-        ? Math.max(0, Number(body.dozenCost))
-        : (current.dozenCost ?? 75),
+      dozenCosts,
       pickup: Object.fromEntries(
         WEEK_DAYS.map((d) => [d, cleanPickupDay((body?.pickup || {})[d], current.pickup[d])])
       ),
@@ -1045,7 +1077,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 
     <div class="card">
       <h2>Prices &amp; stock</h2>
-      <p class="hint" style="margin-bottom:10px">Trays and dozens use <b>separate</b> price maths. Change a tray price or box cost → trays update. Change a dozen price or dozen cost → dozens update.</p>
+      <p class="hint" style="margin-bottom:10px">Trays keep their own ratio maths. Dozen packs: enter <b>case cost per product</b> — each row suggests a sell price for that item only.</p>
       <h2 style="font-size:16px;margin:0 0 8px">Trays (30 eggs)</h2>
       <div class="grid2">
         <div><label>1 tray ($)</label><input id="p1" type="number" min="1" step="1"></div>
@@ -1064,26 +1096,35 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
       </div>
       <p class="hint" id="price-hint">Tray ratio 12 : 23 : 66 from box cost. Exception: $13 tray → $69 box.</p>
 
-      <h2 style="font-size:16px;margin:18px 0 8px">Dozen packs (12 eggs) · cases of 15</h2>
-      <p class="hint" style="margin-bottom:10px">Hidden on the website until <b>dozen packs available</b> is above 0. Set case cost + sell prices here first, then stock them to go live.</p>
+      <h2 style="font-size:16px;margin:18px 0 8px">Dozen packs — cost per case (15 packs)</h2>
+      <p class="hint" style="margin-bottom:10px">Enter what <b>you pay for one case</b> of each product. We show cost per dozen and a suggested sell price for <b>that item only</b> (no linking between sizes). Hidden on the website until stock &gt; 0.</p>
+      <div style="overflow-x:auto;margin-bottom:10px">
+        <table class="cost-table" id="dozen-cost-table" style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="text-align:left;color:var(--muted)">
+              <th style="padding:6px 8px">Product</th>
+              <th style="padding:6px 8px">Case cost ($)</th>
+              <th style="padding:6px 8px">Cost / dozen</th>
+              <th style="padding:6px 8px">Sell / dozen ($)</th>
+              <th style="padding:6px 8px">Profit / dozen</th>
+              <th style="padding:6px 8px">Case sell (15×)</th>
+            </tr>
+          </thead>
+          <tbody id="dozen-cost-body"></tbody>
+        </table>
+      </div>
       <div class="grid2">
-        <div><label>Cage 600g ($)</label><input id="p-cage600" type="number" min="1" step="1"></div>
-        <div><label>Cage 700g ($)</label><input id="p-cage700" type="number" min="1" step="1"></div>
-        <div><label>Cage 800g ($)</label><input id="p-cage800" type="number" min="1" step="1"></div>
-        <div><label>FR 600g ($)</label><input id="p-fr600" type="number" min="1" step="1"></div>
-        <div><label>FR 700g ($)</label><input id="p-fr700" type="number" min="1" step="1"></div>
-        <div><label>FR 800g ($)</label><input id="p-fr800" type="number" min="1" step="1"></div>
-        <div><label>Case cost — 15 dozen packs ($)</label><input id="dozen-cost" type="number" min="0" step="1" value="75" title="What you pay for one wholesale case of 15 dozen cartons. Per-dozen cost = case ÷ 15."></div>
         <div><label>Dozen packs available</label><input id="dozen-stock" type="number" min="0" step="1" value="0" title="Cartons in stock this week. 0 hides dozen packs from the public website."></div>
       </div>
-      <p class="hint" id="dozen-hint">Case = 15 dozens. Sell prices ratio-lock; case sell = 15 × dozen sell.</p>
-      <div class="grid2" style="margin-top:8px">
-        <div><label>Cage 600g case ($)</label><input id="p-cage600case" type="number" min="1" step="1"></div>
-        <div><label>Cage 700g case ($)</label><input id="p-cage700case" type="number" min="1" step="1"></div>
-        <div><label>Cage 800g case ($)</label><input id="p-cage800case" type="number" min="1" step="1"></div>
-        <div><label>FR 600g case ($)</label><input id="p-fr600case" type="number" min="1" step="1"></div>
-        <div><label>FR 700g case ($)</label><input id="p-fr700case" type="number" min="1" step="1"></div>
-        <div><label>FR 800g case ($)</label><input id="p-fr800case" type="number" min="1" step="1"></div>
+      <p class="hint" id="dozen-hint">Suggested sell = round(case ÷ 15) + $1, whole dollars. Edit sell freely per row.</p>
+      <!-- hidden fields kept for save/load compatibility -->
+      <div style="display:none" aria-hidden="true">
+        <input id="p-cage600" type="number"><input id="p-cage700" type="number"><input id="p-cage800" type="number">
+        <input id="p-fr600" type="number"><input id="p-fr700" type="number"><input id="p-fr800" type="number">
+        <input id="p-cage600case" type="number"><input id="p-cage700case" type="number"><input id="p-cage800case" type="number">
+        <input id="p-fr600case" type="number"><input id="p-fr700case" type="number"><input id="p-fr800case" type="number">
+        <input id="c-cage600" type="number"><input id="c-cage700" type="number"><input id="c-cage800" type="number">
+        <input id="c-fr600" type="number"><input id="c-fr700" type="number"><input id="c-fr800" type="number">
       </div>
 
       <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
@@ -1693,10 +1734,14 @@ async function loadSettings() {
   $("p1").value = s.prices.tray1;
   $("p2").value = s.prices.tray2;
   $("p3").value = s.prices.box;
-  ["cage600","cage700","cage800","fr600","fr700","fr800",
-   "cage600case","cage700case","cage800case","fr600case","fr700case","fr800case"].forEach(function(k) {
+  DOZEN_KEYS.forEach(function(k) {
     const el = $("p-" + k);
     if (el && s.prices[k] != null) el.value = s.prices[k];
+    const cel = $("p-" + k + "case");
+    if (cel) cel.value = s.prices[k + "case"] != null ? s.prices[k + "case"] : Math.round(Number(s.prices[k] || 0) * DOZENS_IN_CASE);
+    const costEl = $("c-" + k);
+    const cost = s.dozenCosts && s.dozenCosts[k] != null ? s.dozenCosts[k] : (DOZEN_COST_DEFAULTS[k] || 75);
+    if (costEl) costEl.value = cost;
   });
   $("stock").value = s.traysAvailable;
   window.TRAYS_LEFT = s.traysAvailable;
@@ -1704,21 +1749,26 @@ async function loadSettings() {
   if (stat) stat.textContent = s.traysAvailable;
   $("tray-weight").value = s.trayWeight || "1.75";
   if (s.boxCost != null && $("box-cost")) $("box-cost").value = s.boxCost;
-  if (s.dozenCost != null && $("dozen-cost")) $("dozen-cost").value = s.dozenCost;
   if ($("dozen-stock")) $("dozen-stock").value = s.dozensAvailable != null ? s.dozensAvailable : 0;
   PICKUP = s.pickup || {};
   renderDays();
   updatePriceHint();
-  updateDozenHint();
+  renderDozenCostTable();
 }
 
-// Trays: 12 : 23 : 66 from $55 box cost. Dozens: 6:7:8 cage + 8:9:10 FR from $5 dozen cost.
+// Trays: 12 : 23 : 66 from $55 box cost. Dozens: each SKU has its own case cost.
 const PRICE_RATIO = { tray1: 12, tray2: 23, box: 66 };
-const DOZEN_RATIO = { cage600: 6, cage700: 7, cage800: 8, fr600: 8, fr700: 9, fr800: 10 };
+const DOZEN_KEYS = ["cage600", "cage700", "cage800", "fr600", "fr700", "fr800"];
+const DOZEN_LABELS = {
+  cage600: "Cage 600g", cage700: "Cage 700g", cage800: "Cage 800g",
+  fr600: "Free range 600g", fr700: "Free range 700g", fr800: "Free range 800g",
+};
+const DOZEN_COST_DEFAULTS = {
+  cage600: 75, cage700: 75, cage800: 75,
+  fr600: 90, fr700: 90, fr800: 90,
+};
 const BASE_BOX_COST = 55;
-const BASE_CASE_COST = 75; // 15 dozens @ $5 each wholesale baseline
 const DOZENS_IN_CASE = 15;
-const BASE_DOZEN_COST = BASE_CASE_COST; // stored field is case cost
 let SYNCING_PRICES = false;
 
 function roundMoney(n) {
@@ -1729,6 +1779,13 @@ function money(n) {
   if (!Number.isFinite(n)) return "–";
   const r = Math.round(n * 100) / 100;
   return "$" + (r % 1 ? r.toFixed(2) : String(r));
+}
+
+/** Suggested sell for one dozen from that product's case cost only. */
+function suggestDozenSell(caseCost) {
+  const per = Number(caseCost) / DOZENS_IN_CASE;
+  if (!Number.isFinite(per) || per < 0) return 1;
+  return Math.max(1, Math.round(per + 1));
 }
 
 function pricesFromTrayAnchor(which, value) {
@@ -1762,44 +1819,6 @@ function applyTrayExceptions(prices) {
   return prices;
 }
 
-function pricesFromDozenAnchor(which, value) {
-  const v = Number(value);
-  // Allow anchoring from a case field too (e.g. cage700case)
-  let key = which;
-  let anchor = v;
-  if (String(which).endsWith("case")) {
-    key = String(which).replace(/case$/, "");
-    anchor = v / DOZENS_IN_CASE;
-  }
-  if (!Number.isFinite(anchor) || anchor <= 0 || !DOZEN_RATIO[key]) return null;
-  const scale = anchor / DOZEN_RATIO[key];
-  const out = {};
-  Object.keys(DOZEN_RATIO).forEach(function(k) { out[k] = roundMoney(DOZEN_RATIO[k] * scale); });
-  return attachCasePrices(out);
-}
-
-function pricesFromDozenCost(caseCost) {
-  const c = Number(caseCost);
-  if (!Number.isFinite(c) || c < 0) return null;
-  // Case of 15 dozens → scale from baseline $75 case
-  const scale = c / BASE_CASE_COST;
-  const out = {};
-  Object.keys(DOZEN_RATIO).forEach(function(k) {
-    out[k] = roundMoney(DOZEN_RATIO[k] * scale);
-    out[k + "case"] = roundMoney(out[k] * DOZENS_IN_CASE);
-  });
-  return out;
-}
-
-function attachCasePrices(dozenPrices) {
-  if (!dozenPrices) return null;
-  const out = Object.assign({}, dozenPrices);
-  Object.keys(DOZEN_RATIO).forEach(function(k) {
-    if (out[k] != null) out[k + "case"] = roundMoney(Number(out[k]) * DOZENS_IN_CASE);
-  });
-  return out;
-}
-
 function applyTrayPrices(next) {
   if (!next) return;
   SYNCING_PRICES = true;
@@ -1808,20 +1827,6 @@ function applyTrayPrices(next) {
   $("p3").value = next.box;
   SYNCING_PRICES = false;
   updatePriceHint();
-}
-
-function applyDozenPrices(next) {
-  if (!next) return;
-  next = attachCasePrices(next);
-  SYNCING_PRICES = true;
-  Object.keys(DOZEN_RATIO).forEach(function(k) {
-    const el = $("p-" + k);
-    if (el && next[k] != null) el.value = next[k];
-    const cel = $("p-" + k + "case");
-    if (cel && next[k + "case"] != null) cel.value = next[k + "case"];
-  });
-  SYNCING_PRICES = false;
-  updateDozenHint();
 }
 
 function updatePriceHint() {
@@ -1838,31 +1843,102 @@ function updatePriceHint() {
   el.innerHTML = "Trays · net vs " + money(cost) + " box: <b>1 tray " + money(p1 - c1) + "</b> · <b>2 trays " + money(p2 - c1 * 2) + "</b> · <b>box " + money(p3 - cost) + "</b>" + legend;
 }
 
+function syncHiddenDozenFields(key) {
+  const sell = +(($("p-" + key) && $("p-" + key).value) || 0);
+  const caseEl = $("p-" + key + "case");
+  if (caseEl && sell > 0) caseEl.value = String(Math.round(sell * DOZENS_IN_CASE));
+}
+
+function updateDozenRow(key) {
+  const cost = +(($("c-" + key) && $("c-" + key).value) || 0);
+  const sell = +(($("p-" + key) && $("p-" + key).value) || 0);
+  const per = cost / DOZENS_IN_CASE;
+  const perEl = $("per-" + key);
+  const profitEl = $("profit-" + key);
+  const caseSellEl = $("casesell-" + key);
+  if (perEl) perEl.textContent = money(per);
+  if (profitEl) {
+    const profit = sell - per;
+    profitEl.textContent = money(profit);
+    profitEl.style.color = profit >= 0 ? "var(--green)" : "#b42318";
+  }
+  if (caseSellEl) caseSellEl.textContent = sell > 0 ? money(sell * DOZENS_IN_CASE) : "–";
+  syncHiddenDozenFields(key);
+  updateDozenHint();
+}
+
+function onDozenCostInput(key) {
+  if (SYNCING_PRICES) return;
+  const cost = +(($("c-" + key) && $("c-" + key).value) || 0);
+  const suggested = suggestDozenSell(cost);
+  SYNCING_PRICES = true;
+  if ($("p-" + key)) $("p-" + key).value = String(suggested);
+  const sellInput = document.querySelector('input[data-dozen-sell="' + key + '"]');
+  if (sellInput) sellInput.value = String(suggested);
+  SYNCING_PRICES = false;
+  updateDozenRow(key);
+}
+
+function onDozenSellInput(key, value) {
+  if (SYNCING_PRICES) return;
+  const sell = Math.max(1, Math.round(Number(value) || 0));
+  if ($("p-" + key)) $("p-" + key).value = String(sell);
+  updateDozenRow(key);
+}
+
+function renderDozenCostTable() {
+  const body = $("dozen-cost-body");
+  if (!body) return;
+  body.innerHTML = DOZEN_KEYS.map(function(key) {
+    const cost = +(($("c-" + key) && $("c-" + key).value) || DOZEN_COST_DEFAULTS[key] || 75);
+    const sell = +(($("p-" + key) && $("p-" + key).value) || suggestDozenSell(cost));
+    if ($("c-" + key)) $("c-" + key).value = cost;
+    if ($("p-" + key)) $("p-" + key).value = sell;
+    syncHiddenDozenFields(key);
+    const per = cost / DOZENS_IN_CASE;
+    const profit = sell - per;
+    return (
+      '<tr data-dozen-row="' + key + '">' +
+        '<td style="padding:8px;font-weight:700">' + DOZEN_LABELS[key] + '</td>' +
+        '<td style="padding:8px"><input data-dozen-cost="' + key + '" type="number" min="0" step="1" value="' + cost + '" style="width:96px;margin:0"></td>' +
+        '<td style="padding:8px" id="per-' + key + '">' + money(per) + '</td>' +
+        '<td style="padding:8px"><input data-dozen-sell="' + key + '" type="number" min="1" step="1" value="' + sell + '" style="width:80px;margin:0"></td>' +
+        '<td style="padding:8px;font-weight:700;color:' + (profit >= 0 ? "var(--green)" : "#b42318") + '" id="profit-' + key + '">' + money(profit) + '</td>' +
+        '<td style="padding:8px;color:var(--muted)" id="casesell-' + key + '">' + money(sell * DOZENS_IN_CASE) + '</td>' +
+      '</tr>'
+    );
+  }).join("");
+
+  body.querySelectorAll("[data-dozen-cost]").forEach(function(input) {
+    const key = input.getAttribute("data-dozen-cost");
+    input.addEventListener("input", function() {
+      if ($("c-" + key)) $("c-" + key).value = input.value;
+      onDozenCostInput(key);
+    });
+  });
+  body.querySelectorAll("[data-dozen-sell]").forEach(function(input) {
+    const key = input.getAttribute("data-dozen-sell");
+    input.addEventListener("input", function() {
+      onDozenSellInput(key, input.value);
+    });
+  });
+  updateDozenHint();
+}
+
 function updateDozenHint() {
   const el = $("dozen-hint");
   if (!el) return;
-  const caseCost = +(($("dozen-cost") && $("dozen-cost").value) || BASE_CASE_COST);
-  const per = caseCost / DOZENS_IN_CASE;
-  const p700 = +(($("p-cage700") && $("p-cage700").value) || 0);
-  const pfr = +(($("p-fr700") && $("p-fr700").value) || 0);
-  const c700 = +(($("p-cage700case") && $("p-cage700case").value) || 0);
   const stock = +(($("dozen-stock") && $("dozen-stock").value) || 0);
   const live = stock > 0
-    ? (' · <b style="color:var(--green)">live on website (' + stock + ' packs)</b>')
-    : ' · <b style="color:var(--muted)">hidden on website (stock 0)</b>';
-  el.innerHTML = "Case " + money(caseCost) + " ÷ 15 = " + money(per) + "/dozen · net <b>cage 700g " + money(p700 - per) + "</b> · case sell <b>" + money(c700) + "</b> · FR 700g <b>" + money(pfr - per) + "</b>" + live;
+    ? ('<b style="color:var(--green)">Live on website · ' + stock + ' packs in stock</b>')
+    : '<b style="color:var(--muted)">Hidden on website · set stock above 0 to publish</b>';
+  el.innerHTML = "Each row is independent. Suggested sell = round(case ÷ 15) + $1. " + live;
 }
 
 function onTrayPriceInput(which) {
   if (SYNCING_PRICES) return;
   const val = which === "tray1" ? $("p1").value : which === "tray2" ? $("p2").value : $("p3").value;
   applyTrayPrices(pricesFromTrayAnchor(which, val));
-}
-
-function onDozenPriceInput(which) {
-  if (SYNCING_PRICES) return;
-  const el = $("p-" + which);
-  applyDozenPrices(pricesFromDozenAnchor(which, el && el.value));
 }
 
 $("p1") && $("p1").addEventListener("input", function() { onTrayPriceInput("tray1"); });
@@ -1872,19 +1948,14 @@ $("box-cost") && $("box-cost").addEventListener("input", function() {
   if (SYNCING_PRICES) return;
   applyTrayPrices(pricesFromBoxCost($("box-cost").value));
 });
-Object.keys(DOZEN_RATIO).forEach(function(k) {
-  const el = $("p-" + k);
-  if (el) el.addEventListener("input", function() { onDozenPriceInput(k); });
-  const cel = $("p-" + k + "case");
-  if (cel) cel.addEventListener("input", function() { onDozenPriceInput(k + "case"); });
-});
-$("dozen-cost") && $("dozen-cost").addEventListener("input", function() {
-  if (SYNCING_PRICES) return;
-  applyDozenPrices(pricesFromDozenCost($("dozen-cost").value));
-});
 $("dozen-stock") && $("dozen-stock").addEventListener("input", updateDozenHint);
 
 async function saveSettings() {
+  const dozenCosts = {};
+  DOZEN_KEYS.forEach(function(k) {
+    dozenCosts[k] = +(($("c-" + k) && $("c-" + k).value) || 0);
+    syncHiddenDozenFields(k);
+  });
   const body = {
     prices: {
       tray1: +$("p1").value, tray2: +$("p2").value, box: +$("p3").value,
@@ -1896,7 +1967,7 @@ async function saveSettings() {
     traysAvailable: +$("stock").value,
     trayWeight: $("tray-weight").value,
     boxCost: +(($("box-cost") && $("box-cost").value) || BASE_BOX_COST),
-    dozenCost: +(($("dozen-cost") && $("dozen-cost").value) || BASE_DOZEN_COST),
+    dozenCosts: dozenCosts,
     dozensAvailable: +(($("dozen-stock") && $("dozen-stock").value) || 0),
     pickup: collectDayRows(),
   };
