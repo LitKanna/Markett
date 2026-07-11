@@ -420,7 +420,17 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 .lane-head span { font-size:11px; font-weight:800; color:var(--muted); }
 .lane.waiting .lane-head { background:var(--yellow); }
 .lane.waiting .lane-head span { color:var(--ink); }
-.lane-body { padding:0; }
+.lane-body {
+  padding:0;
+  max-height: min(420px, 52vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) var(--canvas);
+}
+.lane-body::-webkit-scrollbar { width: 8px; }
+.lane-body::-webkit-scrollbar-thumb { background: var(--ink); }
+.lane-body::-webkit-scrollbar-track { background: var(--canvas); }
 .lane-empty { padding:18px 12px; color:var(--muted); font-size:13px; }
 
 .day-group { border-bottom:1px solid var(--line); }
@@ -1139,7 +1149,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "82",
+          "X-Yolko-Admin": "83",
         },
       });
     }
