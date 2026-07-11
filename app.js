@@ -44,6 +44,35 @@ let lastOrderId = null;
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/* ---------- Hero / order tray image auto-rotate ---------- */
+function initImageRotators() {
+  if (reducedMotion) return;
+
+  document.querySelectorAll("[data-rotator]").forEach((root) => {
+    const slides = [...root.querySelectorAll(".showcase-photo, .order-tray-photo")];
+    if (slides.length < 2) return;
+
+    let index = slides.findIndex((slide) => slide.classList.contains("is-active"));
+    if (index < 0) {
+      index = 0;
+      slides[0].classList.add("is-active");
+    }
+
+    const intervalMs = root.dataset.rotator === "order" ? 5200 : 4200;
+    const offsetMs = root.dataset.rotator === "order" ? 1800 : 0;
+
+    window.setTimeout(() => {
+      window.setInterval(() => {
+        slides[index].classList.remove("is-active");
+        index = (index + 1) % slides.length;
+        slides[index].classList.add("is-active");
+      }, intervalMs);
+    }, offsetMs);
+  });
+}
+
+initImageRotators();
+
 /* ---------- Ticker: always covers the screen, loops seamlessly ---------- */
 const TICKER_ITEMS = [
   "Fresh eggs every week",
