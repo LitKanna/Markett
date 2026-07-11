@@ -1347,18 +1347,21 @@ h3 {
 }
 
 .faq summary::after {
-  content: "↘";
+  content: "";
   position: absolute;
-  right: 4px;
+  right: 2px;
   top: 50%;
-  color: var(--orange);
-  font-size: 24px;
+  width: 16px;
+  height: 16px;
   transform: translateY(-50%);
+  background:
+    linear-gradient(var(--ink), var(--ink)) center / 16px 1.5px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) center / 1.5px 16px no-repeat;
   transition: transform 220ms var(--ease);
 }
 
 .faq details[open] summary::after {
-  transform: translateY(-50%) rotate(90deg);
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .faq details p {
