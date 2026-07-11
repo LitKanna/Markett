@@ -1084,8 +1084,11 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
       <span class="brand-dot" aria-hidden="true"></span>
       <span class="brand-name">YOLKO</span>
     </a>
-    <div><small>Admin</small></div>
-    <button class="ghost out" id="signout" onclick="logout()" style="display:none">Sign out</button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <small>Admin</small>
+      <a id="assets-link" href="/admin/assets" class="ghost" style="display:none;min-height:36px;padding:6px 12px;font-size:12px;text-decoration:none;align-items:center">Assets</a>
+      <button class="ghost out" id="signout" onclick="logout()" style="display:none">Sign out</button>
+    </div>
   </div>
 
   <div class="card login" id="login-card">
@@ -2030,6 +2033,8 @@ async function boot() {
   $("login-card").style.display = "none";
   $("panel").style.display = "block";
   $("signout").style.display = "inline-flex";
+  const assetsLink = $("assets-link");
+  if (assetsLink) assetsLink.style.display = "inline-flex";
   loadSettings();
   loadOrders();
   setInterval(loadOrders, 30000);
@@ -2059,7 +2064,30 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "96",
+          "X-Yolko-Admin": "101",
+        },
+      });
+    }
+
+    // Asset browser for signed-in admin (HTML soft-gates on ADMIN_KEY)
+    if (url.pathname === "/admin/assets" || url.pathname === "/admin/assets/") {
+      const upstream = await fetch(`${UPSTREAM_LIVE}/assets-gallery.html?_${Date.now()}`, {
+        headers: { "User-Agent": "yolko-edge" },
+        cf: { cacheTtl: 0 },
+      });
+      if (!upstream.ok) {
+        return new Response("Asset gallery not found — redeploy after committing assets-gallery.html", {
+          status: 404,
+          headers: { "Content-Type": "text/plain; charset=utf-8", "X-Robots-Tag": "noindex" },
+        });
+      }
+      return new Response(upstream.body, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "X-Robots-Tag": "noindex",
+          "Cache-Control": "no-store, max-age=0",
+          "X-Yolko-Admin-Assets": "101",
         },
       });
     }
