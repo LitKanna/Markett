@@ -354,7 +354,7 @@ body { margin:0; font-family:var(--body); background:var(--canvas); color:var(--
 
 @media (min-width:760px) {
   .wrap { max-width:920px; padding:26px 24px 80px; }
-  #orders { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; }
+  #orders { display:flex; flex-direction:column; gap:0; }
   .stat b { font-size:26px; }
   .card { padding:26px 24px; }
 }
@@ -363,7 +363,7 @@ body { margin:0; font-family:var(--body); background:var(--canvas); color:var(--
   .cols { display:grid; grid-template-columns:1.55fr 1fr; gap:18px; align-items:start; }
   .cols > .card { margin-bottom:0; }
   .cols > .card:last-child { position:sticky; top:18px; }
-  #orders { grid-template-columns:repeat(auto-fill, minmax(265px,1fr)); }
+  #orders { display:flex; flex-direction:column; gap:0; }
   .top .brand-name { font-size:28px; }
   h2 { font-size:22px; }
 }
@@ -391,17 +391,31 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 .toast { position:fixed; left:50%; bottom:22px; transform:translate(-50%,16px); z-index:300; max-width:90vw; padding:12px 18px; background:var(--ink); color:var(--paper); font-weight:700; font-size:13.5px; border-radius:0; box-shadow:6px 6px 0 var(--yellow); opacity:0; transition:opacity .3s ease, transform .3s ease; }
 .toast.show { opacity:1; transform:translate(-50%,0); }
 
-.order { border:1px solid var(--line); border-radius:0; padding:14px; margin-bottom:10px; background:var(--paper); }
-.order.prio { background:#fffdf2; border-color:var(--ink); box-shadow:4px 4px 0 var(--yellow); }
-.order.sus { border-color:var(--orange); }
-.o-top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
-.o-name { font-weight:800; font-size:16px; }
-.o-price { font-family:var(--display); font-weight:800; font-size:22px; color:var(--orange); letter-spacing:-.03em; }
-.o-time { font-size:12px; color:var(--muted); margin:2px 0 8px; }
-.o-what { font-weight:700; font-size:14.5px; margin-bottom:10px; }
+.orders-toolbar { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.filter-chip {
+  min-height:36px; padding:0 12px; border:1px solid var(--line); background:var(--paper); color:var(--muted);
+  font:inherit; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.04em; cursor:pointer;
+}
+.filter-chip b { font-family:var(--display); margin-left:6px; color:var(--ink); }
+.filter-chip.on { background:var(--ink); border-color:var(--ink); color:var(--paper); }
+.filter-chip.on b { color:var(--yellow); }
+#orders { display:flex; flex-direction:column; gap:0; border-top:1px solid var(--ink); }
+.order {
+  display:grid; grid-template-columns:1fr auto; gap:8px 16px; align-items:center;
+  padding:14px 0; border-bottom:1px solid var(--line); background:transparent; border-left:0; border-right:0; border-radius:0;
+}
+.order.prio { background:transparent; box-shadow:none; border-bottom-color:var(--ink); }
+.order.sus { background:rgba(246,83,47,.04); }
+.order.done-row, .order.cancelled-row { opacity:.55; }
+.o-main { min-width:0; }
+.o-top { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin:0; }
+.o-name { font-weight:800; font-size:15px; }
+.o-price { font-family:var(--display); font-weight:800; font-size:18px; color:var(--orange); letter-spacing:-.03em; margin-left:auto; }
+.o-time { display:none; }
+.o-what { font-weight:600; font-size:13px; color:var(--muted); margin:4px 0 0; }
 .o-what span { font-weight:600; color:var(--muted); }
-.o-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
-.pill { display:inline-block; padding:4px 10px; border-radius:0; font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; border:1px solid transparent; }
+.o-tags { display:flex; flex-wrap:wrap; gap:5px; margin:8px 0 0; }
+.pill { display:inline-block; padding:3px 8px; border-radius:0; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; border:1px solid transparent; }
 .pill.new { background:var(--yellow); color:var(--ink); }
 .pill.confirmed { background:var(--blue-soft); color:var(--blue); }
 .pill.done { background:var(--green-soft); color:var(--green); }
@@ -410,9 +424,16 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 .pill.day { background:transparent; color:var(--ink); border-color:var(--line); }
 .pill.warn { background:var(--warn); color:var(--ink); border-color:var(--orange); }
 .pill.meta { background:transparent; color:var(--muted); font-weight:700; text-transform:none; letter-spacing:0; }
-.o-meta { font-size:12px; color:var(--muted); margin:0 0 10px; word-break:break-all; }
-.o-actions { display:flex; flex-wrap:wrap; gap:8px; }
-.o-actions a, .o-actions button { flex:1 1 auto; min-width:0; }
+.o-meta { font-size:11px; color:var(--muted); margin:6px 0 0; word-break:break-all; }
+.o-side { display:flex; flex-direction:column; align-items:stretch; gap:6px; min-width:148px; }
+.o-actions { display:flex; flex-wrap:wrap; gap:6px; margin:0; }
+.o-actions a, .o-actions button { flex:1 1 auto; min-width:0; min-height:36px; padding:7px 10px; font-size:12px; }
+.callbtn { min-width:100%; }
+@media (max-width:640px) {
+  .order { grid-template-columns:1fr; }
+  .o-side { min-width:0; }
+  .o-price { margin-left:0; }
+}
 
 button, .callbtn {
   display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 14px;
@@ -520,10 +541,13 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
     <div class="cols">
     <div class="col-left">
     <div class="card">
-      <h2>Orders</h2>
+      <div class="topline">
+        <h2>Orders</h2>
+        <button class="ghost" onclick="loadOrders()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
+      </div>
+      <div class="orders-toolbar" id="order-filters"></div>
       <div id="orders"></div>
-      <p class="empty" id="empty" style="display:none">No orders yet. Share getyolko.com to get your first booking!</p>
-      <button class="ghost refresh" onclick="loadOrders()">Refresh orders</button>
+      <p class="empty" id="empty" style="display:none">No orders in this view.</p>
     </div>
 
     <div class="card">
@@ -666,15 +690,24 @@ function fmtTime(iso) {
 
 function fmtPhone(p) { return p.replace(/(\\d{4})(\\d{3})(\\d{3})/, "$1 $2 $3"); }
 
+let ALL_ORDERS = [];
+let ORDER_FILTER = localStorage.getItem("yolko_order_filter") || "active";
+
 async function loadOrders() {
   const res = await fetch("/api/orders", { headers: authHeaders() });
   if (!res.ok) return;
   const { orders } = await res.json();
 
   orders.sort((a, b) => {
-    const rank = (o) => o.status === "cancelled" ? 2 : (o.paymentStatus === "paid" ? 0 : 1);
+    const rank = (o) => {
+      if (o.status === "cancelled") return 4;
+      if (o.status === "done") return 3;
+      if (o.status === "confirmed") return 1;
+      return o.paymentStatus === "paid" ? 0 : 2;
+    };
     return rank(a) - rank(b) || b.createdAt.localeCompare(a.createdAt);
   });
+  ALL_ORDERS = orders;
 
   const active = orders.filter(o => o.status !== "cancelled");
   const revenue = active.filter(o => o.status !== "new").reduce((s, o) => s + (o.price || 0), 0);
@@ -687,28 +720,77 @@ async function loadOrders() {
     '<div class="stat"><b>$' + revenue + '</b><span>confirmed</span></div>' +
     '<div class="stat"><b>$' + paidOnline + '</b><span>paid online</span></div>';
 
-  $("orders").innerHTML = orders.map(o => {
+  renderOrderFilters();
+  renderOrderList();
+  renderBuyers(orders);
+}
+
+function filterOrders(list, filter) {
+  if (filter === "active") return list.filter(o => o.status === "new" || o.status === "confirmed");
+  if (filter === "all") return list;
+  return list.filter(o => o.status === filter);
+}
+
+function renderOrderFilters() {
+  const counts = {
+    active: ALL_ORDERS.filter(o => o.status === "new" || o.status === "confirmed").length,
+    new: ALL_ORDERS.filter(o => o.status === "new").length,
+    confirmed: ALL_ORDERS.filter(o => o.status === "confirmed").length,
+    done: ALL_ORDERS.filter(o => o.status === "done").length,
+    cancelled: ALL_ORDERS.filter(o => o.status === "cancelled").length,
+    all: ALL_ORDERS.length,
+  };
+  const tabs = [
+    ["active", "Active"],
+    ["new", "Waiting"],
+    ["confirmed", "Confirmed"],
+    ["done", "Done"],
+    ["cancelled", "Cancelled"],
+    ["all", "All"],
+  ];
+  $("order-filters").innerHTML = tabs.map(function(tab) {
+    const key = tab[0], label = tab[1];
+    return '<button type="button" class="filter-chip' + (ORDER_FILTER === key ? ' on' : '') + '" data-filter="' + key + '">' +
+      label + '<b>' + counts[key] + '</b></button>';
+  }).join("");
+}
+
+document.addEventListener("click", function(e) {
+  const chip = e.target.closest("#order-filters .filter-chip");
+  if (!chip) return;
+  ORDER_FILTER = chip.dataset.filter;
+  localStorage.setItem("yolko_order_filter", ORDER_FILTER);
+  renderOrderFilters();
+  renderOrderList();
+});
+
+function renderOrderList() {
+  const orders = filterOrders(ALL_ORDERS, ORDER_FILTER);
+  $("orders").innerHTML = orders.map(function(o) {
     const prio = o.paymentStatus === "paid" && o.status !== "cancelled";
-    const signals = orderSignals(o, orders);
-    return '<div class="order' + (prio ? ' prio' : '') + (signals.suspicious ? ' sus' : '') + '">' +
-      '<div class="o-top"><span class="o-name">' + escapeHtml(o.name) + '</span><span class="o-price">$' + o.price + '</span></div>' +
-      '<div class="o-time">' + fmtTime(o.createdAt) + '</div>' +
-      '<div class="o-what">' + describeOrder(o.bundle, o.quantity) + ' <span>· pickup ' + o.pickupDay + (o.pickupDate ? ' ' + o.pickupDate : '') + '</span></div>' +
-      (signals.metaLine ? '<div class="o-meta">' + escapeHtml(signals.metaLine) + '</div>' : '') +
-      '<div class="o-tags">' +
-        '<span class="pill ' + o.status + '">' + o.status + '</span>' +
-        '<span class="pill day">uses ' + traysFor(o) + (traysFor(o) === 1 ? ' tray' : ' trays') + '</span>' +
-        (prio ? '<span class="pill paid">&#9889; paid · priority</span>' : '') +
-        signals.tags.map(function(t) { return '<span class="pill ' + t.cls + '">' + escapeHtml(t.text) + '</span>'; }).join('') +
+    const signals = orderSignals(o, ALL_ORDERS);
+    const pickup = o.pickupDay + (o.pickupDate ? " " + o.pickupDate : "");
+    return '<div class="order' + (prio ? ' prio' : '') + (signals.suspicious ? ' sus' : '') +
+      (o.status === "done" ? ' done-row' : '') + (o.status === "cancelled" ? ' cancelled-row' : '') + '">' +
+      '<div class="o-main">' +
+        '<div class="o-top">' +
+          '<span class="pill ' + o.status + '">' + o.status + '</span>' +
+          (prio ? '<span class="pill paid">paid</span>' : '') +
+          signals.tags.map(function(t) { return '<span class="pill ' + t.cls + '">' + escapeHtml(t.text) + '</span>'; }).join('') +
+          '<span class="o-name">' + escapeHtml(o.name) + '</span>' +
+          '<span class="o-price">$' + o.price + '</span>' +
+        '</div>' +
+        '<div class="o-what">' + describeOrder(o.bundle, o.quantity) +
+          ' <span>· ' + pickup + ' · ' + fmtTime(o.createdAt) + '</span></div>' +
+        (signals.metaLine ? '<div class="o-meta">' + escapeHtml(signals.metaLine) + '</div>' : '') +
       '</div>' +
-      '<div class="o-actions">' +
-        '<a class="callbtn" href="tel:' + o.phone + '">Call ' + fmtPhone(o.phone) + '</a>' +
-        actionButtons(o) +
+      '<div class="o-side">' +
+        '<a class="callbtn" href="tel:' + o.phone + '">' + fmtPhone(o.phone) + '</a>' +
+        '<div class="o-actions">' + actionButtons(o) + '</div>' +
       '</div>' +
     '</div>';
   }).join("");
   $("empty").style.display = orders.length ? "none" : "block";
-  renderBuyers(orders);
 }
 
 const TEST_PHONES = { "0412345678": 1, "0498765432": 1 };
@@ -934,7 +1016,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "78",
+          "X-Yolko-Admin": "79",
         },
       });
     }
