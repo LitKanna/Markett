@@ -106,9 +106,10 @@ function traysFor(order) {
 }
 
 // Reserve or release stock as an order moves through statuses.
-// Confirmed and done orders hold stock; new and cancelled do not.
+// Paid customers always hold trays (unless cancelled). Confirmed/done also hold.
 async function syncStock(env, order, newStatus) {
-  const holds = ["confirmed", "done"].includes(newStatus);
+  const paid = order.paymentStatus === "paid";
+  const holds = newStatus !== "cancelled" && (paid || ["confirmed", "done"].includes(newStatus));
   let delta = 0;
 
   if (holds && !order.stockTaken) {
@@ -304,7 +305,8 @@ async function handleApi(request, env, url) {
       const order = await env.DATA.get(orderId, "json");
       if (order && order.paymentStatus !== "paid") {
         order.paymentStatus = "paid";
-        if (order.status === "new") order.status = "confirmed";
+        // Paid customers jump the queue: auto-confirm and allocate trays.
+        if (order.status === "new" || order.status === "cancelled") order.status = "confirmed";
         await syncStock(env, order, order.status);
         await env.DATA.put(orderId, JSON.stringify(order));
       }
@@ -450,8 +452,17 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 .o-right { text-align:right; }
 .o-price { display:block; font-family:var(--display); font-weight:800; font-size:15px; color:var(--orange); letter-spacing:-.03em; line-height:1.1; }
 .o-flag { display:block; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-top:2px; }
-.o-flag.paid { color:var(--green); }
 .o-flag.warn { color:var(--orange); }
+.o-name-row { display:flex; align-items:center; gap:6px; min-width:0; }
+.o-name-row .o-name { min-width:0; }
+.badge-paid {
+  flex-shrink:0; padding:2px 6px; background:var(--ink); color:var(--yellow);
+  font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+}
+.badge-line {
+  flex-shrink:0; padding:2px 6px; background:var(--yellow); color:var(--ink); border:1px solid var(--ink);
+  font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;
+}
 
 .o-detail {
   display:none; grid-column:1 / -1; gap:8px; padding:8px 0 4px;
@@ -594,7 +605,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <h2>Orders</h2>
         <button class="ghost" onclick="loadOrders()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
       </div>
-      <p class="orders-hint">Grouped by pickup day. Tap a row for call and status actions.</p>
+      <p class="orders-hint">Paid customers go first and get trays held automatically. Tap a row for actions.</p>
       <div id="orders"></div>
       <div id="orders-archive" class="archive"></div>
       <p class="empty" id="empty" style="display:none">No open orders.</p>
@@ -779,14 +790,45 @@ function pickupLabel(o) {
   return o.pickupDay || "Pickup TBD";
 }
 
+function isPaid(o) {
+  return o.paymentStatus === "paid" && o.status !== "cancelled";
+}
+
+function sortPaidFirst(a, b) {
+  const ap = isPaid(a) ? 0 : 1;
+  const bp = isPaid(b) ? 0 : 1;
+  return ap - bp || String(a.createdAt || "").localeCompare(String(b.createdAt || ""));
+}
+
+// Queue line numbers per pickup day: paid first, then other confirmed, in booking order.
+function assignLineNumbers(allOrders) {
+  const byDay = {};
+  allOrders.forEach(function(o) {
+    if (o.status === "cancelled" || o.status === "done") return;
+    if (!isPaid(o) && o.status !== "confirmed") return;
+    const k = pickupKey(o);
+    (byDay[k] = byDay[k] || []).push(o);
+  });
+  const lines = {};
+  Object.keys(byDay).forEach(function(k) {
+    byDay[k].sort(sortPaidFirst);
+    byDay[k].forEach(function(o, i) { lines[o.id] = i + 1; });
+  });
+  return lines;
+}
+
 function groupByPickup(list) {
   const map = {};
   list.forEach(function(o) {
     const k = pickupKey(o);
-    (map[k] = map[k] || { key: k, label: pickupLabel(o), orders: [], trays: 0 }).orders.push(o);
+    (map[k] = map[k] || { key: k, label: pickupLabel(o), orders: [], trays: 0, paid: 0 }).orders.push(o);
     map[k].trays += traysFor(o);
+    if (isPaid(o)) map[k].paid += 1;
   });
-  return Object.keys(map).sort().map(function(k) { return map[k]; });
+  return Object.keys(map).sort().map(function(k) {
+    map[k].orders.sort(sortPaidFirst);
+    return map[k];
+  });
 }
 
 function shortBundle(o) {
@@ -795,20 +837,27 @@ function shortBundle(o) {
   return trays + (trays === 1 ? " tray" : " trays");
 }
 
-function orderRow(o) {
+function orderRow(o, lineNo) {
   const signals = orderSignals(o, ALL_ORDERS);
-  const prio = o.paymentStatus === "paid" && o.status !== "cancelled";
+  const prio = isPaid(o);
   const open = OPEN_ORDER_ID === o.id;
   let flag = "";
-  if (prio) flag = '<span class="o-flag paid">paid</span>';
+  if (lineNo) flag = '<span class="o-flag">line ' + lineNo + '</span>';
   else if (signals.suspicious) flag = '<span class="o-flag warn">check</span>';
   else flag = '<span class="o-flag">' + fmtTime(o.createdAt).replace(/,.*/, "") + '</span>';
+
+  const badges =
+    (prio ? '<span class="badge-paid">Paid</span>' : '') +
+    (lineNo ? '<span class="badge-line">#' + lineNo + '</span>' : '');
 
   return '<div class="order st-' + o.status + (prio ? ' prio' : '') + (signals.suspicious ? ' sus' : '') +
     (open ? ' open' : '') + '" data-id="' + escapeHtml(o.id) + '">' +
     '<div class="o-main">' +
-      '<div class="o-name">' + escapeHtml(o.name) + '</div>' +
-      '<div class="o-sub">' + shortBundle(o) + (signals.tags[0] ? ' · ' + escapeHtml(signals.tags[0].text) : '') + '</div>' +
+      '<div class="o-name-row">' + badges + '<div class="o-name">' + escapeHtml(o.name) + '</div></div>' +
+      '<div class="o-sub">' + shortBundle(o) +
+        (o.stockTaken ? ' · trays held' : '') +
+        (signals.tags[0] ? ' · ' + escapeHtml(signals.tags[0].text) : '') +
+      '</div>' +
     '</div>' +
     '<div class="o-right"><span class="o-price">$' + o.price + '</span>' + flag + '</div>' +
     '<div class="o-detail" onclick="event.stopPropagation()">' +
@@ -821,34 +870,38 @@ function orderRow(o) {
   '</div>';
 }
 
-function laneHtml(title, cls, list) {
+function laneHtml(title, cls, list, lineMap) {
   const groups = groupByPickup(list);
   const trays = list.reduce(function(s, o) { return s + traysFor(o); }, 0);
+  const paidN = list.filter(isPaid).length;
   const body = groups.length
     ? groups.map(function(g) {
+        const paidLabel = g.paid ? (g.paid + ' paid · ') : '';
         return '<div class="day-group">' +
-          '<div class="day-head"><b>' + escapeHtml(g.label) + '</b><span>' + g.trays + (g.trays === 1 ? ' tray' : ' trays') + ' · ' + g.orders.length + '</span></div>' +
-          g.orders.map(orderRow).join('') +
+          '<div class="day-head"><b>' + escapeHtml(g.label) + '</b><span>' + paidLabel + g.trays + (g.trays === 1 ? ' tray' : ' trays') + ' · ' + g.orders.length + '</span></div>' +
+          g.orders.map(function(o) { return orderRow(o, lineMap[o.id]); }).join('') +
         '</div>';
       }).join('')
     : '<p class="lane-empty">Nothing here.</p>';
+  const headMeta = list.length + ' · ' + trays + ' trays' + (paidN ? ' · ' + paidN + ' paid' : '');
   return '<section class="lane ' + cls + '">' +
-    '<div class="lane-head"><h3>' + title + '</h3><span>' + list.length + ' · ' + trays + ' trays</span></div>' +
+    '<div class="lane-head"><h3>' + title + '</h3><span>' + headMeta + '</span></div>' +
     '<div class="lane-body">' + body + '</div></section>';
 }
 
 function renderOrderBoard() {
-  const waiting = ALL_ORDERS.filter(o => o.status === "new");
-  const confirmed = ALL_ORDERS.filter(o => o.status === "confirmed");
+  const lineMap = assignLineNumbers(ALL_ORDERS);
+  const waiting = ALL_ORDERS.filter(o => o.status === "new").sort(sortPaidFirst);
+  const confirmed = ALL_ORDERS.filter(o => o.status === "confirmed").sort(sortPaidFirst);
   const archived = ALL_ORDERS.filter(o => o.status === "done" || o.status === "cancelled");
 
-  $("orders").innerHTML = laneHtml("Waiting", "waiting", waiting) + laneHtml("Confirmed", "confirmed", confirmed);
+  $("orders").innerHTML = laneHtml("Waiting", "waiting", waiting, lineMap) + laneHtml("Confirmed", "confirmed", confirmed, lineMap);
   $("empty").style.display = (waiting.length || confirmed.length) ? "none" : "block";
 
   if (archived.length) {
     $("orders-archive").innerHTML =
       '<details class="archive"><summary>Done &amp; cancelled · ' + archived.length + '</summary>' +
-      laneHtml("Archive", "archive-lane", archived) + '</details>';
+      laneHtml("Archive", "archive-lane", archived, {}) + '</details>';
   } else {
     $("orders-archive").innerHTML = "";
   }
@@ -1086,7 +1139,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "81",
+          "X-Yolko-Admin": "82",
         },
       });
     }
