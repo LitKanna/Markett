@@ -42,6 +42,13 @@ datacenter ASNs, known test phones, and repeat IPs. Rate limits: 5 orders / IP /
 3 / phone / 24h. Do **not** place test bookings against production — local Reserve hits
 `https://getyolko.com/api/orders`.
 
+### Admin login
+`/admin` is an HTML page embedded in `infra/cloudflare-worker.mjs` (`ADMIN_HTML`).
+Auth is `Authorization: Bearer <ADMIN_KEY>` against the Worker secret `ADMIN_KEY`.
+If sign-in silently fails, check that the admin `<script>` still parses (`node --check` on
+extracted script) — nested `\'` inside the `ADMIN_HTML` template literal previously broke
+the whole page JS (including login). Prefer `qid(id)` for inline onclick string args.
+
 ### Chalk-tray price heroes ($1–$30)
 Changing **tray1** price in admin swaps hero/order chalk images via `applyChalkPriceImage`
 (`CHALK_PRICES` / `CHALK_ASSET_VER` in `app.js`). Dozens images are unaffected. Assets live

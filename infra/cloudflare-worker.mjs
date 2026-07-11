@@ -105,8 +105,14 @@ async function pushOrderIndex(env, orderId) {
 }
 
 function isAdmin(request, env) {
+  const raw = env.ADMIN_KEY;
+  if (!raw) return false;
+  const expected = String(raw).trim();
+  if (!expected) return false;
   const auth = request.headers.get("Authorization") || "";
-  return env.ADMIN_KEY && auth === `Bearer ${env.ADMIN_KEY}`;
+  const m = /^Bearer\s+(.+)$/i.exec(auth);
+  if (!m) return false;
+  return m[1].trim() === expected;
 }
 
 
@@ -1413,8 +1419,8 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
     <h2>Sign in</h2>
     <p class="login-lead">Paste your admin key to manage orders, stock, and pickup hours.</p>
     <label>Admin key</label>
-    <input id="key" type="password" placeholder="Paste your admin key" style="margin-bottom:12px">
-    <button onclick="saveKey()" style="width:100%">Sign in</button>
+    <input id="key" type="password" placeholder="Paste your admin key" style="margin-bottom:12px" autocomplete="current-password">
+    <button type="button" id="signin-btn" onclick="saveKey()" style="width:100%">Sign in</button>
     <p class="msg err" id="login-msg" style="margin:10px 0 0; display:block; text-align:center"></p>
   </div>
 
@@ -1679,14 +1685,28 @@ function toast(text) {
 function authHeaders() { return { "Authorization": "Bearer " + KEY, "Content-Type": "application/json" }; }
 
 async function saveKey() {
-  KEY = $("key").value.trim();
-  const res = await fetch("/api/admin/ping", { headers: authHeaders() });
+  const input = $("key");
+  KEY = (input && input.value ? input.value : "").trim();
+  if (!KEY) {
+    $("login-msg").textContent = "Paste your admin key first";
+    return;
+  }
+  $("login-msg").textContent = "Checking…";
+  let res;
+  try {
+    res = await fetch("/api/admin/ping", { headers: authHeaders() });
+  } catch (e) {
+    $("login-msg").textContent = "Network error — try again";
+    return;
+  }
   if (res.ok) {
     localStorage.setItem("yolko_admin_key", KEY);
     $("login-msg").textContent = "";
     boot();
-  } else {
+  } else if (res.status === 401) {
     $("login-msg").textContent = "Wrong key, try again";
+  } else {
+    $("login-msg").textContent = "Sign-in failed (" + res.status + ")";
   }
 }
 
@@ -2406,6 +2426,10 @@ async function saveSettings() {
 }
 
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
+function qid(id) {
+  // Safe single-quoted JS string for inline onclick handlers (avoids template-literal \\' bugs).
+  return "'" + String(id).replace(/\\\\/g, "\\\\\\\\").replace(/'/g, "\\\\'") + "'";
+}
 
 
 let ASSET_LIB = null;
@@ -2535,9 +2559,9 @@ function renderAssets() {
     return '<span class="draft-chip" data-id="' + escapeHtml(it.id) + '">'
       + '<img src="' + escapeHtml(it.preview) + '" alt="">'
       + '<span>' + (idx + 1) + '. ' + escapeHtml(it.label) + '</span>'
-      + '<button type="button" class="ghost" onclick="moveDraft(\'' + escapeHtml(it.id) + '\',-1)">↑</button>'
-      + '<button type="button" class="ghost" onclick="moveDraft(\'' + escapeHtml(it.id) + '\',1)">↓</button>'
-      + '<button type="button" class="danger" onclick="toggleDraft(\'' + escapeHtml(it.id) + '\')">Remove</button>'
+      + '<button type="button" class="ghost" onclick="moveDraft(' + qid(it.id) + ',-1)">↑</button>'
+      + '<button type="button" class="ghost" onclick="moveDraft(' + qid(it.id) + ',1)">↓</button>'
+      + '<button type="button" class="danger" onclick="toggleDraft(' + qid(it.id) + ')">Remove</button>'
       + '</span>';
   }).join("") : '<span class="muted">No images selected for the rotator yet.</span>';
 
@@ -2560,19 +2584,19 @@ function renderAssets() {
     if (it.favorite) badges.push('<span class="badge fav">Fav</span>');
     const useLabel = draftSet[it.id] ? "Remove" : "Use";
     const delBtn = it.deleted
-      ? '<button type="button" class="ghost" onclick="setDeleted(\'' + escapeHtml(it.id) + '\',false)">Restore</button>'
-      : '<button type="button" class="danger" onclick="setDeleted(\'' + escapeHtml(it.id) + '\',true)">Delete</button>';
+      ? '<button type="button" class="ghost" onclick="setDeleted(' + qid(it.id) + ',false)">Restore</button>'
+      : '<button type="button" class="danger" onclick="setDeleted(' + qid(it.id) + ',true)">Delete</button>';
     const checked = ASSET_SELECTED[it.id] ? " checked" : "";
     return '<article class="' + cls.join(" ") + '" data-id="' + escapeHtml(it.id) + '">'
       + '<div class="thumb">'
-      + '<input class="pick" type="checkbox" aria-label="Select ' + escapeHtml(it.label) + '"' + checked + ' onchange="toggleAssetSelected(\'' + escapeHtml(it.id) + '\', this.checked)">'
-      + '<img src="' + escapeHtml(it.preview) + '" alt="' + escapeHtml(it.label) + '" loading="lazy" onclick="openAssetLightbox(\'' + escapeHtml(it.id) + '\')">'
+      + '<input class="pick" type="checkbox" aria-label="Select ' + escapeHtml(it.label) + '"' + checked + ' onchange="toggleAssetSelected(' + qid(it.id) + ', this.checked)">'
+      + '<img src="' + escapeHtml(it.preview) + '" alt="' + escapeHtml(it.label) + '" loading="lazy" onclick="openAssetLightbox(' + qid(it.id) + ')">'
       + '<div class="badges">' + badges.join("") + '</div></div>'
       + '<div class="meta"><strong>' + escapeHtml(it.label) + '</strong>'
-      + '<select onchange="setCategory(\'' + escapeHtml(it.id) + '\', this.value)">' + cats + '</select>'
+      + '<select onchange="setCategory(' + qid(it.id) + ', this.value)">' + cats + '</select>'
       + '<div class="actions">'
-      + '<button type="button" class="ghost" onclick="toggleFavorite(\'' + escapeHtml(it.id) + '\')">' + (it.favorite ? "Unfav" : "Favorite") + '</button>'
-      + '<button type="button" onclick="toggleDraft(\'' + escapeHtml(it.id) + '\')">' + useLabel + '</button>'
+      + '<button type="button" class="ghost" onclick="toggleFavorite(' + qid(it.id) + ')">' + (it.favorite ? "Unfav" : "Favorite") + '</button>'
+      + '<button type="button" onclick="toggleDraft(' + qid(it.id) + ')">' + useLabel + '</button>'
       + delBtn
       + '</div></div></article>';
   }).join("");
@@ -2747,7 +2771,14 @@ async function publishAssets() {
 
 async function boot() {
   const res = await fetch("/api/admin/ping", { headers: authHeaders() });
-  if (!res.ok) return;
+  if (!res.ok) {
+    // Stale / wrong cached key — force a clean sign-in.
+    localStorage.removeItem("yolko_admin_key");
+    KEY = "";
+    const msg = $("login-msg");
+    if (msg) msg.textContent = "Session expired — sign in again";
+    return;
+  }
   $("login-card").style.display = "none";
   $("panel").style.display = "block";
   $("signout").style.display = "inline-flex";
@@ -2756,6 +2787,10 @@ async function boot() {
   setInterval(loadOrders, 30000);
   if (location.hash === "#assets") showAdminView("assets");
 }
+
+$("key") && $("key").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") { e.preventDefault(); saveKey(); }
+});
 
 if (KEY) boot();
 </script>
@@ -2781,7 +2816,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "107",
+          "X-Yolko-Admin": "108",
         },
       });
     }
@@ -2816,7 +2851,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "107",
+        "X-Yolko-Build": "108",
       },
     });
   },
