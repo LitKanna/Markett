@@ -491,6 +491,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 .login { max-width:420px; margin:40px auto 0; }
 .login h2 { margin-bottom:8px; }
 .login-lead { margin:0 0 16px; color:var(--muted); font-size:14px; }
+</style>
 
 </head>
 <body>
@@ -933,7 +934,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "77",
+          "X-Yolko-Admin": "78",
         },
       });
     }
