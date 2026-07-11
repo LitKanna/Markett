@@ -1248,8 +1248,9 @@ async function loadSettings() {
   updatePriceHint();
 }
 
-// Canonical sell ratios (same % margins relative to each other): 12 : 23 : 66
+// Canonical sell ratios: 12 : 23 : 66, calibrated to $55 box cost.
 const PRICE_RATIO = { tray1: 12, tray2: 23, box: 66 };
+const BASE_BOX_COST = 55;
 let SYNCING_PRICES = false;
 
 function roundMoney(n) {
@@ -1275,16 +1276,24 @@ function pricesFromAnchor(which, value) {
   };
 }
 
+// Same overall markup as $55 cost → $12 / $23 / $66 sell.
+function pricesFromCost(cost) {
+  const c = Number(cost);
+  if (!Number.isFinite(c) || c < 0) return null;
+  const scale = c / BASE_BOX_COST;
+  return {
+    tray1: roundMoney(PRICE_RATIO.tray1 * scale),
+    tray2: roundMoney(PRICE_RATIO.tray2 * scale),
+    box: roundMoney(PRICE_RATIO.box * scale),
+  };
+}
+
 function applySyncedPrices(next, keep) {
   if (!next) return;
   SYNCING_PRICES = true;
-  if (keep !== "tray1") $("p1").value = next.tray1;
-  if (keep !== "tray2") $("p2").value = next.tray2;
-  if (keep !== "box") $("p3").value = next.box;
-  // Keep the edited field on the same rounded scale too
-  if (keep === "tray1") $("p1").value = next.tray1;
-  if (keep === "tray2") $("p2").value = next.tray2;
-  if (keep === "box") $("p3").value = next.box;
+  $("p1").value = next.tray1;
+  $("p2").value = next.tray2;
+  $("p3").value = next.box;
   SYNCING_PRICES = false;
   updatePriceHint();
 }
@@ -1293,16 +1302,17 @@ function updatePriceHint() {
   const el = $("price-hint");
   if (!el) return;
   const p1 = +$("p1").value, p2 = +$("p2").value, p3 = +$("p3").value;
-  const cost = +(($("box-cost") && $("box-cost").value) || 55);
+  const cost = +(($("box-cost") && $("box-cost").value) || BASE_BOX_COST);
   const c1 = cost / 6;
   if (!(p1 > 0)) {
-    el.textContent = "Prices stay in % sync (12 : 23 : 66). Change any one — the others follow.";
+    el.textContent = "Enter box cost to set sell prices (ratio-locked). Or change any sell price — others follow.";
     return;
   }
   const n1 = p1 - c1;
   const n2 = p2 - c1 * 2;
   const n3 = p3 - cost;
-  el.innerHTML = "Synced % · net vs " + money(cost) + " box cost: " +
+  const markup = cost > 0 ? Math.round((p3 / cost - 1) * 100) : 0;
+  el.innerHTML = "Ratio-locked · box markup ~" + markup + "% · net: " +
     "<b>1 tray " + money(n1) + "</b> · <b>2 trays " + money(n2) + "</b> · <b>box " + money(n3) + "</b>";
 }
 
@@ -1312,17 +1322,22 @@ function onPriceInput(which) {
   applySyncedPrices(pricesFromAnchor(which, val), which);
 }
 
+function onCostInput() {
+  if (SYNCING_PRICES) return;
+  applySyncedPrices(pricesFromCost($("box-cost").value), "cost");
+}
+
 $("p1") && $("p1").addEventListener("input", function() { onPriceInput("tray1"); });
 $("p2") && $("p2").addEventListener("input", function() { onPriceInput("tray2"); });
 $("p3") && $("p3").addEventListener("input", function() { onPriceInput("box"); });
-$("box-cost") && $("box-cost").addEventListener("input", updatePriceHint);
+$("box-cost") && $("box-cost").addEventListener("input", onCostInput);
 
 async function saveSettings() {
   const body = {
     prices: { tray1: +$("p1").value, tray2: +$("p2").value, box: +$("p3").value },
     traysAvailable: +$("stock").value,
     trayWeight: $("tray-weight").value,
-    boxCost: +(($("box-cost") && $("box-cost").value) || 55),
+    boxCost: +(($("box-cost") && $("box-cost").value) || BASE_BOX_COST),
     pickup: collectDayRows(),
   };
   const res = await fetch("/api/settings", { method: "PUT", headers: authHeaders(), body: JSON.stringify(body) });
@@ -1369,7 +1384,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "88",
+          "X-Yolko-Admin": "89",
         },
       });
     }
