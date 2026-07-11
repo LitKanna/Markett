@@ -73,6 +73,46 @@ function initImageRotators() {
 
 initImageRotators();
 
+/* Chalkboard hero swaps to match live tray1 price ($12–$20) */
+const CHALK_PRICES = [12, 13, 14, 15, 16, 17, 18, 19, 20];
+const CHALK_ASSET_VER = "86";
+
+function chalkPriceKey(price) {
+  const n = Math.round(Number(price));
+  if (CHALK_PRICES.includes(n)) return n;
+  if (!Number.isFinite(n)) return 12;
+  if (n < 12) return 12;
+  if (n > 20) return 20;
+  return 12;
+}
+
+function applyChalkPriceImage(trayPrice) {
+  const p = chalkPriceKey(trayPrice);
+  document.querySelectorAll("[data-chalk-price]").forEach((pic) => {
+    const kind = pic.getAttribute("data-chalk-price");
+    const source = pic.querySelector("source");
+    const img = pic.querySelector("img");
+    if (kind === "hero") {
+      if (source) {
+        source.srcset = `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w`;
+      }
+      if (img) {
+        img.src = `assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}`;
+        img.srcset = `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w`;
+        img.alt = `Fresh eggs · $${p}/tray at the YOLKO stall`;
+      }
+    } else {
+      if (source) source.srcset = `assets/chalk-tray/${p}-square-560.webp?v=${CHALK_ASSET_VER}`;
+      if (img) {
+        img.src = `assets/chalk-tray/${p}-square-560.jpg?v=${CHALK_ASSET_VER}`;
+        img.alt = `Fresh eggs · $${p}/tray`;
+      }
+    }
+  });
+}
+
+applyChalkPriceImage(BUNDLES.tray1.price);
+
 /* ---------- Ticker: always covers the screen, loops seamlessly ---------- */
 const TICKER_ITEMS = [
   "Fresh eggs every week",
@@ -350,6 +390,8 @@ function applySettings(settings) {
   const p1 = BUNDLES.tray1.price;
   const perEgg = Math.round((p1 / 30) * 100);
   const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
+
+  applyChalkPriceImage(p1);
 
   // Hero
   const badge = document.querySelector(".badge-price");
