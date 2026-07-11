@@ -21,6 +21,7 @@
 
 html {
   scroll-behavior: smooth;
+  touch-action: manipulation;
 }
 
 body {
@@ -30,6 +31,20 @@ body {
   font-family: var(--body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  touch-action: manipulation;
+}
+
+a,
+button,
+input,
+select,
+textarea,
+summary,
+label,
+.btn,
+.seg-opt,
+.price-card {
+  touch-action: manipulation;
 }
 
 body::before {
