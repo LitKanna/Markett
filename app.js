@@ -58,8 +58,8 @@ function initImageRotators() {
       slides[0].classList.add("is-active");
     }
 
-    const intervalMs = root.dataset.rotator === "order" ? 5200 : 4200;
-    const offsetMs = root.dataset.rotator === "order" ? 1800 : 0;
+    const intervalMs = root.dataset.rotator === "order" ? 14000 : 12000;
+    const offsetMs = root.dataset.rotator === "order" ? 3500 : 0;
 
     window.setTimeout(() => {
       window.setInterval(() => {
