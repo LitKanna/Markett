@@ -90,6 +90,20 @@ function json(data, status = 200, extra = {}) {
   });
 }
 
+async function getOrderIndex(env) {
+  const raw = await env.DATA.get("orders:index", "json");
+  return Array.isArray(raw) ? raw.filter((id) => typeof id === "string" && id.startsWith("order:")) : [];
+}
+
+async function pushOrderIndex(env, orderId) {
+  const ids = await getOrderIndex(env);
+  if (!ids.includes(orderId)) {
+    ids.unshift(orderId);
+    // Cap index so the single KV value stays small
+    await env.DATA.put("orders:index", JSON.stringify(ids.slice(0, 500)));
+  }
+}
+
 function isAdmin(request, env) {
   const auth = request.headers.get("Authorization") || "";
   return env.ADMIN_KEY && auth === `Bearer ${env.ADMIN_KEY}`;
@@ -489,16 +503,29 @@ async function handleApi(request, env, url) {
       ua: meta.ua,
     };
     await env.DATA.put(id, JSON.stringify(order));
+    await pushOrderIndex(env, id);
     return json({ ok: true, id });
   }
 
-  // Admin: list orders, newest first
+  // Admin: auth check only (no KV list — free tier list() has a daily cap)
+  if (url.pathname === "/api/admin/ping" && request.method === "GET") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    return json({ ok: true });
+  }
+
+  // Admin: list orders, newest first (uses orders:index — avoids KV list())
   if (url.pathname === "/api/orders" && request.method === "GET") {
     if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
-    const list = await env.DATA.list({ prefix: "order:", limit: 500 });
-    const orders = await Promise.all(list.keys.map((k) => env.DATA.get(k.name, "json")));
-    const valid = orders.filter(Boolean).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    return json({ orders: valid });
+    try {
+      const ids = await getOrderIndex(env);
+      const orders = await Promise.all(ids.map((id) => env.DATA.get(id, "json").catch(() => null)));
+      const valid = orders
+        .filter((o) => o && typeof o === "object")
+        .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+      return json({ orders: valid });
+    } catch (err) {
+      return json({ error: "orders_failed", detail: String(err && err.message || err), orders: [] }, 500);
+    }
   }
 
   // Public: create a locked-amount Stripe checkout for an existing order
@@ -1270,7 +1297,7 @@ function authHeaders() { return { "Authorization": "Bearer " + KEY, "Content-Typ
 
 async function saveKey() {
   KEY = $("key").value.trim();
-  const res = await fetch("/api/orders", { headers: authHeaders() });
+  const res = await fetch("/api/admin/ping", { headers: authHeaders() });
   if (res.ok) {
     localStorage.setItem("yolko_admin_key", KEY);
     $("login-msg").textContent = "";
@@ -1998,7 +2025,7 @@ async function saveSettings() {
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 
 async function boot() {
-  const res = await fetch("/api/orders", { headers: authHeaders() });
+  const res = await fetch("/api/admin/ping", { headers: authHeaders() });
   if (!res.ok) return;
   $("login-card").style.display = "none";
   $("panel").style.display = "block";
@@ -2032,7 +2059,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "95",
+          "X-Yolko-Admin": "96",
         },
       });
     }
