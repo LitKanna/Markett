@@ -7,7 +7,7 @@ on:
       - "infra/cloudflare-worker.mjs"
       - "wrangler.toml"
       - "index.html"
-      - "styles.css"
+      - "styles-modern.css"
       - "app.js"
       - "config.js"
       - "assets/**"
