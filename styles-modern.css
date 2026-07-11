@@ -410,7 +410,7 @@ h3 {
   min-height: 620px;
   overflow: hidden;
   border-radius: 12px;
-  background: var(--yellow);
+  background: #1a1a18;
   box-shadow: 0 32px 80px rgba(23, 23, 20, 0.15);
 }
 
@@ -973,7 +973,7 @@ h3 {
   position: relative;
   overflow: hidden;
   border-radius: 8px;
-  background: var(--yellow);
+  background: #1a1a18;
   aspect-ratio: 1;
 }
 

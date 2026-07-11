@@ -451,7 +451,7 @@ function applyProductType(key) {
   const faqEggs = document.getElementById("faq-eggs");
   if (faqEggs) faqEggs.textContent = product.faq;
   const heroImg = document.getElementById("hero-tray-img");
-  if (heroImg) heroImg.alt = `${product.alt} on a bright yolk-yellow studio background`;
+  if (heroImg) heroImg.alt = `${product.alt} — fresh Pace Farm tray`;
   const orderImg = document.getElementById("order-tray-img");
   if (orderImg) orderImg.alt = product.alt;
 }
