@@ -691,7 +691,7 @@ function fmtTime(iso) {
 function fmtPhone(p) { return p.replace(/(\\d{4})(\\d{3})(\\d{3})/, "$1 $2 $3"); }
 
 let ALL_ORDERS = [];
-let ORDER_FILTER = localStorage.getItem("yolko_order_filter") || "active";
+let ORDER_FILTER = localStorage.getItem("yolko_order_filter") || "new";
 
 async function loadOrders() {
   const res = await fetch("/api/orders", { headers: authHeaders() });
@@ -741,9 +741,9 @@ function renderOrderFilters() {
     all: ALL_ORDERS.length,
   };
   const tabs = [
-    ["active", "Active"],
     ["new", "Waiting"],
     ["confirmed", "Confirmed"],
+    ["active", "Active"],
     ["done", "Done"],
     ["cancelled", "Cancelled"],
     ["all", "All"],
@@ -1016,7 +1016,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "79",
+          "X-Yolko-Admin": "80",
         },
       });
     }
