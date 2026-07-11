@@ -53,26 +53,44 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
   requires `npx playwright install chromium` plus a `META_ACCESS_TOKEN`.
 
 ### Handoff — hero branding via Higgsfield (pending)
-**Live site:** `https://getyolko.com/` · Worker build **95** · branch
-`cursor/setup-dev-environment-9869` · PR #44.
+**Live site:** `https://getyolko.com/` · Worker build **95** · base branch
+`cursor/setup-dev-environment-9869` · PR #44 · follow-up branch
+`cursor/yolko-tiny-corner-39c4` (agent `bc-c894bd07…`, also blocked on auth).
 
 **User request (not finished):** On shop hero boxes, make **YOLKO** a **tiny bottom-corner**
 mark (not large/centered). On the closeup tray-on-box slide, also remove any
 **“Fresh eggs Flemington”** subline. Keep chalkboard price heroes working ($12–$20).
 
 **Do this with Higgsfield MCP only** (`generate_image` / media tools). Do **not** use Cursor
-`GenerateImage` — user rejected those assets and we reverted them (build 94).
+`GenerateImage` — user rejected those assets and we reverted them (build 94). Do **not**
+fall back to local OpenCV/Pillow redraws unless the user explicitly allows it.
 
-**Current rotator slides (after v4 removal):** chalk-tray (price-swapped), studio-tray-v2,
-v5, v6, plus classic `studio-tray`. Assets under `assets/chalk-tray/` and
-`assets/studio-tray-v*`. Cache via `?v=` in `index.html` and `CHALK_ASSET_VER` in `app.js`.
-After asset commits: pin `DEPLOY_SHA` in `infra/cloudflare-worker.mjs`, bump
-`X-Yolko-Build`, `npx wrangler deploy`.
+**Verified current assets (still wrong):**
+- `assets/chalk-tray/{12–20}-*.jpg` — large centered **YOLKO** on the box face
+- `assets/studio-tray-v2-*` — large centered **YOLKO** on each box
+- `assets/studio-tray-v5-*` — large framed centered **YOLKO** stamps on boxes
+- `assets/studio-tray-v6-*` — large centered **YOLKO** + **“Fresh eggs Flemington”** subline
+- Classic `studio-tray` (no box brand) can stay as-is
 
-**Higgsfield auth note:** Cloud agents load MCP OAuth at start. If this run shows
-`needsAuth` / `Invalid or expired token`, start a **new** agent with Higgsfield toggled ON
-after web re-auth: Agents → + → MCP Servers → Higgsfield → Log out → toggle ON → Google
-OAuth. Mid-run OAuth does not hot-reload onto an already-running agent.
+**Target look:** same market/shop scenes, but **YOLKO** is a small quiet mark in the
+**bottom-left or bottom-right corner** of each visible cardboard box face (≈5–8% of box
+width). No centered mega-logo. No Flemington subline on v6. Chalkboard `$N/TRAY` copy
+must stay readable on chalk-tray ($12–$20 set).
 
-**Prior agent transcript:** search cloud agents for setup-dev-environment / Markett if you
-need full chat history; durable facts are this section + git log on the PR branch.
+**Export pipeline after Higgsfield masters:** for each master, write
+`{name}-928.jpg` (hero), `{name}-640.jpg`, `{name}-square-560.jpg` + matching `.webp`
+(quality ~88). Chalk set needs all prices 12–20. Bust `?v=` in `index.html` and
+`CHALK_ASSET_VER` in `app.js`. Then pin `DEPLOY_SHA` in `infra/cloudflare-worker.mjs` to
+the asset commit, bump `X-Yolko-Build` (next is **96**), `npx wrangler deploy`.
+
+**Higgsfield auth note (blocking):** Cloud agents load MCP OAuth **only at start**.
+This run and the prior handoff run both saw `needsAuth`; interactive `mcp_auth` is
+desktop-IDE-only and does **not** hot-reload mid-run. To unblock:
+
+1. Cursor desktop → Agents → **+** new cloud agent
+2. MCP Servers → **Higgsfield** → Log out → toggle **ON** → complete Google OAuth
+3. Confirm Higgsfield shows a green/ready state **before** submitting the prompt
+4. Prompt: continue AGENTS.md handoff — tiny corner YOLKO on chalk-tray + v2/v5/v6,
+   remove Fresh eggs Flemington on v6, deploy like before (Higgsfield MCP only)
+
+**Prior agent transcript:** durable facts are this section + git log on PR #44.
