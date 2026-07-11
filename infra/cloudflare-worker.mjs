@@ -135,7 +135,9 @@ async function handleApi(request, env, url) {
       traysAvailable: Number.isFinite(Number(body?.traysAvailable))
         ? Math.max(0, Math.floor(Number(body.traysAvailable)))
         : current.traysAvailable,
-      trayWeight: ["1.5", "1.75"].includes(body?.trayWeight) ? body.trayWeight : current.trayWeight,
+      trayWeight: ["1.5", "1.75", "fr-700", "fr-600"].includes(body?.trayWeight)
+        ? body.trayWeight
+        : current.trayWeight,
       pickup: Object.fromEntries(
         WEEK_DAYS.map((d) => [d, cleanPickupDay((body?.pickup || {})[d], current.pickup[d])])
       ),
@@ -453,10 +455,12 @@ input:focus, select:focus { outline:none; border-color:var(--yolk); background:#
         <div><label>2 trays ($)</label><input id="p2" type="number" min="1" step="0.5"></div>
         <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="0.5"></div>
         <div><label>Trays available</label><input id="stock" type="number" min="0" step="1"></div>
-        <div style="grid-column:1/-1"><label>Tray weight</label>
+        <div style="grid-column:1/-1"><label>Product</label>
           <select id="tray-weight">
-            <option value="1.5">1.5kg (Large)</option>
-            <option value="1.75">1.75kg (Extra Large)</option>
+            <option value="1.75">Cage · 1.75kg (Extra Large)</option>
+            <option value="1.5">Cage · 1.5kg (Large)</option>
+            <option value="fr-700">Free range · 700g</option>
+            <option value="fr-600">Free range · 600g</option>
           </select>
         </div>
       </div>

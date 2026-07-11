@@ -317,16 +317,52 @@ function applySettings(settings) {
     }
   }
 
-  // Tray weight (1.5kg or 1.75kg)
-  const weight = settings.trayWeight === "1.5" ? "1.5" : "1.75";
-  const size = weight === "1.5" ? "large" : "extra large";
-  const traySpec = document.getElementById("tray-spec");
-  if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
-  const faqEggs = document.getElementById("faq-eggs");
-  if (faqEggs) faqEggs.textContent = `Pace Farm ${size} eggs, 30 to a tray (${weight}kg). The same brand you'll find in the big supermarkets, for less.`;
+  // Product type from admin (cage trays or free-range packs)
+  applyProductType(settings.trayWeight);
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
+}
+
+const PRODUCT_TYPES = {
+  "1.75": {
+    shortSpec: "Cage · Extra large · 1.75kg",
+    packLine: "Cage eggs · 1.75kg tray",
+    faq: "Pace Farm cage eggs, 30 to a tray (1.75kg). The same brand you'll find in the big supermarkets, for less.",
+    alt: "Cage eggs · 1.75kg tray",
+  },
+  "1.5": {
+    shortSpec: "Cage · Large · 1.5kg",
+    packLine: "Cage eggs · 1.5kg tray",
+    faq: "Pace Farm cage eggs, 30 to a tray (1.5kg). The same brand you'll find in the big supermarkets, for less.",
+    alt: "Cage eggs · 1.5kg tray",
+  },
+  "fr-700": {
+    shortSpec: "Free range · 700g",
+    packLine: "Free range · 700g",
+    faq: "Pace Farm free range eggs, 700g pack. The same brand you'll find in the big supermarkets, for less.",
+    alt: "Free range · 700g Pace Farm eggs",
+  },
+  "fr-600": {
+    shortSpec: "Free range · 600g",
+    packLine: "Free range · 600g",
+    faq: "Pace Farm free range eggs, 600g pack. The same brand you'll find in the big supermarkets, for less.",
+    alt: "Free range · 600g Pace Farm eggs",
+  },
+};
+
+function applyProductType(key) {
+  const product = PRODUCT_TYPES[key] || PRODUCT_TYPES["1.75"];
+  const traySpec = document.getElementById("tray-spec");
+  if (traySpec) traySpec.textContent = product.shortSpec;
+  const packLine = document.getElementById("pack-eggs-line");
+  if (packLine) packLine.textContent = product.packLine;
+  const faqEggs = document.getElementById("faq-eggs");
+  if (faqEggs) faqEggs.textContent = product.faq;
+  const heroImg = document.getElementById("hero-tray-img");
+  if (heroImg) heroImg.alt = `${product.alt} on a bright yolk-yellow studio background`;
+  const orderImg = document.getElementById("order-tray-img");
+  if (orderImg) orderImg.alt = product.alt;
 }
 
 function formatTime(hhmm) {

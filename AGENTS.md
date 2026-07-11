@@ -33,6 +33,10 @@ The Worker serves site files from the immutable `DEPLOY_SHA` near the top of
 `infra/cloudflare-worker.mjs`; update that pin to the merged site commit before a production
 deploy. `npm run deploy` requires the `CLOUDFLARE_API_TOKEN` GitHub Actions secret.
 
+Admin **Product** (`trayWeight`) drives storefront labels via `PRODUCT_TYPES` in `app.js`
+(`1.5`, `1.75`, `fr-700`, `fr-600`). Changing it in `/admin` updates trust strip, pack line,
+FAQ, and image alts on the next page load — no HTML edit needed.
+
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
 that intentionally fails (`echo "Error: no test specified" && exit 1`) — do not treat that as
