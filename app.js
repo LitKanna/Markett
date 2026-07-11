@@ -95,10 +95,12 @@ function applyChalkPriceImage(trayPrice) {
     if (kind === "hero") {
       if (source) {
         source.srcset = `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w`;
+        source.sizes = "(max-width: 1000px) min(100vw - 24px, 1200px), min(52vw, 640px)";
       }
       if (img) {
         img.src = `assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}`;
         img.srcset = `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w`;
+        img.sizes = "(max-width: 1000px) min(100vw - 24px, 1200px), min(52vw, 640px)";
         img.alt = `Fresh eggs · $${p}/tray at the YOLKO stall`;
       }
     } else {
