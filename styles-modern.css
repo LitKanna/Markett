@@ -13,6 +13,18 @@
   --display: "Bricolage Grotesque", "Arial Black", sans-serif;
   --body: "Plus Jakarta Sans", system-ui, sans-serif;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Fluid fit: scales with both width and height so any browser size fills cleanly */
+  --page-gutter: clamp(12px, 2.4vw, 24px);
+  --page-max: 1200px;
+  --topbar-h: clamp(56px, 8svh, 72px);
+  --section-pad: clamp(48px, 10svh, 120px);
+  --space-xs: clamp(6px, 0.8vw, 10px);
+  --space-sm: clamp(10px, 1.2vw, 16px);
+  --space-md: clamp(16px, 2vw, 28px);
+  --space-lg: clamp(24px, 3vw, 42px);
+  --radius: clamp(8px, 1vw, 12px);
+  --shadow-shift: clamp(6px, 0.9vw, 12px);
 }
 
 * {
@@ -21,6 +33,17 @@
 
 html {
   scroll-behavior: smooth;
+  /* Continuous type scale across resolutions (not discrete breakpoint jumps) */
+  font-size: clamp(14px, 0.22vw + 13.2px, 17px);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -30,6 +53,9 @@ body {
   font-family: var(--body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
 }
 
 /* Kill double-tap zoom on mobile (not inherited — must cover all nodes).
@@ -80,12 +106,12 @@ a {
 }
 
 .wrap {
-  width: min(1200px, calc(100% - 48px));
+  width: min(var(--page-max), calc(100% - (var(--page-gutter) * 2)));
   margin-inline: auto;
 }
 
 section {
-  scroll-margin-top: 78px;
+  scroll-margin-top: calc(var(--topbar-h) + 6px);
 }
 
 h1,
@@ -107,12 +133,13 @@ h3 {
   position: sticky;
   top: 0;
   z-index: 80;
-  height: 72px;
+  height: var(--topbar-h);
   border-bottom: 1px solid transparent;
   background: rgba(242, 240, 234, 0.86);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   transition: background 180ms ease, border-color 180ms ease;
+  padding-top: env(safe-area-inset-top, 0);
 }
 
 .topbar.scrolled {
@@ -284,18 +311,20 @@ h3 {
   transform: translateX(4px);
 }
 
-/* Hero */
+/* Hero — fills available viewport on any resolution */
 .hero {
-  min-height: calc(100svh - 72px);
-  padding: 32px 0 56px;
+  min-height: calc(100svh - var(--topbar-h));
+  min-height: calc(100dvh - var(--topbar-h));
+  padding: clamp(12px, 2.5svh, 32px) 0 clamp(28px, 5svh, 56px);
   border-bottom: 1px solid var(--line);
 }
 
 .hero-grid {
-  min-height: calc(100svh - 160px);
+  min-height: calc(100svh - var(--topbar-h) - clamp(40px, 8svh, 88px));
+  min-height: calc(100dvh - var(--topbar-h) - clamp(40px, 8svh, 88px));
   display: grid;
-  grid-template-columns: minmax(0, 0.88fr) minmax(460px, 1.12fr);
-  gap: 32px;
+  grid-template-columns: minmax(0, 0.88fr) minmax(min(100%, 320px), 1.12fr);
+  gap: clamp(16px, 2.5vw, 32px);
   align-items: stretch;
 }
 
@@ -303,7 +332,8 @@ h3 {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 42px 18px 28px 0;
+  padding: clamp(16px, 4svh, 42px) clamp(0px, 1.2vw, 18px) clamp(12px, 2.5svh, 28px) 0;
+  min-height: 0;
 }
 
 .hero-kicker,
@@ -311,7 +341,7 @@ h3 {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 24px;
+  margin-bottom: clamp(12px, 2.5svh, 24px);
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
@@ -329,8 +359,8 @@ h3 {
 
 .hero h1 {
   max-width: 6.2ch;
-  margin-bottom: 30px;
-  font-size: clamp(72px, 8.8vw, 128px);
+  margin-bottom: clamp(14px, 2.8svh, 30px);
+  font-size: clamp(42px, 7.2vw + 1.2vh, 128px);
   font-weight: 800;
   line-height: 0.82;
   text-transform: uppercase;
@@ -407,9 +437,9 @@ h3 {
 .showcase-card {
   position: relative;
   height: 100%;
-  min-height: 620px;
+  min-height: clamp(280px, 58svh, 720px);
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: #1a1a18;
   box-shadow: 0 32px 80px rgba(23, 23, 20, 0.15);
 }
@@ -576,7 +606,7 @@ h3 {
 .section-head h2 {
   max-width: 10ch;
   margin: 0;
-  font-size: clamp(48px, 7vw, 88px);
+  font-size: clamp(36px, 5.5vw + 1vh, 88px);
   font-weight: 800;
   line-height: 0.9;
   text-transform: uppercase;
@@ -591,7 +621,7 @@ h3 {
 
 /* Bundles: deliberately a list, not a row of generic SaaS cards */
 .prices {
-  padding: 118px 0 124px;
+  padding: var(--section-pad) 0;
 }
 
 .price-grid {
@@ -765,15 +795,15 @@ h3 {
 
 /* Pickup */
 .pickup {
-  padding: 116px 0;
+  padding: var(--section-pad) 0;
   color: var(--white);
   background: var(--ink);
 }
 
 .pickup-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
-  gap: 80px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(min(100%, 280px), 0.85fr);
+  gap: clamp(32px, 6vw, 80px);
   align-items: start;
 }
 
@@ -933,14 +963,14 @@ h3 {
 
 /* Order */
 .order {
-  padding: 120px 0;
+  padding: var(--section-pad) 0;
   background: var(--paper);
 }
 
 .order-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 0.78fr) minmax(500px, 1.22fr);
-  gap: 68px;
+  grid-template-columns: minmax(0, 0.78fr) minmax(min(100%, 320px), 1.22fr);
+  gap: clamp(28px, 5vw, 68px);
   align-items: start;
 }
 
@@ -1423,7 +1453,7 @@ h3 {
 
 /* FAQ */
 .faq {
-  padding: 112px 0 126px;
+  padding: var(--section-pad) 0;
 }
 
 .faq .section-head {
@@ -1566,9 +1596,9 @@ h3 {
 /* Sticky mobile conversion bar */
 .mobile-cta {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 100;
   display: none;
   align-items: center;
@@ -1685,7 +1715,7 @@ h3 {
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
+/* Responsive — fluid first; breakpoints only change layout structure */
 @media (max-width: 1000px) {
   .hero {
     min-height: auto;
@@ -1697,7 +1727,7 @@ h3 {
   }
 
   .hero-copy {
-    min-height: 620px;
+    min-height: 0;
   }
 
   .hero h1 {
@@ -1705,11 +1735,11 @@ h3 {
   }
 
   .showcase-card {
-    min-height: 700px;
+    min-height: clamp(320px, 62svh, 640px);
   }
 
   .price-card {
-    grid-template-columns: 50px 1fr 1fr 120px;
+    grid-template-columns: 50px 1fr 1fr minmax(100px, 120px);
   }
 
   .price-card .btn {
@@ -1720,14 +1750,14 @@ h3 {
   .pickup-grid,
   .order-grid {
     grid-template-columns: 1fr;
-    gap: 56px;
+    gap: clamp(28px, 5vw, 56px);
   }
 
   .order-copy {
     position: static;
     display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 36px;
+    grid-template-columns: 1fr minmax(140px, 320px);
+    gap: clamp(20px, 3vw, 36px);
     align-items: end;
   }
 
@@ -1743,11 +1773,11 @@ h3 {
 
 @media (max-width: 760px) {
   .wrap {
-    width: min(100% - 28px, 1200px);
+    width: min(100% - (var(--page-gutter) * 2), var(--page-max));
   }
 
   .topbar {
-    height: 64px;
+    height: var(--topbar-h);
   }
 
   .topnav {
@@ -1763,28 +1793,28 @@ h3 {
   }
 
   .brand-name {
-    font-size: 20px;
+    font-size: clamp(16px, 4.5vw, 20px);
   }
 
   .hero {
-    padding-top: 16px;
+    padding-top: clamp(8px, 2svh, 16px);
   }
 
   .hero-copy {
-    min-height: 535px;
+    min-height: 0;
     padding-right: 0;
   }
 
   .hero h1 {
-    font-size: clamp(62px, 19vw, 104px);
+    font-size: clamp(48px, 14vw + 1vh, 104px);
   }
 
   .hero-sub {
-    font-size: 15px;
+    font-size: clamp(14px, 3.6vw, 16px);
   }
 
   .hero-stats {
-    padding-top: 20px;
+    padding-top: clamp(12px, 2.5svh, 20px);
   }
 
   .hero-stats div {
@@ -1800,24 +1830,24 @@ h3 {
   }
 
   .showcase-card {
-    min-height: 560px;
+    min-height: clamp(280px, 55svh, 560px);
   }
 
   .showcase-price {
-    left: 14px;
-    bottom: 14px;
-    min-width: 150px;
-    padding: 15px 16px;
-    box-shadow: 7px 7px 0 var(--orange);
+    left: clamp(10px, 3vw, 14px);
+    bottom: clamp(10px, 3vw, 14px);
+    min-width: min(150px, 42vw);
+    padding: clamp(12px, 2vw, 15px) clamp(12px, 2.5vw, 16px);
+    box-shadow: var(--shadow-shift) var(--shadow-shift) 0 var(--orange);
   }
 
   .showcase-price-num {
-    font-size: 42px;
+    font-size: clamp(32px, 10vw, 42px);
   }
 
   .showcase-tag {
-    top: 14px;
-    right: 14px;
+    top: clamp(10px, 3vw, 14px);
+    right: clamp(10px, 3vw, 14px);
   }
 
   .trust-row {
@@ -1825,11 +1855,11 @@ h3 {
   }
 
   .trust-row p {
-    padding: 20px 14px;
+    padding: clamp(14px, 3vw, 20px) clamp(10px, 2.5vw, 14px);
   }
 
   .trust-row p:first-child {
-    padding-left: 14px;
+    padding-left: clamp(10px, 2.5vw, 14px);
   }
 
   .trust-row p:nth-child(3) {
@@ -1842,18 +1872,18 @@ h3 {
 
   .section-head {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: clamp(12px, 2.5vw, 20px);
   }
 
   .section-head h2 {
-    font-size: clamp(45px, 14vw, 72px);
+    font-size: clamp(36px, 11vw + 1vh, 72px);
   }
 
   .prices,
   .pickup,
   .order,
   .faq {
-    padding-block: 86px;
+    padding-block: var(--section-pad);
   }
 
   .price-card {
@@ -1876,7 +1906,7 @@ h3 {
   }
 
   .price-big {
-    font-size: 38px;
+    font-size: clamp(28px, 8vw, 38px);
   }
 
   .price-card .btn {
@@ -1884,7 +1914,7 @@ h3 {
   }
 
   .pickup-grid {
-    gap: 46px;
+    gap: clamp(28px, 5vw, 46px);
   }
 
   .day-cards {
@@ -1905,8 +1935,8 @@ h3 {
   }
 
   .steps-card {
-    padding: 28px 24px;
-    box-shadow: 10px 10px 0 var(--orange);
+    padding: clamp(20px, 4vw, 28px) clamp(16px, 3.5vw, 24px);
+    box-shadow: var(--shadow-shift) var(--shadow-shift) 0 var(--orange);
   }
 
   .order-copy {
@@ -1914,7 +1944,7 @@ h3 {
   }
 
   .order-copy h2 {
-    font-size: clamp(50px, 15vw, 76px);
+    font-size: clamp(40px, 12vw + 1vh, 76px);
   }
 
   .order-tray-note {
@@ -1922,8 +1952,8 @@ h3 {
   }
 
   .order-form {
-    padding: 24px 18px;
-    box-shadow: 8px 8px 0 var(--yellow);
+    padding: clamp(16px, 3.5vw, 24px) clamp(12px, 3vw, 18px);
+    box-shadow: var(--shadow-shift) var(--shadow-shift) 0 var(--yellow);
   }
 
   .picker {
@@ -1931,7 +1961,7 @@ h3 {
   }
 
   .bundle-opt {
-    min-height: 104px;
+    min-height: clamp(88px, 18svh, 104px);
     padding: 10px;
   }
 
@@ -1949,9 +1979,9 @@ h3 {
 
   .done-card {
     grid-template-columns: 1fr;
-    gap: 30px;
-    padding: 28px 20px;
-    box-shadow: 8px 8px 0 var(--green);
+    gap: clamp(18px, 3vw, 30px);
+    padding: clamp(18px, 3.5vw, 28px) clamp(14px, 3vw, 20px);
+    box-shadow: var(--shadow-shift) var(--shadow-shift) 0 var(--green);
   }
 
   .done-row {
@@ -1960,7 +1990,7 @@ h3 {
 
   .foot-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 28px 20px;
+    gap: clamp(18px, 3vw, 28px) clamp(12px, 2.5vw, 20px);
     padding-bottom: 28px;
   }
 
@@ -1975,6 +2005,44 @@ h3 {
 
   .mobile-cta {
     display: flex;
+  }
+}
+
+/* Extra-narrow phones / landscape short viewports */
+@media (max-width: 400px) {
+  .hero-stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .hero-stats div + div {
+    padding-left: 0;
+    border-left: 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+
+  .picker {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-height: 700px) and (min-width: 1001px) {
+  .hero-grid {
+    min-height: calc(100dvh - var(--topbar-h) - 24px);
+  }
+
+  .showcase-card {
+    min-height: 0;
+  }
+
+  .hero-copy {
+    padding-block: 12px;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 6.5vh + 2vw, 96px);
+    margin-bottom: 12px;
   }
 }
 
