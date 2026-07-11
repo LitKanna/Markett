@@ -99,6 +99,33 @@ async function allowRate(env, key, limit, windowSec) {
   return true;
 }
 
+
+function stripeDetailsFromSession(session) {
+  const pi = session?.payment_intent;
+  const charge = pi && typeof pi === "object" ? pi.latest_charge : null;
+  const receiptUrl =
+    (charge && typeof charge === "object" && charge.receipt_url) ||
+    session?.receipt_url ||
+    null;
+  const amount =
+    Number.isFinite(Number(session?.amount_total)) ? Number(session.amount_total) / 100 : null;
+  const paidAtSec =
+    (charge && typeof charge === "object" && charge.created) ||
+    session?.created ||
+    null;
+  return {
+    sessionId: session?.id || null,
+    paymentIntentId: typeof pi === "string" ? pi : pi?.id || null,
+    receiptUrl,
+    amountTotal: amount,
+    currency: String(session?.currency || "aud").toUpperCase(),
+    email: session?.customer_details?.email || session?.customer_email || null,
+    cardBrand: charge?.payment_method_details?.card?.brand || null,
+    cardLast4: charge?.payment_method_details?.card?.last4 || null,
+    paidAt: paidAtSec ? new Date(paidAtSec * 1000).toISOString() : new Date().toISOString(),
+  };
+}
+
 // How many physical trays an order consumes
 function traysFor(order) {
   const perUnit = order.bundle === "box" ? 6 : order.bundle === "tray2" ? 2 : 1;
@@ -294,9 +321,10 @@ async function handleApi(request, env, url) {
     const sid = url.searchParams.get("session") || "";
     if (!sid.startsWith("cs_")) return json({ error: "bad session" }, 400);
 
-    const resp = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sid)}`, {
-      headers: { Authorization: `Bearer ${env.STRIPE_KEY}` },
-    });
+    const resp = await fetch(
+      `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sid)}?expand[]=payment_intent.latest_charge`,
+      { headers: { Authorization: `Bearer ${env.STRIPE_KEY}` } }
+    );
     const session = await resp.json();
     const orderId = session?.metadata?.orderId;
     const paid = session?.payment_status === "paid";
@@ -305,6 +333,8 @@ async function handleApi(request, env, url) {
       const order = await env.DATA.get(orderId, "json");
       if (order && order.paymentStatus !== "paid") {
         order.paymentStatus = "paid";
+        order.sessionId = order.sessionId || sid;
+        order.stripe = stripeDetailsFromSession(session);
         // Paid customers jump the queue: auto-confirm and allocate trays.
         if (order.status === "new" || order.status === "cancelled") order.status = "confirmed";
         await syncStock(env, order, order.status);
@@ -312,6 +342,33 @@ async function handleApi(request, env, url) {
       }
     }
     return json({ paid });
+  }
+
+  // Admin: pull / refresh Stripe receipt details for a paid order
+  if (url.pathname === "/api/stripe-receipt" && request.method === "GET") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    if (!env.STRIPE_KEY) return json({ error: "payments not configured" }, 503);
+    const id = String(url.searchParams.get("id") || "");
+    if (!id.startsWith("order:")) return json({ error: "bad order" }, 400);
+    const order = await env.DATA.get(id, "json");
+    if (!order) return json({ error: "not found" }, 404);
+    if (!order.sessionId) return json({ error: "no stripe session" }, 404);
+
+    if (order.stripe?.receiptUrl && order.stripe?.amountTotal != null) {
+      return json({ ok: true, stripe: order.stripe, cached: true });
+    }
+
+    const resp = await fetch(
+      `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(order.sessionId)}?expand[]=payment_intent.latest_charge`,
+      { headers: { Authorization: `Bearer ${env.STRIPE_KEY}` } }
+    );
+    const session = await resp.json();
+    if (session.error) return json({ error: session.error.message || "stripe error" }, 502);
+
+    order.stripe = stripeDetailsFromSession(session);
+    if (session.payment_status === "paid") order.paymentStatus = "paid";
+    await env.DATA.put(id, JSON.stringify(order));
+    return json({ ok: true, stripe: order.stripe, cached: false });
   }
 
   // Admin: update order status
@@ -480,6 +537,14 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 }
 .order.open .o-detail { display:grid; }
 .o-meta { font-size:11px; color:var(--muted); word-break:break-all; margin:0; }
+.stripe-box {
+  padding:10px 12px; border:1px solid var(--ink); background:var(--canvas);
+  font-size:12.5px; line-height:1.45;
+}
+.stripe-box b { font-family:var(--display); font-size:12px; letter-spacing:-.02em; text-transform:uppercase; }
+.stripe-box a { color:var(--orange); font-weight:800; text-decoration:none; }
+.stripe-box a:hover { text-decoration:underline; }
+.stripe-muted { color:var(--muted); font-size:11.5px; margin-top:4px; }
 .o-actions { display:flex; flex-wrap:wrap; gap:6px; }
 .o-actions a, .o-actions button { flex:0 1 auto; min-height:34px; padding:6px 10px; font-size:12px; }
 .callbtn { background:var(--yellow); color:var(--ink); }
@@ -615,7 +680,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <h2>Orders</h2>
         <button class="ghost" onclick="loadOrders()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
       </div>
-      <p class="orders-hint">Paid customers go first and get trays held automatically. Tap a row for actions.</p>
+      <p class="orders-hint">Paid customers go first and get trays held automatically. Tap a paid row for Stripe receipt details (email, card, receipt link).</p>
       <div id="orders"></div>
       <div id="orders-archive" class="archive"></div>
       <p class="empty" id="empty" style="display:none">No open orders.</p>
@@ -765,6 +830,7 @@ let ALL_ORDERS = [];
 let OPEN_ORDER_ID = null;
 
 async function loadOrders() {
+  const scrolls = saveLaneScrolls();
   const res = await fetch("/api/orders", { headers: authHeaders() });
   if (!res.ok) return;
   const { orders } = await res.json();
@@ -788,6 +854,7 @@ async function loadOrders() {
     '<div class="stat"><b>$' + paidOnline + '</b><span>paid online</span></div>';
 
   renderOrderBoard();
+  restoreLaneScrolls(scrolls);
   renderBuyers(orders);
 }
 
@@ -871,12 +938,36 @@ function orderRow(o, lineNo) {
     '</div>' +
     '<div class="o-right"><span class="o-price">$' + o.price + '</span>' + flag + '</div>' +
     '<div class="o-detail" onclick="event.stopPropagation()">' +
+      stripeReceiptHtml(o) +
       (signals.metaLine ? '<p class="o-meta">' + escapeHtml(signals.metaLine) + '</p>' : '') +
       '<div class="o-actions">' +
         '<a class="callbtn" href="tel:' + o.phone + '">' + fmtPhone(o.phone) + '</a>' +
         actionButtons(o) +
       '</div>' +
     '</div>' +
+  '</div>';
+}
+
+function stripeReceiptHtml(o) {
+  if (!isPaid(o) && !o.sessionId) return "";
+  const s = o.stripe || {};
+  const hasAny = s.receiptUrl || s.amountTotal != null || s.email || s.cardLast4;
+  if (!hasAny) {
+    return '<div class="stripe-box" data-stripe-id="' + escapeHtml(o.id) + '"><b>Stripe</b><div class="stripe-muted">Loading receipt…</div></div>';
+  }
+  const amount = s.amountTotal != null ? ('$' + s.amountTotal + (s.currency ? ' ' + s.currency : '')) : ('$' + o.price);
+  const card = (s.cardBrand || s.cardLast4)
+    ? (' · ' + String(s.cardBrand || 'card') + (s.cardLast4 ? ' ••' + s.cardLast4 : ''))
+    : '';
+  const email = s.email ? (' · ' + escapeHtml(s.email)) : '';
+  const when = s.paidAt ? (' · ' + fmtTime(s.paidAt)) : '';
+  const link = s.receiptUrl
+    ? ('<div style="margin-top:6px"><a href="' + escapeHtml(s.receiptUrl) + '" target="_blank" rel="noopener">View Stripe receipt ↗</a></div>')
+    : (o.sessionId ? '<div class="stripe-muted" style="margin-top:6px">Fetching Stripe receipt…</div>' : '');
+  return '<div class="stripe-box" data-stripe-id="' + escapeHtml(o.id) + '">' +
+    '<b>Stripe · Paid</b>' +
+    '<div>' + amount + email + card + when + '</div>' +
+    link +
   '</div>';
 }
 
@@ -917,14 +1008,58 @@ function renderOrderBoard() {
   }
 }
 
+function saveLaneScrolls() {
+  const out = {};
+  document.querySelectorAll(".lane-body").forEach(function(el, i) { out[i] = el.scrollTop; });
+  return out;
+}
+
+function restoreLaneScrolls(map) {
+  if (!map) return;
+  document.querySelectorAll(".lane-body").forEach(function(el, i) {
+    if (typeof map[i] === "number") el.scrollTop = map[i];
+  });
+}
+
+function renderOrderBoardPreservingScroll() {
+  const scrolls = saveLaneScrolls();
+  renderOrderBoard();
+  restoreLaneScrolls(scrolls);
+}
+
 document.addEventListener("click", function(e) {
   const row = e.target.closest("#orders .order, #orders-archive .order");
   if (!row) return;
   if (e.target.closest(".o-detail")) return;
   const id = row.dataset.id;
-  OPEN_ORDER_ID = OPEN_ORDER_ID === id ? null : id;
-  renderOrderBoard();
+  const closing = OPEN_ORDER_ID === id;
+  document.querySelectorAll(".order.open").forEach(function(el) { el.classList.remove("open"); });
+  OPEN_ORDER_ID = closing ? null : id;
+  if (!closing) {
+    row.classList.add("open");
+    hydrateStripeReceipt(id);
+  }
 });
+
+async function hydrateStripeReceipt(orderId) {
+  const order = ALL_ORDERS.find(function(o) { return o.id === orderId; });
+  if (!order || (!isPaid(order) && !order.sessionId)) return;
+  if (order.stripe && order.stripe.receiptUrl) return;
+  const box = document.querySelector('.stripe-box[data-stripe-id="' + CSS.escape(orderId) + '"]');
+  try {
+    const res = await fetch("/api/stripe-receipt?id=" + encodeURIComponent(orderId), { headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok || !data.stripe) {
+      if (box) box.innerHTML = '<b>Stripe</b><div class="stripe-muted">' + escapeHtml(data.error || "Could not load receipt") + '</div>';
+      return;
+    }
+    order.stripe = data.stripe;
+    if (order.paymentStatus !== "paid" && data.stripe) order.paymentStatus = "paid";
+    if (box) box.outerHTML = stripeReceiptHtml(order);
+  } catch (err) {
+    if (box) box.innerHTML = '<b>Stripe</b><div class="stripe-muted">Could not load receipt</div>';
+  }
+}
 
 const TEST_PHONES = { "0412345678": 1, "0498765432": 1 };
 const HOSTING_RE = /amazon|google|microsoft|digitalocean|ovh|hetzner|linode|vultr|cloudflare|hosting|datacenter|vps|colo/i;
@@ -1080,7 +1215,7 @@ async function setStatus(id, status) {
       if (d.stockDelta > 0) toast(d.stockDelta + (d.stockDelta === 1 ? " tray" : " trays") + " returned · " + d.traysAvailable + " left");
     }
   }
-  loadOrders();
+  await loadOrders();
 }
 
 async function loadSettings() {
@@ -1149,7 +1284,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "83",
+          "X-Yolko-Admin": "85",
         },
       });
     }
