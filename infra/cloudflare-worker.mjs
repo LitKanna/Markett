@@ -995,13 +995,15 @@ function renderOrderBoard() {
   const waiting = ALL_ORDERS.filter(o => o.status === "new").sort(sortPaidFirst);
   const confirmed = ALL_ORDERS.filter(o => o.status === "confirmed").sort(sortPaidFirst);
   const archived = ALL_ORDERS.filter(o => o.status === "done" || o.status === "cancelled");
+  const archiveWasOpen = !!(document.querySelector("#orders-archive details.archive") && document.querySelector("#orders-archive details.archive").open);
+  const openIsArchived = !!(OPEN_ORDER_ID && archived.some(function(o) { return o.id === OPEN_ORDER_ID; }));
 
   $("orders").innerHTML = laneHtml("Waiting", "waiting", waiting, lineMap) + laneHtml("Confirmed", "confirmed", confirmed, lineMap);
   $("empty").style.display = (waiting.length || confirmed.length) ? "none" : "block";
 
   if (archived.length) {
     $("orders-archive").innerHTML =
-      '<details class="archive"><summary>Done &amp; cancelled · ' + archived.length + '</summary>' +
+      '<details class="archive"' + (archiveWasOpen || openIsArchived ? " open" : "") + '><summary>Done &amp; cancelled · ' + archived.length + '</summary>' +
       laneHtml("Archive", "archive-lane", archived, {}) + '</details>';
   } else {
     $("orders-archive").innerHTML = "";
@@ -1031,10 +1033,15 @@ document.addEventListener("click", function(e) {
   const row = e.target.closest("#orders .order, #orders-archive .order");
   if (!row) return;
   if (e.target.closest(".o-detail")) return;
+  // Keep <details class="archive"> from toggling closed when tapping a row.
+  e.preventDefault();
+  e.stopPropagation();
   const id = row.dataset.id;
   const closing = OPEN_ORDER_ID === id;
   document.querySelectorAll(".order.open").forEach(function(el) { el.classList.remove("open"); });
   OPEN_ORDER_ID = closing ? null : id;
+  const archive = row.closest("details.archive");
+  if (archive) archive.open = true;
   if (!closing) {
     row.classList.add("open");
     hydrateStripeReceipt(id);
@@ -1284,7 +1291,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "85",
+          "X-Yolko-Admin": "86",
         },
       });
     }
