@@ -69,6 +69,42 @@ function isAdmin(request, env) {
   return env.ADMIN_KEY && auth === `Bearer ${env.ADMIN_KEY}`;
 }
 
+const HOSTING_ASN_RE = /amazon|aws|google\s*(cloud|llc)|microsoft|azure|digitalocean|ovh|hetzner|linode|vultr|hosting|datacenter|data centre|\bvps\b|colocation|dedicated server/i;
+
+const ALLOWED_ORIGINS = [
+  "https://getyolko.com",
+  "https://www.getyolko.com",
+  "https://yolko-site.maruthi4a5.workers.dev",
+];
+
+function isAllowedOrigin(request) {
+  const origin = String(request.headers.get("Origin") || "").replace(/\/$/, "");
+  if (origin && ALLOWED_ORIGINS.includes(origin)) return true;
+  const referer = String(request.headers.get("Referer") || "");
+  if (ALLOWED_ORIGINS.some((a) => referer === a + "/" || referer.startsWith(a + "/"))) return true;
+  return false;
+}
+
+async function issueOrderToken(env) {
+  const token = crypto.randomUUID().replace(/-/g, "") + Math.random().toString(36).slice(2, 10);
+  const issuedAt = Date.now();
+  await env.DATA.put(`otok:${token}`, JSON.stringify({ issuedAt }), { expirationTtl: 600 });
+  return { token, issuedAt };
+}
+
+async function consumeOrderToken(env, token) {
+  const t = String(token || "").trim();
+  if (!/^[a-zA-Z0-9]{20,80}$/.test(t)) return { ok: false, reason: "missing" };
+  const key = `otok:${t}`;
+  const data = await env.DATA.get(key, "json");
+  if (!data || !data.issuedAt) return { ok: false, reason: "invalid" };
+  await env.DATA.delete(key);
+  const age = Date.now() - Number(data.issuedAt);
+  if (age < 2500) return { ok: false, reason: "too_fast" };
+  if (age > 10 * 60 * 1000) return { ok: false, reason: "expired" };
+  return { ok: true, age };
+}
+
 function clientIp(request) {
   return (
     request.headers.get("CF-Connecting-IP") ||
@@ -238,8 +274,23 @@ async function handleApi(request, env, url) {
     return json(next);
   }
 
+  // Public: short-lived one-time token required to place an order (anti-bot)
+  if (url.pathname === "/api/order-token" && request.method === "GET") {
+    if (!isAllowedOrigin(request)) return json({ error: "forbidden" }, 403);
+    const ip = clientIp(request);
+    if (ip && !(await allowRate(env, `tok:${ip}`, 30, 3600))) {
+      return json({ error: "too many requests" }, 429);
+    }
+    const { token } = await issueOrderToken(env);
+    return json({ token, ttlSec: 600 });
+  }
+
   // Public: place an order
   if (url.pathname === "/api/orders" && request.method === "POST") {
+    if (!isAllowedOrigin(request)) {
+      return json({ error: "forbidden", code: "origin" }, 403);
+    }
+
     const body = await request.json().catch(() => null);
     const name = String(body?.name || "").trim().slice(0, 80);
     const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
@@ -253,7 +304,16 @@ async function handleApi(request, env, url) {
       return json({ ok: true, id: `order:blocked:${Date.now()}` });
     }
 
-    if (!name || !/^04\d{8}$/.test(phone) || !bundle || !pickupDay) {
+    const tokenCheck = await consumeOrderToken(env, body?.token);
+    if (!tokenCheck.ok) {
+      return json({ error: "refresh and try again", code: "token_" + tokenCheck.reason }, 403);
+    }
+
+    if (!name || name.length < 2 || !/^04\d{8}$/.test(phone) || !bundle || !pickupDay) {
+      return json({ error: "invalid order" }, 400);
+    }
+    // Block obvious junk names
+    if (/^[a-z]{1,2}$/i.test(name) || /https?:|www\.|@/.test(name)) {
       return json({ error: "invalid order" }, 400);
     }
 
@@ -264,11 +324,25 @@ async function handleApi(request, env, url) {
 
     const ip = clientIp(request);
     const meta = clientMeta(request);
-    // Soft anti-spam: cap bookings per IP and per phone in a rolling window.
-    if (ip && !(await allowRate(env, `ip:${ip}`, 5, 24 * 3600))) {
+
+    // Hard block: non-Australia IPs (Sydney market pickup only)
+    if (meta.country && meta.country !== "AU") {
+      return json({ error: "pickup is Sydney only", code: "geo" }, 403);
+    }
+    // Hard block: datacenter / hosting ASNs (typical bot farms)
+    if (meta.asnOrg && HOSTING_ASN_RE.test(meta.asnOrg)) {
+      return json({ error: "blocked", code: "asn" }, 403);
+    }
+    // Empty / bot user-agents
+    if (!meta.ua || meta.ua.length < 12 || /curl|wget|python-requests|scrapy|httpclient|bot/i.test(meta.ua)) {
+      return json({ error: "blocked", code: "ua" }, 403);
+    }
+
+    // Soft anti-spam: tighter caps per IP and phone (rolling 24h)
+    if (ip && !(await allowRate(env, `ip:${ip}`, 3, 24 * 3600))) {
       return json({ error: "too many orders", code: "rate_ip" }, 429);
     }
-    if (!(await allowRate(env, `phone:${phone}`, 3, 24 * 3600))) {
+    if (!(await allowRate(env, `phone:${phone}`, 2, 24 * 3600))) {
       return json({ error: "too many orders", code: "rate_phone" }, 429);
     }
 
@@ -1253,7 +1327,7 @@ async function hydrateStripeReceipt(orderId) {
 }
 
 const TEST_PHONES = { "0412345678": 1, "0498765432": 1 };
-const HOSTING_RE = /amazon|google|microsoft|digitalocean|ovh|hetzner|linode|vultr|cloudflare|hosting|datacenter|vps|colo/i;
+const HOSTING_RE = /amazon|aws|google\s*(cloud|llc)|microsoft|azure|digitalocean|ovh|hetzner|linode|vultr|hosting|datacenter|data centre|\bvps\b|colocation|dedicated server/i;
 
 function orderSignals(o, orders) {
   const tags = [];
@@ -1598,7 +1672,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "92",
+          "X-Yolko-Admin": "93",
         },
       });
     }

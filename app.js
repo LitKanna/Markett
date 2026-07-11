@@ -546,31 +546,85 @@ function collectBooking() {
 }
 
 function createOrder(b) {
-  return fetch(`${API_BASE}/api/orders`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: b.name,
-      phone: b.phoneDigits,
-      bundle: b.bundleKey,
-      pickupDay: b.pickupDay,
-      pickupDate: b.pickupDate,
-      quantity: b.quantity,
-      company: b.company || "",
-    }),
-  })
+  return ensureOrderToken()
+    .then((token) =>
+      fetch(`${API_BASE}/api/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: b.name,
+          phone: b.phoneDigits,
+          bundle: b.bundleKey,
+          pickupDay: b.pickupDay,
+          pickupDate: b.pickupDate,
+          quantity: b.quantity,
+          company: b.company || "",
+          token: token || "",
+        }),
+      })
+    )
     .then(async (r) => {
+      orderToken = null;
+      orderTokenAt = 0;
       if (r.status === 429) return { error: "rate" };
+      if (r.status === 403) {
+        const d = await r.json().catch(() => ({}));
+        if (d.code === "geo") return { error: "geo" };
+        return { error: "blocked" };
+      }
       if (!r.ok) return null;
       return r.json();
     })
     .then((d) => {
       if (!d) return null;
-      if (d.error === "rate") return { error: "rate" };
+      if (d.error) return d;
+      prefetchOrderToken();
       return d.id ? { id: d.id } : null;
     })
-    .catch(() => null);
+    .catch(() => {
+      orderToken = null;
+      orderTokenAt = 0;
+      prefetchOrderToken();
+      return null;
+    });
 }
+
+let orderToken = null;
+let orderTokenAt = 0;
+
+function prefetchOrderToken() {
+  fetch(`${API_BASE}/api/order-token`)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => {
+      if (d && d.token) {
+        orderToken = d.token;
+        orderTokenAt = Date.now();
+      }
+    })
+    .catch(() => {});
+}
+
+async function ensureOrderToken() {
+  if (!orderToken || Date.now() - orderTokenAt > 8 * 60 * 1000) {
+    try {
+      const r = await fetch(`${API_BASE}/api/order-token`);
+      const d = r.ok ? await r.json() : null;
+      orderToken = d && d.token ? d.token : null;
+      orderTokenAt = Date.now();
+    } catch {
+      orderToken = null;
+      orderTokenAt = 0;
+    }
+  }
+  // Server rejects tokens younger than ~2.5s (bot slam). Wait out the floor.
+  const wait = 2600 - (Date.now() - orderTokenAt);
+  if (orderToken && wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+  return orderToken;
+}
+
+prefetchOrderToken();
+document.getElementById("order")?.addEventListener("pointerdown", prefetchOrderToken, { once: true, passive: true });
+document.getElementById("order")?.addEventListener("focusin", prefetchOrderToken, { once: true });
 
 async function openCheckout(orderId, fallbackUrl) {
   try {
@@ -660,6 +714,14 @@ form.addEventListener("submit", async (event) => {
     showToast("Too many bookings from this phone or connection. Try again later.");
     return;
   }
+  if (orderResult?.error === "geo") {
+    showToast("Bookings are for Sydney pickup only.");
+    return;
+  }
+  if (orderResult?.error === "blocked") {
+    showToast("Couldn’t place that booking. Refresh and try again.");
+    return;
+  }
   lastOrderId = orderResult?.id || null;
   showConfirmation(booking);
 });
@@ -680,6 +742,12 @@ buynowBtn.addEventListener("click", async () => {
     buynowBtn.disabled = false;
     buynowLabel.textContent = "Buy now";
     showToast("Too many bookings from this phone or connection. Try again later.");
+    return;
+  }
+  if (orderResult?.error === "geo" || orderResult?.error === "blocked") {
+    buynowBtn.disabled = false;
+    buynowLabel.textContent = "Buy now";
+    showToast(orderResult.error === "geo" ? "Bookings are for Sydney pickup only." : "Couldn’t place that booking. Refresh and try again.");
     return;
   }
   lastOrderId = orderResult?.id || null;
