@@ -505,40 +505,7 @@ h3 {
 }
 
 .showcase-price {
-  position: absolute;
-  left: 22px;
-  bottom: 22px;
-  z-index: 3;
-  min-width: 180px;
-  display: grid;
-  padding: 18px 20px;
-  color: var(--white);
-  background: var(--ink);
-  box-shadow: 10px 10px 0 var(--orange);
-  transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
-  pointer-events: none;
-}
-
-.hero-showcase:hover .showcase-price {
-  transform: translate(-3px, -3px);
-  box-shadow: 13px 13px 0 var(--orange);
-}
-
-.showcase-price-num {
-  font-family: var(--display);
-  font-size: 52px;
-  font-weight: 800;
-  line-height: 0.9;
-  letter-spacing: -0.06em;
-}
-
-.showcase-price-note {
-  margin-top: 8px;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  display: none !important;
 }
 
 .showcase-tag {
@@ -1875,18 +1842,6 @@ h3 {
     aspect-ratio: 3 / 4;
     max-height: min(62svh, 560px);
     min-height: clamp(220px, 42svh, 480px);
-  }
-
-  .showcase-price {
-    left: clamp(10px, 3vw, 14px);
-    bottom: clamp(10px, 3vw, 14px);
-    min-width: min(150px, 42vw);
-    padding: clamp(12px, 2vw, 15px) clamp(12px, 2.5vw, 16px);
-    box-shadow: var(--shadow-shift) var(--shadow-shift) 0 var(--orange);
-  }
-
-  .showcase-price-num {
-    font-size: clamp(32px, 10vw, 42px);
   }
 
   .showcase-tag {
