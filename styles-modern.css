@@ -1146,6 +1146,15 @@ h3 {
   font-weight: 700;
 }
 
+.hp-field {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .field.shake {
   animation: shake 350ms ease;
 }

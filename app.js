@@ -541,6 +541,7 @@ function collectBooking() {
     quantity,
     total: bundle.price * quantity,
     orderLabel: describeOrder(bundleKey, quantity),
+    company: String(data.get("company") || "").trim(),
   };
 }
 
@@ -548,10 +549,26 @@ function createOrder(b) {
   return fetch(`${API_BASE}/api/orders`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: b.name, phone: b.phoneDigits, bundle: b.bundleKey, pickupDay: b.pickupDay, pickupDate: b.pickupDate, quantity: b.quantity }),
+    body: JSON.stringify({
+      name: b.name,
+      phone: b.phoneDigits,
+      bundle: b.bundleKey,
+      pickupDay: b.pickupDay,
+      pickupDate: b.pickupDate,
+      quantity: b.quantity,
+      company: b.company || "",
+    }),
   })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((d) => (d && d.id ? d.id : null))
+    .then(async (r) => {
+      if (r.status === 429) return { error: "rate" };
+      if (!r.ok) return null;
+      return r.json();
+    })
+    .then((d) => {
+      if (!d) return null;
+      if (d.error === "rate") return { error: "rate" };
+      return d.id ? { id: d.id } : null;
+    })
     .catch(() => null);
 }
 
@@ -632,14 +649,18 @@ form.addEventListener("submit", async (event) => {
   submitBtn.disabled = true;
   submitBtn.setAttribute("aria-busy", "true");
   document.getElementById("submit-label").textContent = "Reserving…";
-  const [orderId] = await Promise.all([
+  const [orderResult] = await Promise.all([
     createOrder(booking),
     new Promise((resolve) => setTimeout(resolve, 850)),
   ]);
-  lastOrderId = orderId;
   submitBtn.disabled = false;
   submitBtn.removeAttribute("aria-busy");
   document.getElementById("submit-label").textContent = "Reserve";
+  if (orderResult?.error === "rate") {
+    showToast("Too many bookings from this phone or connection. Try again later.");
+    return;
+  }
+  lastOrderId = orderResult?.id || null;
   showConfirmation(booking);
 });
 
@@ -654,10 +675,16 @@ buynowBtn.addEventListener("click", async () => {
   buynowBtn.disabled = true;
   buynowLabel.textContent = "Opening checkout…";
 
-  const orderId = await createOrder(booking);
-  lastOrderId = orderId;
+  const orderResult = await createOrder(booking);
+  if (orderResult?.error === "rate") {
+    buynowBtn.disabled = false;
+    buynowLabel.textContent = "Buy now";
+    showToast("Too many bookings from this phone or connection. Try again later.");
+    return;
+  }
+  lastOrderId = orderResult?.id || null;
   const fallback = config.stripeLinks && config.stripeLinks[booking.bundleKey];
-  const ok = await openCheckout(orderId, fallback);
+  const ok = await openCheckout(lastOrderId, fallback);
 
   if (!ok) {
     buynowBtn.disabled = false;

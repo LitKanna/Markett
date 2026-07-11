@@ -68,6 +68,37 @@ function isAdmin(request, env) {
   return env.ADMIN_KEY && auth === `Bearer ${env.ADMIN_KEY}`;
 }
 
+function clientIp(request) {
+  return (
+    request.headers.get("CF-Connecting-IP") ||
+    (request.headers.get("X-Forwarded-For") || "").split(",")[0].trim() ||
+    ""
+  );
+}
+
+function clientMeta(request) {
+  const cf = request.cf || {};
+  const ua = String(request.headers.get("User-Agent") || "").slice(0, 160);
+  return {
+    country: String(cf.country || request.headers.get("CF-IPCountry") || "").toUpperCase() || null,
+    asnOrg: String(cf.asOrganization || "").slice(0, 80) || null,
+    colo: String(cf.colo || "").slice(0, 8) || null,
+    ua: ua || null,
+  };
+}
+
+// Rolling-window rate limit stored in KV. Returns true if the request is allowed.
+async function allowRate(env, key, limit, windowSec) {
+  const id = `rl:${key}`;
+  const now = Date.now();
+  const data = (await env.DATA.get(id, "json")) || { hits: [] };
+  const hits = (Array.isArray(data.hits) ? data.hits : []).filter((t) => now - t < windowSec * 1000);
+  if (hits.length >= limit) return false;
+  hits.push(now);
+  await env.DATA.put(id, JSON.stringify({ hits }), { expirationTtl: windowSec + 120 });
+  return true;
+}
+
 // How many physical trays an order consumes
 function traysFor(order) {
   const perUnit = order.bundle === "box" ? 6 : order.bundle === "tray2" ? 2 : 1;
@@ -155,6 +186,11 @@ async function handleApi(request, env, url) {
     const pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
     const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
     const pickupDate = String(body?.pickupDate || "").replace(/[^0-9A-Za-z ]/g, "").slice(0, 12);
+    // Honeypot: bots fill hidden "company" field — pretend success, save nothing.
+    const honeypot = String(body?.company || "").trim();
+    if (honeypot) {
+      return json({ ok: true, id: `order:blocked:${Date.now()}` });
+    }
 
     if (!name || !/^04\d{8}$/.test(phone) || !bundle || !pickupDay) {
       return json({ error: "invalid order" }, 400);
@@ -164,6 +200,17 @@ async function handleApi(request, env, url) {
     if (!settings.pickup[pickupDay]?.enabled) {
       return json({ error: "pickup day unavailable" }, 400);
     }
+
+    const ip = clientIp(request);
+    const meta = clientMeta(request);
+    // Soft anti-spam: cap bookings per IP and per phone in a rolling window.
+    if (ip && !(await allowRate(env, `ip:${ip}`, 5, 24 * 3600))) {
+      return json({ error: "too many orders", code: "rate_ip" }, 429);
+    }
+    if (!(await allowRate(env, `phone:${phone}`, 3, 24 * 3600))) {
+      return json({ error: "too many orders", code: "rate_phone" }, 429);
+    }
+
     const now = new Date();
     const id = `order:${now.toISOString()}:${Math.random().toString(36).slice(2, 8)}`;
     const order = {
@@ -177,6 +224,11 @@ async function handleApi(request, env, url) {
       price: settings.prices[bundle] * quantity,
       status: "new",
       createdAt: now.toISOString(),
+      ip: ip || null,
+      country: meta.country,
+      asnOrg: meta.asnOrg,
+      colo: meta.colo,
+      ua: meta.ua,
     };
     await env.DATA.put(id, JSON.stringify(order));
     return json({ ok: true, id });
@@ -349,6 +401,9 @@ h2 { font-family:"Bricolage Grotesque",sans-serif; font-size:19px; font-weight:8
 .pill.cancelled { background:var(--red-soft); color:var(--red); }
 .pill.paid { background:var(--green); color:#fff; }
 .pill.day { background:var(--cream2); color:var(--ink); }
+.pill.warn { background:#fdeecd; color:var(--amber-d); }
+.pill.meta { background:var(--cream2); color:var(--soft); font-weight:700; text-transform:none; letter-spacing:0; }
+.o-meta { font-size:12px; color:var(--soft); margin:0 0 10px; word-break:break-all; }
 .o-actions { display:flex; flex-wrap:wrap; gap:8px; }
 .o-actions a, .o-actions button { flex:1 1 auto; min-width:0; }
 
@@ -602,14 +657,17 @@ async function loadOrders() {
 
   $("orders").innerHTML = orders.map(o => {
     const prio = o.paymentStatus === "paid" && o.status !== "cancelled";
-    return '<div class="order' + (prio ? ' prio' : '') + '">' +
+    const signals = orderSignals(o, orders);
+    return '<div class="order' + (prio ? ' prio' : '') + (signals.suspicious ? ' sus' : '') + '">' +
       '<div class="o-top"><span class="o-name">' + escapeHtml(o.name) + '</span><span class="o-price">$' + o.price + '</span></div>' +
       '<div class="o-time">' + fmtTime(o.createdAt) + '</div>' +
       '<div class="o-what">' + describeOrder(o.bundle, o.quantity) + ' <span>· pickup ' + o.pickupDay + (o.pickupDate ? ' ' + o.pickupDate : '') + '</span></div>' +
+      (signals.metaLine ? '<div class="o-meta">' + escapeHtml(signals.metaLine) + '</div>' : '') +
       '<div class="o-tags">' +
         '<span class="pill ' + o.status + '">' + o.status + '</span>' +
         '<span class="pill day">uses ' + traysFor(o) + (traysFor(o) === 1 ? ' tray' : ' trays') + '</span>' +
         (prio ? '<span class="pill paid">&#9889; paid · priority</span>' : '') +
+        signals.tags.map(function(t) { return '<span class="pill ' + t.cls + '">' + escapeHtml(t.text) + '</span>'; }).join('') +
       '</div>' +
       '<div class="o-actions">' +
         '<a class="callbtn" href="tel:' + o.phone + '">Call ' + fmtPhone(o.phone) + '</a>' +
@@ -619,6 +677,40 @@ async function loadOrders() {
   }).join("");
   $("empty").style.display = orders.length ? "none" : "block";
   renderBuyers(orders);
+}
+
+const TEST_PHONES = { "0412345678": 1, "0498765432": 1 };
+const HOSTING_RE = /amazon|google|microsoft|digitalocean|ovh|hetzner|linode|vultr|cloudflare|hosting|datacenter|vps|colo/i;
+
+function orderSignals(o, orders) {
+  const tags = [];
+  let suspicious = false;
+  if (o.country && o.country !== "AU") {
+    tags.push({ cls: "warn", text: o.country + " IP" });
+    suspicious = true;
+  }
+  if (TEST_PHONES[o.phone]) {
+    tags.push({ cls: "warn", text: "test phone?" });
+    suspicious = true;
+  }
+  if (o.asnOrg && HOSTING_RE.test(o.asnOrg)) {
+    tags.push({ cls: "warn", text: "datacenter IP" });
+    suspicious = true;
+  }
+  if (o.ip) {
+    const same = orders.filter(function(x) {
+      return x.ip === o.ip && x.id !== o.id && x.status !== "cancelled";
+    }).length;
+    if (same > 0) {
+      tags.push({ cls: "warn", text: same + " more same IP" });
+      suspicious = true;
+    }
+  }
+  const metaParts = [];
+  if (o.country) metaParts.push(o.country);
+  if (o.ip) metaParts.push(o.ip);
+  if (o.asnOrg) metaParts.push(o.asnOrg);
+  return { tags: tags, suspicious: suspicious, metaLine: metaParts.join(" · ") };
 }
 
 function daysAgo(iso) {

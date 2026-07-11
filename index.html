@@ -322,6 +322,12 @@
             <input id="name" name="name" type="text" placeholder="Full name" autocomplete="name" required>
           </div>
 
+          <!-- Honeypot: leave empty. Bots that fill it are dropped server-side. -->
+          <div class="hp-field" aria-hidden="true">
+            <label for="company">Company</label>
+            <input id="company" name="company" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
           <div class="field">
             <label for="phone">Australian mobile</label>
             <input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="04xx xxx xxx" autocomplete="tel" aria-describedby="phone-error" required>

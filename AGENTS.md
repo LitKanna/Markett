@@ -37,6 +37,11 @@ Admin **Product** (`trayWeight`) drives storefront labels via `PRODUCT_TYPES` in
 (`1.5`, `1.75`, `fr-700`, `fr-600`). Changing it in `/admin` updates trust strip, pack line,
 FAQ, and image alts on the next page load — no HTML edit needed.
 
+Orders store `ip`, `country`, `asnOrg`, and `ua` (from Cloudflare). Admin flags non-AU IPs,
+datacenter ASNs, known test phones, and repeat IPs. Rate limits: 5 orders / IP / 24h and
+3 / phone / 24h. Do **not** place test bookings against production — local Reserve hits
+`https://getyolko.com/api/orders`.
+
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
 that intentionally fails (`echo "Error: no test specified" && exit 1`) — do not treat that as
