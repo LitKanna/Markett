@@ -100,16 +100,16 @@ function initImageRotators() {
 
 initImageRotators();
 
-/* Chalkboard hero swaps to match live tray1 price ($8–$24); dozens unchanged */
-const CHALK_PRICES = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
-const CHALK_ASSET_VER = "105";
+/* Chalkboard hero swaps to match live tray1 price ($1–$30); dozens unchanged */
+const CHALK_PRICES = Array.from({ length: 30 }, (_, i) => i + 1);
+const CHALK_ASSET_VER = "106";
 
 function chalkPriceKey(price) {
   const n = Math.round(Number(price));
   if (CHALK_PRICES.includes(n)) return n;
   if (!Number.isFinite(n)) return 12;
-  if (n < 8) return 8;
-  if (n > 24) return 24;
+  if (n < 1) return 1;
+  if (n > 30) return 30;
   return 12;
 }
 
@@ -127,13 +127,15 @@ function applyChalkPriceImage(trayPrice) {
     const img = pic.querySelector("img");
     if (kind === "hero") {
       if (source) {
-        source.srcset = `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w`;
+        source.srcset = `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w`;
         source.sizes = HERO_SIZES;
       }
       if (img) {
         img.src = `assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}`;
-        img.srcset = `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w`;
+        img.srcset = `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w`;
         img.sizes = HERO_SIZES;
+        img.width = 928;
+        img.height = 928;
         img.alt = `Fresh eggs · $${p}/tray at the YOLKO stall`;
       }
     } else {
@@ -173,8 +175,8 @@ function buildHeroPicture(item, index) {
   if (isChalk) {
     const p = chalkPriceKey(item.chalkPrice || BUNDLES.tray1.price);
     return `<picture class="showcase-photo${active}"${chalkAttr}>
-      <source type="image/webp" srcset="assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w" sizes="${HERO_SIZES}">
-      <img${idAttr} src="assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}" srcset="assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w" sizes="${HERO_SIZES}" alt="Fresh eggs · $${p}/tray at the YOLKO stall" width="928" height="1242"${loading} decoding="async">
+      <source type="image/webp" srcset="assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w" sizes="${HERO_SIZES}">
+      <img${idAttr} src="assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}" srcset="assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w" sizes="${HERO_SIZES}" alt="Fresh eggs · $${p}/tray at the YOLKO stall" width="928" height="928"${loading} decoding="async">
     </picture>`;
   }
   const src = heroSrcset(item);

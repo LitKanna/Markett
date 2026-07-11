@@ -42,12 +42,13 @@ datacenter ASNs, known test phones, and repeat IPs. Rate limits: 5 orders / IP /
 3 / phone / 24h. Do **not** place test bookings against production — local Reserve hits
 `https://getyolko.com/api/orders`.
 
-### Chalk-tray price heroes ($8–$24)
+### Chalk-tray price heroes ($1–$30)
 Changing **tray1** price in admin swaps hero/order chalk images via `applyChalkPriceImage`
 (`CHALK_PRICES` / `CHALK_ASSET_VER` in `app.js`). Dozens images are unaffected. Assets live
 under `assets/chalk-tray/{N}-*`. After regenerating masters, bump `CHALK_ASSET_VER` and
 `?v=` in `index.html`, extend `infra/asset-registry.json`, re-embed `ASSET_REGISTRY` in the
 worker, pin `DEPLOY_SHA`, bump `X-Yolko-Build`, then `npx wrangler deploy`.
+
 
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
@@ -66,13 +67,13 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
 
 **User request (not finished):** On shop hero boxes, make **YOLKO** a **tiny bottom-corner**
 mark (not large/centered). On the closeup tray-on-box slide, also remove any
-**“Fresh eggs Flemington”** subline. Keep chalkboard price heroes working ($8–$24).
+**“Fresh eggs Flemington”** subline. Keep chalkboard price heroes working ($1–$30).
 
 **Do this with Higgsfield MCP only** (`generate_image` / media tools). Do **not** use Cursor
 `GenerateImage` — user rejected those assets and we reverted them (build 94). Do **not**
 fall back to local OpenCV/Pillow redraws unless the user explicitly allows it.
 
-**Chalk-tray status (done):** `assets/chalk-tray/{8–24}-*` — plain kraft box (no large
+**Chalk-tray status (done):** `assets/chalk-tray/{1–30}-*` — plain kraft box (no large
 YOLKO), three stacked clear trays, chalkboard upper-left `FRESH EGGS — $N / TRAY`.
 Wired via `CHALK_PRICES` / `CHALK_ASSET_VER` in `app.js` (tray1 price only; dozens
 unchanged). Hero cover uses `object-position: left 28% top 18%` so the board stays in frame.
@@ -89,7 +90,7 @@ box width). No centered mega-logo. No Flemington subline on v6.
 
 **Export pipeline after Higgsfield masters:** for each master, write
 `{name}-928.jpg` (hero), `{name}-640.jpg`, `{name}-square-560.jpg` + matching `.webp`
-(quality ~88). Chalk set needs all prices 8–24. Bust `?v=` in `index.html` and
+(quality ~88). Chalk set needs all prices 1–30. Bust `?v=` in `index.html` and
 `CHALK_ASSET_VER` in `app.js`. Then pin `DEPLOY_SHA` in `infra/cloudflare-worker.mjs` to
 the asset commit, bump `X-Yolko-Build`, `npx wrangler deploy`.
 
