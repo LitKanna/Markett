@@ -323,7 +323,7 @@ function applySettings(settings) {
   const traySpec = document.getElementById("tray-spec");
   if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
   const faqEggs = document.getElementById("faq-eggs");
-  if (faqEggs) faqEggs.textContent = `Pace Farm cage ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
+  if (faqEggs) faqEggs.textContent = `Pace Farm ${size} eggs — 30 to a tray (${weight}kg). The same brand you'll find in the big supermarkets, for less.`;
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
