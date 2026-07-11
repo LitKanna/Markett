@@ -127,6 +127,35 @@ function stripeDetailsFromSession(session) {
   };
 }
 
+const STRIPE_BRAND = "YOLKO";
+
+/** Ensure Checkout / Payment Links show YOLKO, not the personal account name. */
+async function ensureStripeBranding(env) {
+  if (!env.STRIPE_KEY) return { ok: false, error: "payments not configured" };
+  const body = new URLSearchParams({
+    "business_profile[name]": STRIPE_BRAND,
+    "business_profile[support_url]": "https://getyolko.com",
+    "business_profile[url]": "https://getyolko.com",
+    "settings[payments][statement_descriptor]": STRIPE_BRAND,
+  });
+  const resp = await fetch("https://api.stripe.com/v1/account", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.STRIPE_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: body.toString(),
+  });
+  const account = await resp.json();
+  if (account.error) return { ok: false, error: account.error.message || "stripe error", account };
+  return {
+    ok: true,
+    name: account.business_profile?.name || null,
+    statementDescriptor: account.settings?.payments?.statement_descriptor || null,
+    email: account.email || null,
+  };
+}
+
 // How many physical trays an order consumes
 function traysFor(order) {
   const perUnit = order.bundle === "box" ? 6 : order.bundle === "tray2" ? 2 : 1;
@@ -286,6 +315,9 @@ async function handleApi(request, env, url) {
     if (!order) return json({ error: "order not found" }, 404);
     if (order.paymentStatus === "paid") return json({ error: "already paid" }, 400);
 
+    // Keep Checkout header as YOLKO (not personal account name).
+    await ensureStripeBranding(env).catch(() => null);
+
     const quantity = order.quantity || 1;
     const unitAmount = Math.round((order.price / quantity) * 100);
     const labels = { tray1: "Egg tray (30 eggs)", tray2: "2 egg trays (60 eggs)", box: "Full box (180 eggs)" };
@@ -311,7 +343,7 @@ async function handleApi(request, env, url) {
       body: params.toString(),
     });
     const session = await resp.json();
-    if (!session.url) return json({ error: "checkout failed" }, 502);
+    if (!session.url) return json({ error: "checkout failed", detail: session.error?.message || null }, 502);
 
     order.paymentStatus = "pending";
     order.sessionId = session.id;
@@ -346,6 +378,31 @@ async function handleApi(request, env, url) {
       }
     }
     return json({ paid });
+  }
+
+  // Admin: set Stripe public business name to YOLKO (Checkout "Pay …" header)
+  if (url.pathname === "/api/stripe-branding" && (request.method === "POST" || request.method === "GET")) {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    if (!env.STRIPE_KEY) return json({ error: "payments not configured" }, 503);
+
+    if (request.method === "GET") {
+      const resp = await fetch("https://api.stripe.com/v1/account", {
+        headers: { Authorization: `Bearer ${env.STRIPE_KEY}` },
+      });
+      const account = await resp.json();
+      if (account.error) return json({ error: account.error.message || "stripe error" }, 502);
+      return json({
+        ok: true,
+        name: account.business_profile?.name || null,
+        statementDescriptor: account.settings?.payments?.statement_descriptor || null,
+        supportUrl: account.business_profile?.support_url || null,
+        url: account.business_profile?.url || null,
+      });
+    }
+
+    const result = await ensureStripeBranding(env);
+    if (!result.ok) return json(result, 502);
+    return json(result);
   }
 
   // Admin: pull / refresh Stripe receipt details for a paid order
@@ -702,10 +759,10 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
     <div class="card">
       <h2>Prices &amp; stock</h2>
       <div class="grid2">
-        <div><label>1 tray ($)</label><input id="p1" type="number" min="1" step="0.5"></div>
-        <div><label>2 trays ($)</label><input id="p2" type="number" min="1" step="0.5"></div>
-        <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="0.5"></div>
-        <div><label>Your box cost ($)</label><input id="box-cost" type="number" min="0" step="0.5" value="55" title="Wholesale cost for a 6-tray box"></div>
+        <div><label>1 tray ($)</label><input id="p1" type="number" min="1" step="1"></div>
+        <div><label>2 trays ($)</label><input id="p2" type="number" min="1" step="1"></div>
+        <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="1"></div>
+        <div><label>Your box cost ($)</label><input id="box-cost" type="number" min="0" step="1" value="55" title="Wholesale cost for a 6-tray box"></div>
         <div><label>Trays available</label><input id="stock" type="number" min="0" step="1"></div>
         <div style="grid-column:1/-1"><label>Product</label>
           <select id="tray-weight">
@@ -1254,7 +1311,7 @@ const BASE_BOX_COST = 55;
 let SYNCING_PRICES = false;
 
 function roundMoney(n) {
-  return Math.round(Number(n) * 2) / 2; // nearest $0.50
+  return Math.max(1, Math.round(Number(n))); // whole dollars only — never .50
 }
 
 function money(n) {
@@ -1384,7 +1441,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "89",
+          "X-Yolko-Admin": "91",
         },
       });
     }
