@@ -432,6 +432,108 @@ async function handleApi(request, env, url) {
     return json({ ok: true, stripe: order.stripe, cached: false });
   }
 
+  // Admin: full refund of a paid Stripe order (money back to original payer)
+  if (url.pathname === "/api/refund" && request.method === "POST") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    if (!env.STRIPE_KEY) return json({ error: "payments not configured" }, 503);
+    const body = await request.json().catch(() => null);
+    const id = String(body?.id || "");
+    if (!id.startsWith("order:")) return json({ error: "bad order" }, 400);
+
+    const order = await env.DATA.get(id, "json");
+    if (!order) return json({ error: "not found" }, 404);
+    if (order.paymentStatus === "refunded") {
+      return json({ ok: true, already: true, stripe: order.stripe || null });
+    }
+    if (order.paymentStatus !== "paid") {
+      return json({ error: "order is not paid" }, 400);
+    }
+
+    let paymentIntentId = order.stripe?.paymentIntentId || null;
+    let chargeId = null;
+
+    // Resolve PaymentIntent / charge from Checkout session if needed
+    if (!paymentIntentId && order.sessionId) {
+      const sessResp = await fetch(
+        `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(order.sessionId)}?expand[]=payment_intent.latest_charge`,
+        { headers: { Authorization: `Bearer ${env.STRIPE_KEY}` } }
+      );
+      const session = await sessResp.json();
+      if (session.error) return json({ error: session.error.message || "stripe session error" }, 502);
+      const pi = session.payment_intent;
+      paymentIntentId = typeof pi === "string" ? pi : pi?.id || null;
+      const charge = pi && typeof pi === "object" ? pi.latest_charge : null;
+      chargeId = typeof charge === "string" ? charge : charge?.id || null;
+      order.stripe = { ...(order.stripe || {}), ...stripeDetailsFromSession(session) };
+    }
+
+    if (!paymentIntentId && !chargeId) {
+      return json({ error: "no stripe payment found for this order" }, 400);
+    }
+
+    const refundParams = new URLSearchParams({
+      reason: "requested_by_customer",
+      "metadata[orderId]": id,
+      "metadata[customerName]": String(order.name || "").slice(0, 80),
+    });
+    if (paymentIntentId) refundParams.set("payment_intent", paymentIntentId);
+    else refundParams.set("charge", chargeId);
+
+    const refundResp = await fetch("https://api.stripe.com/v1/refunds", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.STRIPE_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: refundParams.toString(),
+    });
+    const refund = await refundResp.json();
+    if (refund.error) {
+      // Already fully refunded in Stripe — sync local state
+      const msg = String(refund.error.message || "");
+      if (/already been refunded|has already been refunded/i.test(msg)) {
+        order.paymentStatus = "refunded";
+        order.status = "cancelled";
+        const stock = await syncStock(env, order, "cancelled");
+        await env.DATA.put(id, JSON.stringify(order));
+        return json({
+          ok: true,
+          already: true,
+          traysAvailable: stock.traysAvailable,
+          stockDelta: stock.delta,
+          stripe: order.stripe || null,
+        });
+      }
+      return json({ error: refund.error.message || "refund failed" }, 502);
+    }
+
+    order.paymentStatus = "refunded";
+    order.status = "cancelled";
+    order.stripe = {
+      ...(order.stripe || {}),
+      refundId: refund.id,
+      refundStatus: refund.status,
+      refundAmount: Number.isFinite(Number(refund.amount)) ? Number(refund.amount) / 100 : order.price,
+      refundCurrency: String(refund.currency || "aud").toUpperCase(),
+      refundedAt: new Date().toISOString(),
+      paymentIntentId: paymentIntentId || order.stripe?.paymentIntentId || null,
+    };
+    const stock = await syncStock(env, order, "cancelled");
+    await env.DATA.put(id, JSON.stringify(order));
+
+    return json({
+      ok: true,
+      refundId: refund.id,
+      amount: order.stripe.refundAmount,
+      currency: order.stripe.refundCurrency,
+      status: refund.status,
+      email: order.stripe.email || null,
+      traysAvailable: stock.traysAvailable,
+      stockDelta: stock.delta,
+      stripe: order.stripe,
+    });
+  }
+
   // Admin: update order status
   if (url.pathname === "/api/order-status" && request.method === "POST") {
     if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
@@ -585,6 +687,10 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 .o-name-row .o-name { min-width:0; }
 .badge-paid {
   flex-shrink:0; padding:2px 6px; background:var(--ink); color:var(--yellow);
+  font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+}
+.badge-refunded {
+  flex-shrink:0; padding:2px 6px; background:var(--red-soft); color:var(--red); border:1px solid var(--red);
   font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
 }
 .badge-line {
@@ -934,6 +1040,10 @@ function isPaid(o) {
   return o.paymentStatus === "paid" && o.status !== "cancelled";
 }
 
+function isRefunded(o) {
+  return o.paymentStatus === "refunded";
+}
+
 function sortPaidFirst(a, b) {
   const ap = isPaid(a) ? 0 : 1;
   const bp = isPaid(b) ? 0 : 1;
@@ -987,6 +1097,7 @@ function orderRow(o, lineNo) {
   else flag = '<span class="o-flag">' + fmtTime(o.createdAt).replace(/,.*/, "") + '</span>';
 
   const badges =
+    (isRefunded(o) ? '<span class="badge-refunded">Refunded</span>' : '') +
     (prio ? '<span class="badge-paid">Paid</span>' : '') +
     (lineNo ? '<span class="badge-line">#' + lineNo + '</span>' : '');
 
@@ -1012,8 +1123,18 @@ function orderRow(o, lineNo) {
 }
 
 function stripeReceiptHtml(o) {
-  if (!isPaid(o) && !o.sessionId) return "";
+  if (!isPaid(o) && !isRefunded(o) && !o.sessionId) return "";
   const s = o.stripe || {};
+  if (isRefunded(o)) {
+    const amt = s.refundAmount != null ? ("$" + s.refundAmount) : ("$" + o.price);
+    const when = s.refundedAt ? (" · " + fmtTime(s.refundedAt)) : "";
+    const email = s.email ? (" · " + escapeHtml(s.email)) : "";
+    return '<div class="stripe-box" data-stripe-id="' + escapeHtml(o.id) + '">' +
+      '<b>Stripe · Refunded</b>' +
+      '<div>Full refund ' + amt + email + when + '</div>' +
+      '<div class="stripe-muted">Money returned to the original card / payment method</div>' +
+    '</div>';
+  }
   const hasAny = s.receiptUrl || s.amountTotal != null || s.email || s.cardLast4;
   if (!hasAny) {
     return '<div class="stripe-box" data-stripe-id="' + escapeHtml(o.id) + '"><b>Stripe</b><div class="stripe-muted">Loading receipt…</div></div>';
@@ -1266,10 +1387,46 @@ function renderBuyers(orders) {
 
 function actionButtons(o) {
   const btn = (status, label, cls) => '<button class="' + cls + '" onclick="setStatus(\\'' + o.id + '\\',\\'' + status + '\\')">' + label + '</button>';
-  if (o.status === "new") return btn("confirmed", "Confirm", "") + btn("cancelled", "Cancel", "danger");
-  if (o.status === "confirmed") return btn("done", "Picked up", "") + btn("new", "Unconfirm", "ghost") + btn("cancelled", "Cancel", "danger");
-  if (o.status === "done") return btn("confirmed", "Undo pickup", "ghost") + btn("cancelled", "Cancel", "danger");
-  return btn("new", "Reopen", "ghost");
+  const refundBtn = (o.paymentStatus === "paid" && !isRefunded(o))
+    ? '<button class="danger" onclick="refundOrder(\\'' + o.id + '\\')">Refund full</button>'
+    : "";
+  if (o.status === "new") return btn("confirmed", "Confirm", "") + btn("cancelled", "Cancel", "danger") + refundBtn;
+  if (o.status === "confirmed") return btn("done", "Picked up", "") + btn("new", "Unconfirm", "ghost") + btn("cancelled", "Cancel", "danger") + refundBtn;
+  if (o.status === "done") return btn("confirmed", "Undo pickup", "ghost") + btn("cancelled", "Cancel", "danger") + refundBtn;
+  return btn("new", "Reopen", "ghost") + refundBtn;
+}
+
+async function refundOrder(id) {
+  const order = ALL_ORDERS.find(function(o) { return o.id === id; });
+  if (!order) return;
+  const who = order.name || "customer";
+  const amt = order.stripe && order.stripe.amountTotal != null ? order.stripe.amountTotal : order.price;
+  const email = (order.stripe && order.stripe.email) ? (" (" + order.stripe.email + ")") : "";
+  if (!confirm("Refund $" + amt + " to " + who + email + "?\\n\\nFull amount goes back to their original card. Order will be cancelled and trays released.")) return;
+  toast("Refunding via Stripe…");
+  try {
+    const res = await fetch("/api/refund", {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ id }),
+    });
+    const d = await res.json().catch(function() { return {}; });
+    if (!res.ok) {
+      toast(d.error || "Refund failed");
+      return;
+    }
+    if (typeof d.traysAvailable === "number") {
+      window.TRAYS_LEFT = d.traysAvailable;
+      $("stock").value = d.traysAvailable;
+      const stat = $("stat-stock");
+      if (stat) stat.textContent = d.traysAvailable;
+    }
+    const back = d.amount != null ? ("$" + d.amount) : ("$" + amt);
+    toast(d.already ? ("Already refunded · " + back) : ("Refunded " + back + " to " + who));
+    await loadOrders();
+  } catch (err) {
+    toast("Refund failed");
+  }
 }
 
 async function setStatus(id, status) {
@@ -1441,7 +1598,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "91",
+          "X-Yolko-Admin": "92",
         },
       });
     }
