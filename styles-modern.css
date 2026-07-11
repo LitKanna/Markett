@@ -453,6 +453,7 @@ h3 {
 .showcase-rotator {
   position: absolute;
   inset: 0;
+  z-index: 0;
 }
 
 .showcase-photo,
@@ -466,14 +467,20 @@ h3 {
   position: absolute;
   inset: 0;
   display: block;
+  z-index: 0;
   opacity: 0;
   transition: opacity 900ms var(--ease);
   pointer-events: none;
 }
 
+.showcase-photo.is-leaving {
+  z-index: 1;
+  opacity: 0;
+}
+
 .showcase-photo.is-active {
   opacity: 1;
-  z-index: 1;
+  z-index: 2;
   pointer-events: auto;
 }
 
@@ -501,6 +508,7 @@ h3 {
   position: absolute;
   left: 22px;
   bottom: 22px;
+  z-index: 3;
   min-width: 180px;
   display: grid;
   padding: 18px 20px;
@@ -508,6 +516,7 @@ h3 {
   background: var(--ink);
   box-shadow: 10px 10px 0 var(--orange);
   transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
+  pointer-events: none;
 }
 
 .hero-showcase:hover .showcase-price {
@@ -536,6 +545,7 @@ h3 {
   position: absolute;
   top: 22px;
   right: 22px;
+  z-index: 3;
   margin: 0;
   padding: 10px 12px;
   border: 1px solid rgba(23, 23, 20, 0.24);
@@ -1022,14 +1032,20 @@ h3 {
   display: block;
   width: 100%;
   height: 100%;
+  z-index: 0;
   opacity: 0;
   transition: opacity 900ms var(--ease);
   pointer-events: none;
 }
 
+.order-tray-photo.is-leaving {
+  z-index: 1;
+  opacity: 0;
+}
+
 .order-tray-photo.is-active {
   opacity: 1;
-  z-index: 1;
+  z-index: 2;
   pointer-events: auto;
 }
 

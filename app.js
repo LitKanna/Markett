@@ -60,12 +60,23 @@ function initImageRotators() {
 
     const intervalMs = root.dataset.rotator === "order" ? 14000 : 12000;
     const offsetMs = root.dataset.rotator === "order" ? 3500 : 0;
+    const fadeMs = 900;
 
     window.setTimeout(() => {
       window.setInterval(() => {
-        slides[index].classList.remove("is-active");
+        const prev = slides[index];
         index = (index + 1) % slides.length;
-        slides[index].classList.add("is-active");
+        const next = slides[index];
+
+        // Keep outgoing slide under the incoming one until fade finishes
+        // so the price badge / frame never flash empty mid-transition.
+        prev.classList.add("is-leaving");
+        prev.classList.remove("is-active");
+        next.classList.add("is-active");
+
+        window.setTimeout(() => {
+          prev.classList.remove("is-leaving");
+        }, fadeMs);
       }, intervalMs);
     }, offsetMs);
   });
