@@ -978,6 +978,26 @@ input[type="time"] { cursor:pointer; }
 input:hover, select:hover { border-color:var(--orange); }
 input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow:3px 3px 0 var(--yellow); }
 .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px; }
+@media (max-width:720px) { .grid3 { grid-template-columns:1fr 1fr; } }
+.ps-block { margin:18px 0 8px; padding-top:14px; border-top:1px solid var(--line); }
+.ps-block:first-of-type { margin-top:8px; padding-top:0; border-top:0; }
+.ps-title { font-size:15px; margin:0 0 6px; }
+.ps-sub { margin:0 0 12px; font-size:12.5px; color:var(--muted); }
+.dozen-row {
+  display:grid; grid-template-columns:1.2fr 1fr 1fr auto; gap:8px; align-items:end;
+  padding:10px 0; border-bottom:1px solid var(--line);
+}
+.dozen-row:last-child { border-bottom:0; }
+.dozen-row .d-name { font-weight:800; font-size:13.5px; padding-bottom:10px; }
+.dozen-row .d-profit {
+  min-width:72px; text-align:right; font-weight:800; font-size:13px; padding-bottom:12px;
+}
+@media (max-width:720px) {
+  .dozen-row { grid-template-columns:1fr 1fr; }
+  .dozen-row .d-name { grid-column:1 / -1; padding-bottom:0; }
+  .dozen-row .d-profit { grid-column:1 / -1; text-align:left; padding-bottom:0; }
+}
 .hint { margin:-6px 0 10px; font-size:12.5px; color:var(--muted); }
 .day-chips { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:14px; }
 .chip {
@@ -1077,63 +1097,62 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 
     <div class="card">
       <h2>Prices &amp; stock</h2>
-      <p class="hint" style="margin-bottom:10px">Trays keep their own ratio maths. Dozen packs: enter <b>case cost per product</b> — each row suggests a sell price for that item only.</p>
-      <h2 style="font-size:16px;margin:0 0 8px">Trays (30 eggs)</h2>
-      <div class="grid2">
-        <div><label>1 tray ($)</label><input id="p1" type="number" min="1" step="1"></div>
-        <div><label>2 trays ($)</label><input id="p2" type="number" min="1" step="1"></div>
-        <div><label>Full box ($)</label><input id="p3" type="number" min="1" step="1"></div>
-        <div><label>Box cost ($)</label><input id="box-cost" type="number" min="0" step="1" value="55" title="Wholesale cost for a 6-tray box"></div>
-        <div><label>Trays available</label><input id="stock" type="number" min="0" step="1"></div>
-        <div style="grid-column:1/-1"><label>Featured tray product (hero)</label>
-          <select id="tray-weight">
-            <option value="1.75">Cage · 1.75kg (Extra Large)</option>
-            <option value="1.5">Cage · 1.5kg (Large)</option>
-            <option value="fr-700">Free range · 700g</option>
-            <option value="fr-600">Free range · 600g</option>
-          </select>
+
+      <div class="ps-block">
+        <h3 class="ps-title">Stock this week</h3>
+        <p class="ps-sub">Dozen packs stay off the website while stock is 0.</p>
+        <div class="grid2">
+          <div><label>Trays left</label><input id="stock" type="number" min="0" step="1"></div>
+          <div><label>Dozen packs left</label><input id="dozen-stock" type="number" min="0" step="1" value="0"></div>
+          <div style="grid-column:1/-1"><label>Featured tray on homepage</label>
+            <select id="tray-weight">
+              <option value="1.75">Cage · 1.75kg (Extra Large)</option>
+              <option value="1.5">Cage · 1.5kg (Large)</option>
+              <option value="fr-700">Free range · 700g</option>
+              <option value="fr-600">Free range · 600g</option>
+            </select>
+          </div>
         </div>
       </div>
-      <p class="hint" id="price-hint">Tray ratio 12 : 23 : 66 from box cost. Exception: $13 tray → $69 box.</p>
 
-      <h2 style="font-size:16px;margin:18px 0 8px">Dozen packs — cost per case (15 packs)</h2>
-      <p class="hint" style="margin-bottom:10px">Enter what <b>you pay for one case</b> of each product. We show cost per dozen and a suggested sell price for <b>that item only</b> (no linking between sizes). Hidden on the website until stock &gt; 0.</p>
-      <div style="overflow-x:auto;margin-bottom:10px">
-        <table class="cost-table" id="dozen-cost-table" style="width:100%;border-collapse:collapse;font-size:13px">
-          <thead>
-            <tr style="text-align:left;color:var(--muted)">
-              <th style="padding:6px 8px">Product</th>
-              <th style="padding:6px 8px">Case cost ($)</th>
-              <th style="padding:6px 8px">Cost / dozen</th>
-              <th style="padding:6px 8px">Sell / dozen ($)</th>
-              <th style="padding:6px 8px">Profit / dozen</th>
-              <th style="padding:6px 8px">Case sell (15×)</th>
-            </tr>
-          </thead>
-          <tbody id="dozen-cost-body"></tbody>
-        </table>
-      </div>
-      <div class="grid2">
-        <div><label>Dozen packs available</label><input id="dozen-stock" type="number" min="0" step="1" value="0" title="Cartons in stock this week. 0 hides dozen packs from the public website."></div>
-      </div>
-      <p class="hint" id="dozen-hint">Suggested sell = round(case ÷ 15) + $1, whole dollars. Edit sell freely per row.</p>
-      <!-- hidden fields kept for save/load compatibility -->
-      <div style="display:none" aria-hidden="true">
-        <input id="p-cage600" type="number"><input id="p-cage700" type="number"><input id="p-cage800" type="number">
-        <input id="p-fr600" type="number"><input id="p-fr700" type="number"><input id="p-fr800" type="number">
-        <input id="p-cage600case" type="number"><input id="p-cage700case" type="number"><input id="p-cage800case" type="number">
-        <input id="p-fr600case" type="number"><input id="p-fr700case" type="number"><input id="p-fr800case" type="number">
-        <input id="c-cage600" type="number"><input id="c-cage700" type="number"><input id="c-cage800" type="number">
-        <input id="c-fr600" type="number"><input id="c-fr700" type="number"><input id="c-fr800" type="number">
+      <div class="ps-block">
+        <h3 class="ps-title">Tray prices</h3>
+        <p class="ps-sub">Change one price and the others follow. $13 tray locks the box at $69.</p>
+        <div class="grid3">
+          <div><label>1 tray</label><input id="p1" type="number" min="1" step="1"></div>
+          <div><label>2 trays</label><input id="p2" type="number" min="1" step="1"></div>
+          <div><label>Full box</label><input id="p3" type="number" min="1" step="1"></div>
+        </div>
+        <div class="grid2">
+          <div><label>What you pay for a box</label><input id="box-cost" type="number" min="0" step="1" value="55"></div>
+        </div>
+        <p class="hint" id="price-hint"></p>
       </div>
 
-      <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
-      <p class="hint">Tap a day to open or close it</p>
-      <div class="day-chips" id="day-chips"></div>
-      <div id="day-hours"></div>
+      <div class="ps-block">
+        <h3 class="ps-title">Dozen packs</h3>
+        <p class="ps-sub">Enter what you pay for a case of 15. We suggest a sell price for that product only.</p>
+        <div id="dozen-list"></div>
+        <p class="hint" id="dozen-hint"></p>
+        <div style="display:none" aria-hidden="true">
+          <input id="p-cage600" type="number"><input id="p-cage700" type="number"><input id="p-cage800" type="number">
+          <input id="p-fr600" type="number"><input id="p-fr700" type="number"><input id="p-fr800" type="number">
+          <input id="p-cage600case" type="number"><input id="p-cage700case" type="number"><input id="p-cage800case" type="number">
+          <input id="p-fr600case" type="number"><input id="p-fr700case" type="number"><input id="p-fr800case" type="number">
+          <input id="c-cage600" type="number"><input id="c-cage700" type="number"><input id="c-cage800" type="number">
+          <input id="c-fr600" type="number"><input id="c-fr700" type="number"><input id="c-fr800" type="number">
+        </div>
+      </div>
+
+      <div class="ps-block">
+        <h3 class="ps-title">Pickup days</h3>
+        <p class="ps-sub">Tap a day to open or close it.</p>
+        <div class="day-chips" id="day-chips"></div>
+        <div id="day-hours"></div>
+      </div>
 
       <button onclick="saveSettings()" style="width:100%">Save changes</button><span class="msg" id="save-msg"></span>
-      <p class="note">Changes appear on the website within seconds. Untick a day to hide it and block bookings for it.</p>
+      <p class="note">Saved changes show on the website within seconds.</p>
     </div>
     </div>
   </div>
@@ -1836,11 +1855,12 @@ function updatePriceHint() {
   const cost = +(($("box-cost") && $("box-cost").value) || BASE_BOX_COST);
   const c1 = cost / 6;
   if (!(p1 > 0)) {
-    el.textContent = "Tray prices stay in % sync (12 : 23 : 66). Separate from dozens.";
+    el.textContent = "";
     return;
   }
-  const legend = p1 === 13 && p3 === 69 ? ' · <b>$13 tray → $69 box</b> (legendary)' : '';
-  el.innerHTML = "Trays · net vs " + money(cost) + " box: <b>1 tray " + money(p1 - c1) + "</b> · <b>2 trays " + money(p2 - c1 * 2) + "</b> · <b>box " + money(p3 - cost) + "</b>" + legend;
+  el.innerHTML =
+    "Profit after box cost: 1 tray <b>" + money(p1 - c1) + "</b> · 2 trays <b>" +
+    money(p2 - c1 * 2) + "</b> · box <b>" + money(p3 - cost) + "</b>";
 }
 
 function syncHiddenDozenFields(key) {
@@ -1853,16 +1873,13 @@ function updateDozenRow(key) {
   const cost = +(($("c-" + key) && $("c-" + key).value) || 0);
   const sell = +(($("p-" + key) && $("p-" + key).value) || 0);
   const per = cost / DOZENS_IN_CASE;
-  const perEl = $("per-" + key);
   const profitEl = $("profit-" + key);
-  const caseSellEl = $("casesell-" + key);
-  if (perEl) perEl.textContent = money(per);
   if (profitEl) {
     const profit = sell - per;
-    profitEl.textContent = money(profit);
+    profitEl.textContent = (profit >= 0 ? "+" : "") + money(profit);
     profitEl.style.color = profit >= 0 ? "var(--green)" : "#b42318";
+    profitEl.title = "Cost " + money(per) + " each";
   }
-  if (caseSellEl) caseSellEl.textContent = sell > 0 ? money(sell * DOZENS_IN_CASE) : "–";
   syncHiddenDozenFields(key);
   updateDozenHint();
 }
@@ -1887,9 +1904,9 @@ function onDozenSellInput(key, value) {
 }
 
 function renderDozenCostTable() {
-  const body = $("dozen-cost-body");
-  if (!body) return;
-  body.innerHTML = DOZEN_KEYS.map(function(key) {
+  const list = $("dozen-list");
+  if (!list) return;
+  list.innerHTML = DOZEN_KEYS.map(function(key) {
     const cost = +(($("c-" + key) && $("c-" + key).value) || DOZEN_COST_DEFAULTS[key] || 75);
     const sell = +(($("p-" + key) && $("p-" + key).value) || suggestDozenSell(cost));
     if ($("c-" + key)) $("c-" + key).value = cost;
@@ -1898,25 +1915,26 @@ function renderDozenCostTable() {
     const per = cost / DOZENS_IN_CASE;
     const profit = sell - per;
     return (
-      '<tr data-dozen-row="' + key + '">' +
-        '<td style="padding:8px;font-weight:700">' + DOZEN_LABELS[key] + '</td>' +
-        '<td style="padding:8px"><input data-dozen-cost="' + key + '" type="number" min="0" step="1" value="' + cost + '" style="width:96px;margin:0"></td>' +
-        '<td style="padding:8px" id="per-' + key + '">' + money(per) + '</td>' +
-        '<td style="padding:8px"><input data-dozen-sell="' + key + '" type="number" min="1" step="1" value="' + sell + '" style="width:80px;margin:0"></td>' +
-        '<td style="padding:8px;font-weight:700;color:' + (profit >= 0 ? "var(--green)" : "#b42318") + '" id="profit-' + key + '">' + money(profit) + '</td>' +
-        '<td style="padding:8px;color:var(--muted)" id="casesell-' + key + '">' + money(sell * DOZENS_IN_CASE) + '</td>' +
-      '</tr>'
+      '<div class="dozen-row" data-dozen-row="' + key + '">' +
+        '<div class="d-name">' + DOZEN_LABELS[key] + '</div>' +
+        '<div><label>Case cost</label><input data-dozen-cost="' + key + '" type="number" min="0" step="1" value="' + cost + '"></div>' +
+        '<div><label>Sell each</label><input data-dozen-sell="' + key + '" type="number" min="1" step="1" value="' + sell + '"></div>' +
+        '<div class="d-profit" id="profit-' + key + '" title="Cost ' + money(per) + ' each" style="color:' +
+          (profit >= 0 ? "var(--green)" : "#b42318") + '">' +
+          (profit >= 0 ? "+" : "") + money(profit) +
+        '</div>' +
+      '</div>'
     );
   }).join("");
 
-  body.querySelectorAll("[data-dozen-cost]").forEach(function(input) {
+  list.querySelectorAll("[data-dozen-cost]").forEach(function(input) {
     const key = input.getAttribute("data-dozen-cost");
     input.addEventListener("input", function() {
       if ($("c-" + key)) $("c-" + key).value = input.value;
       onDozenCostInput(key);
     });
   });
-  body.querySelectorAll("[data-dozen-sell]").forEach(function(input) {
+  list.querySelectorAll("[data-dozen-sell]").forEach(function(input) {
     const key = input.getAttribute("data-dozen-sell");
     input.addEventListener("input", function() {
       onDozenSellInput(key, input.value);
@@ -1929,10 +1947,9 @@ function updateDozenHint() {
   const el = $("dozen-hint");
   if (!el) return;
   const stock = +(($("dozen-stock") && $("dozen-stock").value) || 0);
-  const live = stock > 0
-    ? ('<b style="color:var(--green)">Live on website · ' + stock + ' packs in stock</b>')
-    : '<b style="color:var(--muted)">Hidden on website · set stock above 0 to publish</b>';
-  el.innerHTML = "Each row is independent. Suggested sell = round(case ÷ 15) + $1. " + live;
+  el.innerHTML = stock > 0
+    ? '<b style="color:var(--green)">On the website · ' + stock + ' packs left</b>'
+    : '<b style="color:var(--muted)">Hidden on website · set dozen stock above 0 to show</b>';
 }
 
 function onTrayPriceInput(which) {
@@ -2046,7 +2063,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "84",
+        "X-Yolko-Build": "86",
       },
     });
   },
