@@ -716,7 +716,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
           </select>
         </div>
       </div>
-      <p class="hint" id="price-hint">Prices stay in % sync (12 : 23 : 66). Change any one — the others follow.</p>
+      <p class="hint" id="price-hint">Enter box cost to set sell prices (same markup as $55 → $12 / $23 / $66). Or change any sell price — all stay ratio-locked 12 : 23 : 66.</p>
 
       <h2 style="margin-top:6px">Pickup days &amp; hours</h2>
       <p class="hint">Tap a day to open or close it</p>
