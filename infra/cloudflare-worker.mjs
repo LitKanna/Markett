@@ -47,6 +47,7 @@ const DEFAULT_SETTINGS = {
     fr600case: 120, fr700case: 135, fr800case: 150,
   },
   traysAvailable: 24,
+  dozensAvailable: 0, // 0 = hide dozen packs on the public website
   trayWeight: "1.75",
   boxCost: 55,
   dozenCost: 75, // wholesale case of 15 dozen packs (per-dozen = /15)
@@ -221,28 +222,55 @@ function traysFor(order) {
   return perUnit * (order.quantity || 1);
 }
 
+// How many dozen cartons an order consumes
+function dozensFor(order) {
+  const b = order.bundle;
+  if (CASE_KEYS.includes(b)) return DOZENS_PER_CASE * (order.quantity || 1);
+  if (DOZEN_KEYS.includes(b)) return order.quantity || 1;
+  return 0;
+}
+
 // Reserve or release stock as an order moves through statuses.
 // Paid customers always hold trays (unless cancelled). Confirmed/done also hold.
 async function syncStock(env, order, newStatus) {
   const paid = order.paymentStatus === "paid";
   const holds = newStatus !== "cancelled" && (paid || ["confirmed", "done"].includes(newStatus));
-  let delta = 0;
+  let trayDelta = 0;
+  let dozenDelta = 0;
 
   if (holds && !order.stockTaken) {
-    delta = -traysFor(order);
+    trayDelta = -traysFor(order);
+    dozenDelta = -dozensFor(order);
     order.stockTaken = true;
   } else if (!holds && order.stockTaken) {
-    delta = traysFor(order);
+    trayDelta = traysFor(order);
+    dozenDelta = dozensFor(order);
     order.stockTaken = false;
   }
 
-  if (delta !== 0) {
+  if (trayDelta !== 0 || dozenDelta !== 0) {
     const settings = await getSettings(env);
-    settings.traysAvailable = Math.max(0, settings.traysAvailable + delta);
+    if (trayDelta !== 0) {
+      settings.traysAvailable = Math.max(0, settings.traysAvailable + trayDelta);
+    }
+    if (dozenDelta !== 0) {
+      settings.dozensAvailable = Math.max(0, (settings.dozensAvailable || 0) + dozenDelta);
+    }
     await env.DATA.put("settings", JSON.stringify(settings));
-    return { delta, traysAvailable: settings.traysAvailable };
+    return {
+      delta: trayDelta,
+      dozenDelta,
+      traysAvailable: settings.traysAvailable,
+      dozensAvailable: settings.dozensAvailable,
+    };
   }
-  return { delta: 0, traysAvailable: (await getSettings(env)).traysAvailable };
+  const s = await getSettings(env);
+  return {
+    delta: 0,
+    dozenDelta: 0,
+    traysAvailable: s.traysAvailable,
+    dozensAvailable: s.dozensAvailable || 0,
+  };
 }
 
 async function getSettings(env) {
@@ -301,6 +329,9 @@ async function handleApi(request, env, url) {
       traysAvailable: Number.isFinite(Number(body?.traysAvailable))
         ? Math.max(0, Math.floor(Number(body.traysAvailable)))
         : current.traysAvailable,
+      dozensAvailable: Number.isFinite(Number(body?.dozensAvailable))
+        ? Math.max(0, Math.floor(Number(body.dozensAvailable)))
+        : (current.dozensAvailable ?? 0),
       trayWeight: ["1.5", "1.75", "fr-700", "fr-600"].includes(body?.trayWeight)
         ? body.trayWeight
         : current.trayWeight,
@@ -364,6 +395,18 @@ async function handleApi(request, env, url) {
     const settings = await getSettings(env);
     if (!settings.pickup[pickupDay]?.enabled) {
       return json({ error: "pickup day unavailable" }, 400);
+    }
+
+    // Dozen / case products only when admin has stocked them (dozensAvailable > 0)
+    const needDozens = dozensFor({ bundle, quantity });
+    if (needDozens > 0) {
+      const left = Number(settings.dozensAvailable) || 0;
+      if (left <= 0) {
+        return json({ error: "dozen packs not available this week", code: "dozen_off" }, 400);
+      }
+      if (needDozens > left) {
+        return json({ error: "not enough dozen packs left", code: "dozen_stock" }, 400);
+      }
     }
 
     const ip = clientIp(request);
@@ -1018,6 +1061,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
       <p class="hint" id="price-hint">Tray ratio 12 : 23 : 66 from box cost.</p>
 
       <h2 style="font-size:16px;margin:18px 0 8px">Dozen packs (12 eggs) · cases of 15</h2>
+      <p class="hint" style="margin-bottom:10px">Hidden on the website until <b>dozen packs available</b> is above 0. Set case cost + sell prices here first, then stock them to go live.</p>
       <div class="grid2">
         <div><label>Cage 600g ($)</label><input id="p-cage600" type="number" min="1" step="1"></div>
         <div><label>Cage 700g ($)</label><input id="p-cage700" type="number" min="1" step="1"></div>
@@ -1025,7 +1069,8 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <div><label>FR 600g ($)</label><input id="p-fr600" type="number" min="1" step="1"></div>
         <div><label>FR 700g ($)</label><input id="p-fr700" type="number" min="1" step="1"></div>
         <div><label>FR 800g ($)</label><input id="p-fr800" type="number" min="1" step="1"></div>
-        <div style="grid-column:1/-1"><label>Case cost — 15 dozen packs ($)</label><input id="dozen-cost" type="number" min="0" step="1" value="75" title="What you pay for one wholesale case of 15 dozen cartons. Per-dozen cost = case ÷ 15."></div>
+        <div><label>Case cost — 15 dozen packs ($)</label><input id="dozen-cost" type="number" min="0" step="1" value="75" title="What you pay for one wholesale case of 15 dozen cartons. Per-dozen cost = case ÷ 15."></div>
+        <div><label>Dozen packs available</label><input id="dozen-stock" type="number" min="0" step="1" value="0" title="Cartons in stock this week. 0 hides dozen packs from the public website."></div>
       </div>
       <p class="hint" id="dozen-hint">Case = 15 dozens. Sell prices ratio-lock; case sell = 15 × dozen sell.</p>
       <div class="grid2" style="margin-top:8px">
@@ -1656,6 +1701,7 @@ async function loadSettings() {
   $("tray-weight").value = s.trayWeight || "1.75";
   if (s.boxCost != null && $("box-cost")) $("box-cost").value = s.boxCost;
   if (s.dozenCost != null && $("dozen-cost")) $("dozen-cost").value = s.dozenCost;
+  if ($("dozen-stock")) $("dozen-stock").value = s.dozensAvailable != null ? s.dozensAvailable : 0;
   PICKUP = s.pickup || {};
   renderDays();
   updatePriceHint();
@@ -1786,7 +1832,11 @@ function updateDozenHint() {
   const p700 = +(($("p-cage700") && $("p-cage700").value) || 0);
   const pfr = +(($("p-fr700") && $("p-fr700").value) || 0);
   const c700 = +(($("p-cage700case") && $("p-cage700case").value) || 0);
-  el.innerHTML = "Case " + money(caseCost) + " ÷ 15 = " + money(per) + "/dozen · net <b>cage 700g " + money(p700 - per) + "</b> · case sell <b>" + money(c700) + "</b> · FR 700g <b>" + money(pfr - per) + "</b>";
+  const stock = +(($("dozen-stock") && $("dozen-stock").value) || 0);
+  const live = stock > 0
+    ? (' · <b style="color:var(--green)">live on website (' + stock + ' packs)</b>')
+    : ' · <b style="color:var(--muted)">hidden on website (stock 0)</b>';
+  el.innerHTML = "Case " + money(caseCost) + " ÷ 15 = " + money(per) + "/dozen · net <b>cage 700g " + money(p700 - per) + "</b> · case sell <b>" + money(c700) + "</b> · FR 700g <b>" + money(pfr - per) + "</b>" + live;
 }
 
 function onTrayPriceInput(which) {
@@ -1818,6 +1868,7 @@ $("dozen-cost") && $("dozen-cost").addEventListener("input", function() {
   if (SYNCING_PRICES) return;
   applyDozenPrices(pricesFromDozenCost($("dozen-cost").value));
 });
+$("dozen-stock") && $("dozen-stock").addEventListener("input", updateDozenHint);
 
 async function saveSettings() {
   const body = {
@@ -1832,6 +1883,7 @@ async function saveSettings() {
     trayWeight: $("tray-weight").value,
     boxCost: +(($("box-cost") && $("box-cost").value) || BASE_BOX_COST),
     dozenCost: +(($("dozen-cost") && $("dozen-cost").value) || BASE_DOZEN_COST),
+    dozensAvailable: +(($("dozen-stock") && $("dozen-stock").value) || 0),
     pickup: collectDayRows(),
   };
   const res = await fetch("/api/settings", { method: "PUT", headers: authHeaders(), body: JSON.stringify(body) });
@@ -1909,7 +1961,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "82",
+        "X-Yolko-Build": "83",
       },
     });
   },

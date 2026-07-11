@@ -204,6 +204,7 @@
           </article>
         </div>
 
+        <div id="dozen-block" hidden>
         <header class="section-head" style="margin-top:48px">
           <div>
             <p class="section-label">Dozen packs</p>
@@ -213,36 +214,37 @@
         </header>
 
         <div class="price-grid dozen-grid">
-          <article class="price-card compact">
+          <article class="price-card compact" data-dozen="cage600">
             <div class="pack-title"><h3>Cage 600g</h3><p class="pack-note">12 eggs</p></div>
             <div class="price-block"><p class="price-big" id="price-cage600">$6</p></div>
             <a class="btn btn-line" href="#order" data-bundle="cage600">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
           </article>
-          <article class="price-card compact">
+          <article class="price-card compact" data-dozen="cage700">
             <div class="pack-title"><h3>Cage 700g</h3><p class="pack-note">12 eggs</p></div>
             <div class="price-block"><p class="price-big" id="price-cage700">$7</p></div>
             <a class="btn btn-line" href="#order" data-bundle="cage700">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
           </article>
-          <article class="price-card compact">
+          <article class="price-card compact" data-dozen="cage800">
             <div class="pack-title"><h3>Cage 800g</h3><p class="pack-note">12 eggs</p></div>
             <div class="price-block"><p class="price-big" id="price-cage800">$8</p></div>
             <a class="btn btn-line" href="#order" data-bundle="cage800">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
           </article>
-          <article class="price-card compact">
+          <article class="price-card compact" data-dozen="fr600">
             <div class="pack-title"><h3>Free range 600g</h3><p class="pack-note">12 eggs</p></div>
             <div class="price-block"><p class="price-big" id="price-fr600">$8</p></div>
             <a class="btn btn-line" href="#order" data-bundle="fr600">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
           </article>
-          <article class="price-card compact featured">
+          <article class="price-card compact featured" data-dozen="fr700">
             <div class="pack-title"><h3>Free range 700g</h3><p class="pack-note">12 eggs</p></div>
             <div class="price-block"><p class="price-big" id="price-fr700">$9</p></div>
             <a class="btn btn-solid" href="#order" data-bundle="fr700">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
           </article>
-          <article class="price-card compact">
+          <article class="price-card compact" data-dozen="fr800">
             <div class="pack-title"><h3>Free range 800g</h3><p class="pack-note">12 eggs</p></div>
             <div class="price-block"><p class="price-big" id="price-fr800">$10</p></div>
             <a class="btn btn-line" href="#order" data-bundle="fr800">Choose <span class="btn-arrow" aria-hidden="true">↗</span></a>
           </article>
+        </div>
         </div>
 
         <p class="stock-note" id="stock-note" hidden></p>
@@ -331,21 +333,21 @@
             </label>
           </fieldset>
 
-          <fieldset class="picker picker-dozen">
+          <fieldset class="picker picker-dozen" data-dozen-picker hidden>
             <legend>Cage dozen (12 eggs)</legend>
-            <label class="bundle-opt">
+            <label class="bundle-opt" data-dozen="cage600">
               <input type="radio" name="bundle" value="cage600">
               <span class="bo-name">600g</span>
               <span class="bo-eggs">Cage</span>
               <span class="bo-price" id="bp-cage600">$6</span>
             </label>
-            <label class="bundle-opt">
+            <label class="bundle-opt" data-dozen="cage700">
               <input type="radio" name="bundle" value="cage700">
               <span class="bo-name">700g</span>
               <span class="bo-eggs">Cage</span>
               <span class="bo-price" id="bp-cage700">$7</span>
             </label>
-            <label class="bundle-opt">
+            <label class="bundle-opt" data-dozen="cage800">
               <input type="radio" name="bundle" value="cage800">
               <span class="bo-name">800g</span>
               <span class="bo-eggs">Cage</span>
@@ -353,21 +355,21 @@
             </label>
           </fieldset>
 
-          <fieldset class="picker picker-dozen">
+          <fieldset class="picker picker-dozen" data-dozen-picker hidden>
             <legend>Free range dozen (12 eggs)</legend>
-            <label class="bundle-opt">
+            <label class="bundle-opt" data-dozen="fr600">
               <input type="radio" name="bundle" value="fr600">
               <span class="bo-name">600g</span>
               <span class="bo-eggs">Free range</span>
               <span class="bo-price" id="bp-fr600">$8</span>
             </label>
-            <label class="bundle-opt">
+            <label class="bundle-opt" data-dozen="fr700">
               <input type="radio" name="bundle" value="fr700">
               <span class="bo-name">700g</span>
               <span class="bo-eggs">Free range</span>
               <span class="bo-price" id="bp-fr700">$9</span>
             </label>
-            <label class="bundle-opt">
+            <label class="bundle-opt" data-dozen="fr800">
               <input type="radio" name="bundle" value="fr800">
               <span class="bo-name">800g</span>
               <span class="bo-eggs">Free range</span>

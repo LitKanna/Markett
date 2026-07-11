@@ -287,6 +287,29 @@ if (Number.isFinite(traysLeft) && traysLeft > 0) {
 /* ---------- Live prices and stock from the shop API ---------- */
 const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://getyolko.com";
 
+const DOZEN_PUBLIC_KEYS = ["cage600", "cage700", "cage800", "fr600", "fr700", "fr800"];
+
+/** Dozen packs stay off the public site until admin sets stock > 0. */
+function applyDozenVisibility(settings) {
+  const live = Number(settings.dozensAvailable) > 0;
+  const block = document.getElementById("dozen-block");
+  if (block) block.hidden = !live;
+  document.querySelectorAll("[data-dozen-picker]").forEach((el) => {
+    el.hidden = !live;
+  });
+  // If dozens were selected but are now hidden, fall back to tray1
+  if (!live) {
+    const selected = form?.querySelector('input[name="bundle"]:checked');
+    if (selected && DOZEN_PUBLIC_KEYS.includes(selected.value)) {
+      const tray1 = form.querySelector('input[name="bundle"][value="tray1"]');
+      if (tray1) {
+        tray1.checked = true;
+        tray1.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+  }
+}
+
 function applySettings(settings) {
   const p = settings.prices || {};
   BUNDLE_KEYS.forEach((key) => {
@@ -352,6 +375,9 @@ function applySettings(settings) {
       stockNote.classList.add("in");
     }
   }
+
+  // Dozen packs: only on the public site when admin has stocked them
+  applyDozenVisibility(settings);
 
   // Product type from admin (cage trays or free-range packs)
   applyProductType(settings.trayWeight);
