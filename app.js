@@ -75,7 +75,7 @@ initImageRotators();
 
 /* Chalkboard hero swaps to match live tray1 price ($12–$20) */
 const CHALK_PRICES = [12, 13, 14, 15, 16, 17, 18, 19, 20];
-const CHALK_ASSET_VER = "93";
+const CHALK_ASSET_VER = "94";
 
 function chalkPriceKey(price) {
   const n = Math.round(Number(price));
