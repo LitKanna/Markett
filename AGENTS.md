@@ -51,3 +51,28 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
 - `infra/*.py` image generators need `pip install -r requirements.txt` (opencv, Pillow).
 - `infra/meta-*.mjs` Meta ad automation uses Playwright (installed via `npm install`) and
   requires `npx playwright install chromium` plus a `META_ACCESS_TOKEN`.
+
+### Handoff — hero branding via Higgsfield (pending)
+**Live site:** `https://getyolko.com/` · Worker build **95** · branch
+`cursor/setup-dev-environment-9869` · PR #44.
+
+**User request (not finished):** On shop hero boxes, make **YOLKO** a **tiny bottom-corner**
+mark (not large/centered). On the closeup tray-on-box slide, also remove any
+**“Fresh eggs Flemington”** subline. Keep chalkboard price heroes working ($12–$20).
+
+**Do this with Higgsfield MCP only** (`generate_image` / media tools). Do **not** use Cursor
+`GenerateImage` — user rejected those assets and we reverted them (build 94).
+
+**Current rotator slides (after v4 removal):** chalk-tray (price-swapped), studio-tray-v2,
+v5, v6, plus classic `studio-tray`. Assets under `assets/chalk-tray/` and
+`assets/studio-tray-v*`. Cache via `?v=` in `index.html` and `CHALK_ASSET_VER` in `app.js`.
+After asset commits: pin `DEPLOY_SHA` in `infra/cloudflare-worker.mjs`, bump
+`X-Yolko-Build`, `npx wrangler deploy`.
+
+**Higgsfield auth note:** Cloud agents load MCP OAuth at start. If this run shows
+`needsAuth` / `Invalid or expired token`, start a **new** agent with Higgsfield toggled ON
+after web re-auth: Agents → + → MCP Servers → Higgsfield → Log out → toggle ON → Google
+OAuth. Mid-run OAuth does not hot-reload onto an already-running agent.
+
+**Prior agent transcript:** search cloud agents for setup-dev-environment / Markett if you
+need full chat history; durable facts are this section + git log on the PR branch.
