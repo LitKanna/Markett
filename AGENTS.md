@@ -56,6 +56,8 @@ under `assets/chalk-tray/{N}-*`. After regenerating masters, bump `CHALK_ASSET_V
 `?v=` in `index.html`, extend `infra/asset-registry.json`, re-embed `ASSET_REGISTRY` in the
 worker, pin `DEPLOY_SHA`, bump `X-Yolko-Build`, then `npx wrangler deploy`.
 
+**Chalk swap:** `applyChalkPriceImage` preloads then crossfades via a hold-frame (`img.chalk-hold`) so price changes never flash the dark card background.
+
 **FOUC note:** HTML no longer hardcodes `$12` chalk srcs. An inline bootstrap next to the
 hero/order chalk `<picture>` picks `localStorage.yolko.tray1Price` (else `$14` fallback)
 before first paint; `applySettings` refreshes that cache.

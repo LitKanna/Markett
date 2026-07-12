@@ -21,7 +21,7 @@
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/3y9K6as8bTXq_nANBjzKo3IeZx8z6up5BeSl9D4dj_x9PpZBMlGIInE.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2" crossorigin>
   <link rel="stylesheet" href="assets/fonts.css?v=72">
-  <link rel="stylesheet" href="styles-modern.css?v=100">
+  <link rel="stylesheet" href="styles-modern.css?v=109">
 
   <script type="application/ld+json">
   {
@@ -139,6 +139,7 @@
                   img.srcset = "assets/chalk-tray/" + p + "-640.jpg?v=" + VER + " 640w, assets/chalk-tray/" + p + "-928.jpg?v=" + VER + " 928w, assets/chalk-tray/" + p + "-1536.jpg?v=" + VER + " 1536w";
                   img.sizes = sizes;
                   img.alt = "Fresh eggs · $" + p + "/tray at the YOLKO stall";
+                  img.dataset.chalkShowing = String(p);
                 }
               })();
               </script>
@@ -362,6 +363,7 @@
                 if (img) {
                   img.src = "assets/chalk-tray/" + p + "-square-560.jpg?v=" + VER;
                   img.alt = "Fresh eggs · $" + p + "/tray";
+                  img.dataset.chalkShowing = String(p);
                 }
               })();
               </script>
@@ -628,6 +630,6 @@
   </footer>
 
   <script src="config.js?v=86"></script>
-  <script src="app.js?v=107"></script>
+  <script src="app.js?v=109"></script>
 </body>
 </html>

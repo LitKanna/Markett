@@ -491,6 +491,41 @@ h3 {
   transition: transform 700ms var(--ease);
 }
 
+/* Soft hold-frame while chalk price image swaps — never flash the dark card bg */
+.showcase-photo > img.chalk-hold,
+.order-tray-photo > img.chalk-hold {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: none !important;
+}
+
+.showcase-photo > img.chalk-hold {
+  object-position: left 20% top 12%;
+}
+
+.order-tray-photo > img.chalk-hold {
+  object-position: center;
+}
+
+.showcase-photo > img.chalk-hold.is-fading,
+.order-tray-photo > img.chalk-hold.is-fading {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase-photo > img.chalk-hold,
+  .order-tray-photo > img.chalk-hold {
+    transition: none;
+  }
+}
+
 .hero-showcase:hover .showcase-photo.is-active img {
   transform: scale(1.018);
 }

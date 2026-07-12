@@ -139,33 +139,112 @@ function withVer(path) {
   return `${clean}${clean.includes("?") ? "&" : "?"}v=${ASSET_CACHE_VER}`;
 }
 
+function chalkHeroUrls(p) {
+  return {
+    primary: `assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}`,
+    imgSrcset: `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w`,
+    webpSrcset: `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w`,
+    alt: `Fresh eggs · $${p}/tray at the YOLKO stall`,
+  };
+}
+
+function chalkOrderUrls(p) {
+  return {
+    primary: `assets/chalk-tray/${p}-square-560.jpg?v=${CHALK_ASSET_VER}`,
+    webpSrcset: `assets/chalk-tray/${p}-square-560.webp?v=${CHALK_ASSET_VER}`,
+    alt: `Fresh eggs · $${p}/tray`,
+  };
+}
+
+function preloadImage(url) {
+  return new Promise((resolve) => {
+    if (!url) { resolve(); return; }
+    const im = new Image();
+    im.decoding = "async";
+    im.onload = () => {
+      if (im.decode) im.decode().then(resolve, resolve);
+      else resolve();
+    };
+    im.onerror = () => resolve();
+    im.src = url;
+  });
+}
+
+function waitMs(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+let chalkSwapToken = 0;
+
+async function swapChalkPicture(pic, p) {
+  const kind = pic.getAttribute("data-chalk-price");
+  const source = pic.querySelector("source:not([data-chalk-hold])");
+  const img = pic.querySelector("img:not([data-chalk-hold])");
+  if (!img) return;
+
+  if (img.dataset.chalkShowing === String(p)) return;
+
+  const urls = kind === "hero" ? chalkHeroUrls(p) : chalkOrderUrls(p);
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  await preloadImage(urls.primary);
+
+  // If a newer swap started, bail.
+  if (pic.dataset.chalkSwapPending && pic.dataset.chalkSwapPending !== String(p)) return;
+
+  // Hold the current frame on top while the main img swaps underneath.
+  pic.querySelectorAll("[data-chalk-hold]").forEach((el) => el.remove());
+  const hold = img.cloneNode(true);
+  hold.removeAttribute("id");
+  hold.setAttribute("data-chalk-hold", "1");
+  hold.setAttribute("aria-hidden", "true");
+  hold.classList.add("chalk-hold");
+  pic.appendChild(hold);
+
+  if (kind === "hero") {
+    if (source) {
+      source.srcset = urls.webpSrcset;
+      source.sizes = HERO_SIZES;
+    }
+    img.src = urls.primary;
+    img.srcset = urls.imgSrcset;
+    img.sizes = HERO_SIZES;
+    img.width = 928;
+    img.height = 928;
+  } else {
+    if (source) source.srcset = urls.webpSrcset;
+    img.src = urls.primary;
+    img.removeAttribute("srcset");
+  }
+  img.alt = urls.alt;
+  img.dataset.chalkShowing = String(p);
+
+  try { await img.decode(); } catch (_) {}
+
+  if (reduceMotion) {
+    hold.remove();
+    return;
+  }
+
+  // Force paint of hold, then fade it away over the already-decoded new frame.
+  hold.getBoundingClientRect();
+  await waitMs(16);
+  hold.classList.add("is-fading");
+  await waitMs(560);
+  if (hold.parentNode === pic) hold.remove();
+}
+
 function applyChalkPriceImage(trayPrice) {
   const p = chalkPriceKey(trayPrice);
-  document.querySelectorAll("[data-chalk-price]").forEach((pic) => {
-    const kind = pic.getAttribute("data-chalk-price");
-    const source = pic.querySelector("source");
-    const img = pic.querySelector("img");
-    if (kind === "hero") {
-      if (source) {
-        source.srcset = `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w`;
-        source.sizes = HERO_SIZES;
-      }
-      if (img) {
-        img.src = `assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}`;
-        img.srcset = `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w`;
-        img.sizes = HERO_SIZES;
-        img.width = 928;
-        img.height = 928;
-        img.alt = `Fresh eggs · $${p}/tray at the YOLKO stall`;
-      }
-    } else {
-      if (source) source.srcset = `assets/chalk-tray/${p}-square-560.webp?v=${CHALK_ASSET_VER}`;
-      if (img) {
-        img.src = `assets/chalk-tray/${p}-square-560.jpg?v=${CHALK_ASSET_VER}`;
-        img.alt = `Fresh eggs · $${p}/tray`;
-      }
-    }
-  });
+  const token = ++chalkSwapToken;
+  const pics = [...document.querySelectorAll("picture[data-chalk-price]")];
+  pics.forEach((pic) => { pic.dataset.chalkSwapPending = String(p); });
+
+  // Fire-and-forget async crossfades; never blank the frame while loading.
+  Promise.all(pics.map((pic) => {
+    if (token !== chalkSwapToken) return null;
+    return swapChalkPicture(pic, p);
+  })).catch(() => {});
 }
 
 function heroSrcset(item) {
@@ -197,7 +276,7 @@ function buildHeroPicture(item, index) {
     const p = chalkPriceKey(BUNDLES.tray1.price);
     return `<picture class="showcase-photo${active}"${chalkAttr}>
       <source type="image/webp" srcset="assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w" sizes="${HERO_SIZES}">
-      <img${idAttr} src="assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}" srcset="assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w" sizes="${HERO_SIZES}" alt="Fresh eggs · $${p}/tray at the YOLKO stall" width="928" height="928"${loading} decoding="async">
+      <img${idAttr} src="assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}" srcset="assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w" sizes="${HERO_SIZES}" alt="Fresh eggs · $${p}/tray at the YOLKO stall" width="928" height="928" data-chalk-showing="${p}"${loading} decoding="async">
     </picture>`;
   }
   const src = heroSrcset(item);
@@ -219,7 +298,7 @@ function buildOrderPicture(item, index) {
     const p = chalkPriceKey(item.chalkPrice || BUNDLES.tray1.price);
     return `<picture class="order-tray-photo${active}"${chalkAttr}>
       <source type="image/webp" srcset="assets/chalk-tray/${p}-square-560.webp?v=${CHALK_ASSET_VER}">
-      <img${idAttr} src="assets/chalk-tray/${p}-square-560.jpg?v=${CHALK_ASSET_VER}" alt="Fresh eggs · $${p}/tray" width="560" height="560" loading="lazy" decoding="async">
+      <img${idAttr} src="assets/chalk-tray/${p}-square-560.jpg?v=${CHALK_ASSET_VER}" alt="Fresh eggs · $${p}/tray" width="560" height="560" data-chalk-showing="${p}" loading="lazy" decoding="async">
     </picture>`;
   }
   const sq = item.square || {};
@@ -533,6 +612,13 @@ function applySettings(settings) {
 
   cacheTray1Price(p1);
   applyChalkPriceImage(p1);
+  // Warm nearby chalk frames so the next price tweak crossfades instantly.
+  [p1 - 1, p1 + 1, p1 - 2, p1 + 2]
+    .filter((n) => CHALK_PRICES.includes(n))
+    .forEach((n) => {
+      preloadImage(chalkHeroUrls(n).primary);
+      preloadImage(chalkOrderUrls(n).primary);
+    });
 
   // Hero
   const badge = document.querySelector(".badge-price");
