@@ -1,7 +1,8 @@
 User-agent: *
 Allow: /
 
-# Admin and API are blocked at the edge (noindex / not public HTML)
+# Admin UI and JSON APIs are not public content
 Disallow: /admin
+Disallow: /api/
 
 Sitemap: https://getyolko.com/sitemap.xml

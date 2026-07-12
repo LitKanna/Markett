@@ -61,8 +61,13 @@ worker, pin `DEPLOY_SHA`, bump `X-Yolko-Build`, then `npx wrangler deploy`.
 **Chalk swap:** `applyChalkPriceImage` preloads then crossfades via a hold-frame (`img.chalk-hold`) so price changes never flash the dark card background.
 
 **FOUC note:** HTML no longer hardcodes `$12` chalk srcs. An inline bootstrap next to the
-hero/order chalk `<picture>` picks `localStorage.yolko.tray1Price` (else `$14` fallback)
+hero/order chalk `<picture>` picks `localStorage.yolko.tray1Price` (else live fallback)
 before first paint; `applySettings` refreshes that cache.
+
+**SEO:** Keep title/meta/OG/Twitter/JSON-LD price + hours aligned with `/api/settings`.
+`applySeoMeta()` updates head + `#yolko-jsonld` after settings load. Static HTML fallbacks
+should match the current live tray1 price. After SEO HTML changes, pin `DEPLOY_SHA`, bump
+`X-Yolko-Build`, deploy, then optionally `node infra/seo-indexnow.mjs`.
 
 
 ### No lint / test / build tooling

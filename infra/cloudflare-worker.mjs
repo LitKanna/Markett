@@ -40,7 +40,7 @@ const CASE_UNIT = {
 
 const DEFAULT_SETTINGS = {
   prices: {
-    tray1: 12, tray2: 23, box: 66,
+    tray1: 13, tray2: 25, box: 72,
     cage600: 6, cage700: 7, cage800: 8,
     fr600: 8, fr700: 9, fr800: 10,
     cage600case: 90, cage700case: 105, cage800case: 120,

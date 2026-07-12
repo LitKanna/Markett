@@ -1614,14 +1614,32 @@ h3 {
 .foot-bottom {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 16px;
   padding-top: 22px;
+  flex-wrap: wrap;
 }
 
 .foot-bottom p {
   margin: 0;
   color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
+}
+
+.foot-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.foot-legal a {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.foot-legal a:hover {
+  color: var(--yellow);
 }
 
 /* Sticky mobile conversion bar */

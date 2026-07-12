@@ -1,9 +1,9 @@
 const DOZENS_PER_CASE = 15;
 
 const BUNDLES = {
-  tray1: { label: "1 tray (30 eggs)", price: 14, eggs: 30, kind: "tray" },
-  tray2: { label: "2 trays (60 eggs)", price: 27, eggs: 60, kind: "tray" },
-  box: { label: "Full box (6 trays, 180 eggs)", price: 77, eggs: 180, kind: "tray" },
+  tray1: { label: "1 tray (30 eggs)", price: 13, eggs: 30, kind: "tray" },
+  tray2: { label: "2 trays (60 eggs)", price: 25, eggs: 60, kind: "tray" },
+  box: { label: "Full box (6 trays, 180 eggs)", price: 72, eggs: 180, kind: "tray" },
   cage600: { label: "Cage dozen 600g", price: 6, eggs: 12, kind: "dozen", housing: "cage", weight: "600g" },
   cage700: { label: "Cage dozen 700g", price: 7, eggs: 12, kind: "dozen", housing: "cage", weight: "700g" },
   cage800: { label: "Cage dozen 800g", price: 8, eggs: 12, kind: "dozen", housing: "cage", weight: "800g" },
@@ -47,7 +47,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 /* ---------- Hero / order tray image auto-rotate ---------- */
 const rotatorTimers = [];
 const HERO_SIZES = "(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)";
-const ASSET_CACHE_VER = "110";
+const ASSET_CACHE_VER = "111";
 
 function clearImageRotators() {
   while (rotatorTimers.length) {
@@ -102,7 +102,7 @@ initImageRotators();
 
 /* Chalkboard hero swaps to match live tray1 price ($1–$30); dozens unchanged */
 const CHALK_PRICES = Array.from({ length: 30 }, (_, i) => i + 1);
-const CHALK_ASSET_VER = "110";
+const CHALK_ASSET_VER = "111";
 const TRAY1_PRICE_CACHE_KEY = "yolko.tray1Price";
 
 function chalkPriceKey(price) {
@@ -334,7 +334,7 @@ applyChalkPriceImage(BUNDLES.tray1.price);
 /* ---------- Ticker: always covers the screen, loops seamlessly ---------- */
 const TICKER_ITEMS = [
   "Fresh eggs every week",
-  "30 eggs for $14",
+  "30 eggs for $13",
   "Pickup Friday & Saturday",
   "Paddy's Markets Flemington",
 ];
@@ -682,6 +682,79 @@ function applySettings(settings) {
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
+
+  // Keep SERP/social/JSON-LD in sync with live admin settings
+  applySeoMeta(settings);
+}
+
+function setMetaContent(attr, key, value) {
+  let el = document.head.querySelector(`meta[${attr}="${key}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", value);
+}
+
+function applySeoMeta(settings) {
+  const p1 = BUNDLES.tray1.price;
+  const priceKey = chalkPriceKey(p1);
+  const title = `YOLKO | 30 Eggs for $${p1} at Flemington Markets`;
+  const description = `Fresh Pace Farm eggs at Paddy's Markets Flemington. 30 eggs for $${p1}. Book online and pick up Friday or Saturday at Building D, Sydney Markets NSW.`;
+  const ogDescription = `Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.`;
+  const image = `https://getyolko.com/assets/chalk-tray/${priceKey}-1536.jpg?v=${CHALK_ASSET_VER}`;
+  const imageAlt = `Fresh Pace Farm egg trays · $${p1}/tray at the YOLKO stall`;
+
+  document.title = title;
+  setMetaContent("name", "description", description);
+  setMetaContent("property", "og:title", title);
+  setMetaContent("property", "og:description", ogDescription);
+  setMetaContent("property", "og:image", image);
+  setMetaContent("property", "og:image:alt", imageAlt);
+  setMetaContent("name", "twitter:title", title);
+  setMetaContent("name", "twitter:description", ogDescription);
+  setMetaContent("name", "twitter:image", image);
+  setMetaContent("name", "twitter:image:alt", imageAlt);
+
+  const script = document.getElementById("yolko-jsonld");
+  if (!script) return;
+  let data;
+  try {
+    data = JSON.parse(script.textContent);
+  } catch {
+    return;
+  }
+  const graph = Array.isArray(data["@graph"]) ? data["@graph"] : [];
+  const business = graph.find((n) => n && n["@id"] === "https://getyolko.com/#business");
+  const product = graph.find((n) => n && n["@id"] === "https://getyolko.com/#product-tray");
+
+  if (business) {
+    business.image = [image, "https://getyolko.com/assets/studio-tray-928.jpg?v=71"];
+    const pickup = settings && settings.pickup;
+    if (pickup && typeof pickup === "object") {
+      business.openingHoursSpecification = Object.keys(pickup)
+        .filter((day) => pickup[day] && pickup[day].enabled)
+        .map((day) => ({
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: day,
+          opens: pickup[day].open,
+          closes: pickup[day].close,
+        }));
+    }
+  }
+
+  if (product) {
+    product.image = image;
+    if (!product.offers || typeof product.offers !== "object") product.offers = { "@type": "Offer" };
+    product.offers.price = Number(p1).toFixed(2);
+    product.offers.priceCurrency = "AUD";
+    product.offers.availability = "https://schema.org/InStock";
+    product.offers.url = "https://getyolko.com/#order";
+    product.offers.seller = { "@id": "https://getyolko.com/#business" };
+  }
+
+  script.textContent = JSON.stringify(data);
 }
 
 const PRODUCT_TYPES = {
