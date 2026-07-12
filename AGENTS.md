@@ -71,11 +71,13 @@ should match the current live tray1 price. After SEO HTML changes, pin `DEPLOY_S
 
 
 ### Business accounts (non-obvious)
-- **Two owner accounts (both yours):**
-  - `getyolkonow@gmail.com` — preferred public/business Google for getyolko.com (GBP, Google Ads, Meta signup/login, customer-facing Gmail). Use this for new service signups unless a console is already tied elsewhere.
-  - `maruthi4a5@gmail.com` — also an owner account; Cloudflare Worker (`yolko-site.maruthi4a5.workers.dev`) and some cloud/infra access may live here.
+- **Owner accounts (all yours):**
+  - `getyolkonow@gmail.com` — preferred for new Google/Meta business signups when creating fresh accounts.
+  - `getyolko@gmail.com` — also a business Google account.
+  - `maruthi4a5@gmail.com` — owner/infra account (Cloudflare `yolko-site.maruthi4a5.workers.dev`); password for this address may be on the VM at `~/.config/yolko/accounts.env` (never in git).
+- **Passwords:** never commit. Prefer Cursor Secrets for cross-run persistence.
 - WhatsApp sales number on site: `+61 433 975 055` (`config.js`).
-- When logging into Desktop for ads/GBP/Meta, prefer **`getyolkonow@gmail.com`**. Never commit passwords to git; use Cursor secrets (`GETYOLKO_GOOGLE_PASSWORD` / test login).
+- When logging into Desktop for ads/GBP/Meta, prefer **`getyolkonow@gmail.com`** for new consoles; use **`maruthi4a5@gmail.com`** where that account already owns the console.
 
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
