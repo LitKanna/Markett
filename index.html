@@ -36,7 +36,7 @@
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/3y9K6as8bTXq_nANBjzKo3IeZx8z6up5BeSl9D4dj_x9PpZBMlGIInE.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2" crossorigin>
   <link rel="stylesheet" href="assets/fonts.css?v=72">
-  <link rel="stylesheet" href="styles-modern.css?v=112">
+  <link rel="stylesheet" href="styles-modern.css?v=113">
 
   <script id="yolko-jsonld" type="application/ld+json">
   {
@@ -152,11 +152,11 @@
 </head>
 <body>
   <div class="sunday-banner" id="sunday-banner" style="background:#ffd32a;color:#000;text-align:center;padding:12px 16px;font-weight:600;border-bottom:2px solid #f5c000;">
-    <span style="font-size:15px;">🚚 SUNDAY DELIVERY AVAILABLE TODAY</span> 
+    <span style="font-size:15px;">🚚 Saturday delivery available</span>
     <span style="font-size:14px;margin:0 8px;">·</span>
-    <a href="https://wa.me/61433975055?text=Hi%2C%20I%27d%20like%20to%20order%20eggs%20for%20Sunday%20delivery" target="_blank" rel="noopener" style="color:#000;text-decoration:underline;font-weight:700;">Order via WhatsApp →</a>
+    <a href="#order" style="color:#000;text-decoration:underline;font-weight:700;">Book pickup or delivery below</a>
     <span style="font-size:14px;margin:0 8px;">·</span>
-    <span style="font-size:13px;opacity:0.8;">Or book Fri/Sat pickup below</span>
+    <span style="font-size:13px;opacity:0.8;">+$5 on the entire order for delivery</span>
   </div>
   <header class="topbar">
     <div class="wrap topbar-inner">
@@ -416,9 +416,9 @@
           <p class="steps-title">How it works</p>
           <ol class="steps">
             <li><span>1</span>Choose your bundle</li>
-            <li><span>2</span>Pick Friday or Saturday</li>
+            <li><span>2</span>Pickup Fri/Sat, or Saturday delivery</li>
             <li><span>3</span>Reserve or prepay online</li>
-            <li><span>4</span>Collect at the market</li>
+            <li><span>4</span>Collect at Flemington, or we deliver Saturday</li>
           </ol>
         </div>
       </div>
@@ -428,9 +428,9 @@
       <div class="wrap order-grid">
         <div class="order-copy">
           <h2>Lock in your eggs.</h2>
-          <p>Pick your pack and pickup day. Pay at the market, or pay online to keep your trays set aside on busy weeks.</p>
+          <p>Pick your pack, then choose Flemington pickup or Saturday delivery. Pay at pickup, or pay online to keep your trays set aside.</p>
 
-          <p class="delivery-note">Can't make Fri/Sat? <b>Delivery on request</b> within 45km of Flemington — +$5 within 20km, +$10 to 45km. <a href="https://wa.me/61433975055?text=Hi%20YOLKO!%20Can%20you%20deliver%20fresh%20egg%20trays%20to%20my%20suburb%3F%20Suburb%3A%20___%20%2F%20Trays%3A%20___" target="_blank" rel="noopener noreferrer">WhatsApp us your suburb&nbsp;↗</a></p>
+          <p class="delivery-note"><b>Saturday delivery</b> is +$5 on the entire order (Sydney area). Pickup stays Friday or Saturday at Flemington.</p>
 
           <div class="order-tray-note">
             <div class="order-tray-rotator" data-rotator="order" aria-hidden="true">
@@ -546,6 +546,22 @@
             </label>
           </fieldset>
 
+          <div class="field">
+            <span class="field-label">How do you want them?</span>
+            <div class="seg" id="fulfillment-seg">
+              <label class="seg-opt">
+                <input type="radio" name="fulfillment" value="pickup" checked>
+                <span class="seg-day">Pickup</span>
+                <span class="seg-hours">Flemington Fri or Sat</span>
+              </label>
+              <label class="seg-opt">
+                <input type="radio" name="fulfillment" value="delivery">
+                <span class="seg-day">Delivery</span>
+                <span class="seg-hours">Saturday only · +$5</span>
+              </label>
+            </div>
+          </div>
+
           <div class="field-row">
             <div class="field">
               <span class="field-label">How many?</span>
@@ -557,21 +573,27 @@
               <input type="hidden" id="quantity" name="quantity" value="1">
             </div>
 
-            <div class="field">
-              <span class="field-label">Pickup day</span>
+            <div class="field" id="when-field">
+              <span class="field-label" id="when-label">Pickup day</span>
               <div class="seg" id="day-seg">
                 <label class="seg-opt">
                   <input type="radio" name="pickupDay" value="Friday">
                   <span class="seg-day">Friday</span>
-                  <span class="seg-hours">10 AM to 4:30 PM</span>
+                  <span class="seg-hours">2 PM to 4 PM</span>
                 </label>
                 <label class="seg-opt">
                   <input type="radio" name="pickupDay" value="Saturday" checked>
                   <span class="seg-day">Saturday</span>
-                  <span class="seg-hours">6 AM to 2 PM</span>
+                  <span class="seg-hours">5 AM to 8 AM</span>
                 </label>
               </div>
             </div>
+          </div>
+
+          <div class="field" id="delivery-address-field" hidden>
+            <label for="delivery-address">Delivery address</label>
+            <input id="delivery-address" name="deliveryAddress" type="text" placeholder="Street, suburb, postcode" autocomplete="street-address">
+            <p class="field-hint">Saturday delivery only · +$5 on the entire order · Sydney area</p>
           </div>
 
           <div class="field">
@@ -725,6 +747,6 @@
   </footer>
 
   <script src="config.js?v=86"></script>
-  <script src="app.js?v=111"></script>
+  <script src="app.js?v=113"></script>
 </body>
 </html>

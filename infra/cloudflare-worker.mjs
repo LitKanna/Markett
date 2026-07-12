@@ -625,9 +625,11 @@ async function handleApi(request, env, url) {
     const name = String(body?.name || "").trim().slice(0, 80);
     const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
     const bundle = BUNDLE_KEYS.includes(body?.bundle) ? body.bundle : null;
-    const pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
+    const fulfillment = body?.fulfillment === "delivery" ? "delivery" : "pickup";
+    let pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
     const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
-    const pickupDate = String(body?.pickupDate || "").replace(/[^0-9A-Za-z ]/g, "").slice(0, 12);
+    let pickupDate = String(body?.pickupDate || "").replace(/[^0-9A-Za-z ]/g, "").slice(0, 12);
+    const deliveryAddress = String(body?.deliveryAddress || "").trim().slice(0, 200);
     // Honeypot: bots fill hidden "company" field — pretend success, save nothing.
     const honeypot = String(body?.company || "").trim();
     if (honeypot) {
@@ -639,6 +641,13 @@ async function handleApi(request, env, url) {
       return json({ error: "refresh and try again", code: "token_" + tokenCheck.reason }, 403);
     }
 
+    if (fulfillment === "delivery") {
+      pickupDay = "Saturday";
+      if (deliveryAddress.length < 5) {
+        return json({ error: "delivery address required", code: "delivery_address" }, 400);
+      }
+    }
+
     if (!name || name.length < 2 || !/^04\d{8}$/.test(phone) || !bundle || !pickupDay) {
       return json({ error: "invalid order" }, 400);
     }
@@ -648,7 +657,12 @@ async function handleApi(request, env, url) {
     }
 
     const settings = await getSettings(env);
-    if (!settings.pickup[pickupDay]?.enabled) {
+    if (fulfillment === "delivery") {
+      // Delivery is Saturday only (even if pickup Saturday hours were toggled off).
+      if (pickupDay !== "Saturday") {
+        return json({ error: "delivery only on Saturday", code: "delivery_day" }, 400);
+      }
+    } else if (!settings.pickup[pickupDay]?.enabled) {
       return json({ error: "pickup day unavailable" }, 400);
     }
 
@@ -667,9 +681,9 @@ async function handleApi(request, env, url) {
     const ip = clientIp(request);
     const meta = clientMeta(request);
 
-    // Hard block: non-Australia IPs (Sydney market pickup only)
+    // Hard block: non-Australia IPs (Sydney market / delivery area only)
     if (meta.country && meta.country !== "AU") {
-      return json({ error: "pickup is Sydney only", code: "geo" }, 403);
+      return json({ error: "Sydney area only", code: "geo" }, 403);
     }
     // Hard block: datacenter / hosting ASNs (typical bot farms)
     if (meta.asnOrg && HOSTING_ASN_RE.test(meta.asnOrg)) {
@@ -688,6 +702,8 @@ async function handleApi(request, env, url) {
       return json({ error: "too many orders", code: "rate_phone" }, 429);
     }
 
+    const subtotal = settings.prices[bundle] * quantity;
+    const deliveryFee = fulfillment === "delivery" ? 5 : 0;
     const now = new Date();
     const id = `order:${now.toISOString()}:${Math.random().toString(36).slice(2, 8)}`;
     const order = {
@@ -696,9 +712,13 @@ async function handleApi(request, env, url) {
       phone,
       bundle,
       quantity,
+      fulfillment,
+      deliveryAddress: fulfillment === "delivery" ? deliveryAddress : "",
+      deliveryFee,
       pickupDay,
       pickupDate,
-      price: settings.prices[bundle] * quantity,
+      subtotal,
+      price: subtotal + deliveryFee,
       status: "new",
       createdAt: now.toISOString(),
       ip: ip || null,
@@ -709,7 +729,7 @@ async function handleApi(request, env, url) {
     };
     await env.DATA.put(id, JSON.stringify(order));
     await pushOrderIndex(env, id);
-    return json({ ok: true, id });
+    return json({ ok: true, id, price: order.price, deliveryFee });
   }
 
   // Admin: auth check only (no KV list — free tier list() has a daily cap)
@@ -748,7 +768,11 @@ async function handleApi(request, env, url) {
     await ensureStripeBranding(env).catch(() => null);
 
     const quantity = order.quantity || 1;
-    const unitAmount = Math.round((order.price / quantity) * 100);
+    const deliveryFee = Number(order.deliveryFee) > 0 ? Number(order.deliveryFee) : (order.fulfillment === "delivery" ? 5 : 0);
+    const subtotal = Number.isFinite(Number(order.subtotal))
+      ? Number(order.subtotal)
+      : Math.max(0, Number(order.price) - deliveryFee);
+    const unitAmount = Math.round((subtotal / quantity) * 100);
     const labels = {
       tray1: "Egg tray (30 eggs)",
       tray2: "2 egg trays (60 eggs)",
@@ -767,17 +791,29 @@ async function handleApi(request, env, url) {
       fr800case: "Free range case 800g (15 dozens)",
     };
 
+    const isDelivery = order.fulfillment === "delivery";
+    const fulfillDesc = isDelivery
+      ? `Saturday ${order.pickupDate || ""} delivery · ${order.deliveryAddress || "Sydney area"}`.trim()
+      : `Pickup ${order.pickupDay}${order.pickupDate ? " " + order.pickupDate : ""} at Paddy's Markets Flemington`;
+
     const params = new URLSearchParams({
       mode: "payment",
       "line_items[0][price_data][currency]": "aud",
       "line_items[0][price_data][product_data][name]": labels[order.bundle] || "Eggs",
-      "line_items[0][price_data][product_data][description]": `Pickup ${order.pickupDay}${order.pickupDate ? " " + order.pickupDate : ""} at Paddy's Markets Flemington`,
+      "line_items[0][price_data][product_data][description]": fulfillDesc,
       "line_items[0][price_data][unit_amount]": String(unitAmount),
       "line_items[0][quantity]": String(quantity),
       "metadata[orderId]": orderId,
       success_url: "https://getyolko.com/?paid={CHECKOUT_SESSION_ID}",
       cancel_url: "https://getyolko.com/#order",
     });
+    if (deliveryFee > 0) {
+      params.set("line_items[1][price_data][currency]", "aud");
+      params.set("line_items[1][price_data][product_data][name]", "Saturday delivery");
+      params.set("line_items[1][price_data][product_data][description]", "Flat fee on entire order");
+      params.set("line_items[1][price_data][unit_amount]", String(Math.round(deliveryFee * 100)));
+      params.set("line_items[1][quantity]", "1");
+    }
 
     const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -1842,12 +1878,14 @@ async function loadOrders() {
 }
 
 function pickupKey(o) {
-  return (o.pickupDay || "TBD") + "|" + (o.pickupDate || "");
+  const kind = o.fulfillment === "delivery" ? "delivery" : "pickup";
+  return kind + "|" + (o.pickupDay || "TBD") + "|" + (o.pickupDate || "");
 }
 
 function pickupLabel(o) {
-  if (o.pickupDate) return o.pickupDay + " " + o.pickupDate;
-  return o.pickupDay || "Pickup TBD";
+  const day = o.pickupDate ? (o.pickupDay + " " + o.pickupDate) : (o.pickupDay || "TBD");
+  if (o.fulfillment === "delivery") return "🚚 Delivery " + day;
+  return day || "Pickup TBD";
 }
 
 function isPaid(o) {

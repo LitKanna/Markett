@@ -446,6 +446,13 @@ function currentBundle() {
   return checked ? checked.value : "tray2";
 }
 
+const DELIVERY_FEE = 5;
+
+function currentFulfillment() {
+  const checked = document.querySelector('input[name="fulfillment"]:checked');
+  return checked && checked.value === "delivery" ? "delivery" : "pickup";
+}
+
 function setBundle(key) {
   const radio = document.querySelector(`input[name="bundle"][value="${key}"]`);
   if (radio) {
@@ -455,6 +462,7 @@ function setBundle(key) {
 }
 
 function currentPickupDay() {
+  if (currentFulfillment() === "delivery") return "Saturday";
   const checked = document.querySelector('input[name="pickupDay"]:checked');
   return checked ? checked.value : "Saturday";
 }
@@ -509,11 +517,50 @@ function refreshSubmitPrice() {
   const bundleKey = currentBundle();
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const qty = currentQuantity();
+  const fulfillment = currentFulfillment();
+  const day = currentPickupDay();
+  const fee = fulfillment === "delivery" ? DELIVERY_FEE : 0;
+  const total = bundle.price * qty + fee;
+  const when =
+    fulfillment === "delivery"
+      ? `Delivery Saturday ${nextPickupDate("Saturday")} (+$${DELIVERY_FEE})`
+      : `Pickup ${day} ${nextPickupDate(day)}`;
 
-  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${currentPickupDay()} ${nextPickupDate(currentPickupDay())} &middot; $${bundle.price * qty}`;
+  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${when} &middot; $${total}`;
   orderSummary.classList.remove("bump");
   void orderSummary.offsetWidth;
   orderSummary.classList.add("bump");
+}
+
+function syncFulfillmentUI() {
+  const delivery = currentFulfillment() === "delivery";
+  const whenLabel = document.getElementById("when-label");
+  const daySeg = document.getElementById("day-seg");
+  const addrField = document.getElementById("delivery-address-field");
+  const addrInput = document.getElementById("delivery-address");
+  const formNote = document.querySelector(".form-note");
+
+  if (whenLabel) whenLabel.textContent = delivery ? "Delivery day" : "Pickup day";
+  if (addrField) addrField.hidden = !delivery;
+  if (addrInput) addrInput.required = delivery;
+
+  if (delivery && daySeg) {
+    const satDate = nextPickupDate("Saturday");
+    daySeg.innerHTML = `<label class="seg-opt">
+      <input type="radio" name="pickupDay" value="Saturday" checked>
+      <span class="seg-day">Saturday ${satDate}</span>
+      <span class="seg-hours">Delivery only · +$${DELIVERY_FEE}</span>
+    </label>`;
+  } else if (!delivery && window.__YOLKO_PICKUP) {
+    applyPickupDaysOnly(window.__YOLKO_PICKUP);
+  }
+
+  if (formNote) {
+    formNote.textContent = delivery
+      ? "Reserve now, or buy now for priority. Delivery is Saturday only (+$5)."
+      : "Reserve and pay at pickup, or buy now for priority stock.";
+  }
+  refreshSubmitPrice();
 }
 
 document.querySelectorAll('input[name="bundle"]').forEach((radio) => {
@@ -522,6 +569,7 @@ document.querySelectorAll('input[name="bundle"]').forEach((radio) => {
 
 // Day radios are re-rendered from settings, so listen on the container
 document.getElementById("day-seg").addEventListener("change", refreshSubmitPrice);
+document.getElementById("fulfillment-seg").addEventListener("change", syncFulfillmentUI);
 
 /* ---------- Australian mobile handling ---------- */
 const phoneInput = document.getElementById("phone");
@@ -838,9 +886,28 @@ const SHORT_DAY = {
   Friday: "Fri", Saturday: "Sat", Sunday: "Sun",
 };
 
-function applyPickup(pickup) {
+function applyPickupDaysOnly(pickup) {
   const enabledDays = WEEK_DAYS.filter((d) => pickup[d]?.enabled);
-  const previousChoice = currentPickupDay();
+  const previousChoice = (() => {
+    const checked = document.querySelector('input[name="pickupDay"]:checked');
+    return checked ? checked.value : "Saturday";
+  })();
+  const seg = document.getElementById("day-seg");
+  if (!seg) return;
+  const pick = enabledDays.includes(previousChoice) ? previousChoice : enabledDays[enabledDays.length - 1];
+  seg.innerHTML = enabledDays.map((day) => {
+    const hours = `${formatTime(pickup[day].open)} to ${formatTime(pickup[day].close)}`;
+    return `<label class="seg-opt">
+      <input type="radio" name="pickupDay" value="${day}"${day === pick ? " checked" : ""}>
+      <span class="seg-day">${day} ${nextPickupDate(day)}</span>
+      <span class="seg-hours">${hours}</span>
+    </label>`;
+  }).join("");
+}
+
+function applyPickup(pickup) {
+  window.__YOLKO_PICKUP = pickup;
+  const enabledDays = WEEK_DAYS.filter((d) => pickup[d]?.enabled);
 
   // Day cards in the pickup section, with the actual next date
   const cardsBox = document.querySelector(".day-cards");
@@ -855,20 +922,10 @@ function applyPickup(pickup) {
     }).join("") || `<article class="day-card"><p class="day-name">Paused</p><p class="day-time">Back soon</p><p class="day-note">Check again Wednesday</p></article>`;
   }
 
-  // Booking form day segments, dated
-  const seg = document.getElementById("day-seg");
-  if (seg) {
-    const pick = enabledDays.includes(previousChoice) ? previousChoice : enabledDays[enabledDays.length - 1];
-    seg.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} to ${formatTime(pickup[day].close)}`;
-      return `<label class="seg-opt">
-        <input type="radio" name="pickupDay" value="${day}"${day === pick ? " checked" : ""}>
-        <span class="seg-day">${day} ${nextPickupDate(day)}</span>
-        <span class="seg-hours">${hours}</span>
-      </label>`;
-    }).join("");
+  if (currentFulfillment() !== "delivery") {
+    applyPickupDaysOnly(pickup);
   }
-  refreshSubmitPrice();
+  syncFulfillmentUI();
 
   // Texts that mention the days
   const shortNames = enabledDays.map((d) => SHORT_DAY[d]);
@@ -893,14 +950,14 @@ function applyPickup(pickup) {
     stats[2].querySelector("dd").textContent = dayText;
   }
 
-  TICKER_ITEMS[2] = `Pickup ${dayText}`;
+  TICKER_ITEMS[2] = `Pickup ${dayText} · Sat delivery +$${DELIVERY_FEE}`;
   renderTicker();
 
   const ctaSpan = document.querySelector(".mobile-cta-text span");
   if (ctaSpan) ctaSpan.textContent = `Pickup ${dayText}`;
 
-  // No pickup days: block the form politely
-  const paused = !enabledDays.length;
+  // No pickup days: block the form politely (delivery still needs Saturday)
+  const paused = !enabledDays.length && currentFulfillment() !== "delivery";
   const buyBtn = document.getElementById("buynow-btn");
   submitBtn.disabled = paused;
   if (buyBtn) buyBtn.disabled = paused;
@@ -950,9 +1007,12 @@ function collectBooking() {
   const name = String(data.get("name") || "").trim();
   const phoneDigits = normaliseAuMobile(data.get("phone") || "");
   const bundleKey = String(data.get("bundle") || "tray1");
-  const pickupDay = String(data.get("pickupDay") || "Saturday");
+  const fulfillment = currentFulfillment();
+  const pickupDay = fulfillment === "delivery" ? "Saturday" : String(data.get("pickupDay") || "Saturday");
+  const deliveryAddress = String(data.get("deliveryAddress") || "").trim();
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const quantity = currentQuantity();
+  const deliveryFee = fulfillment === "delivery" ? DELIVERY_FEE : 0;
 
   if (!name) {
     flagInvalid(document.getElementById("name"));
@@ -963,16 +1023,25 @@ function collectBooking() {
     flagInvalid(phoneInput);
     return null;
   }
+  if (fulfillment === "delivery" && deliveryAddress.length < 5) {
+    const addr = document.getElementById("delivery-address");
+    flagInvalid(addr);
+    showToast("Add a delivery address for Saturday delivery.");
+    return null;
+  }
 
   return {
     name,
     phoneDigits,
     phone: formatAuMobile(phoneDigits),
     bundleKey,
+    fulfillment,
+    deliveryAddress: fulfillment === "delivery" ? deliveryAddress : "",
+    deliveryFee,
     pickupDay,
     pickupDate: nextPickupDate(pickupDay),
     quantity,
-    total: bundle.price * quantity,
+    total: bundle.price * quantity + deliveryFee,
     orderLabel: describeOrder(bundleKey, quantity),
     company: String(data.get("company") || "").trim(),
   };
@@ -991,6 +1060,8 @@ function createOrder(b) {
           pickupDay: b.pickupDay,
           pickupDate: b.pickupDate,
           quantity: b.quantity,
+          fulfillment: b.fulfillment,
+          deliveryAddress: b.deliveryAddress || "",
           company: b.company || "",
           token: token || "",
         }),
@@ -1005,7 +1076,12 @@ function createOrder(b) {
         if (d.code === "geo") return { error: "geo" };
         return { error: "blocked" };
       }
-      if (!r.ok) return null;
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        if (d.code === "delivery_day") return { error: "delivery_day" };
+        if (d.code === "delivery_address") return { error: "delivery_address" };
+        return null;
+      }
       return r.json();
     })
     .then((d) => {
@@ -1081,22 +1157,36 @@ async function openCheckout(orderId, fallbackUrl) {
 }
 
 function showConfirmation(b) {
+  const isDelivery = b.fulfillment === "delivery";
   const message = [
-    "Hi! I'd like to book eggs for pickup at Flemington.",
+    isDelivery
+      ? "Hi! I'd like to book eggs for Saturday delivery."
+      : "Hi! I'd like to book eggs for pickup at Flemington.",
     `Name: ${b.name}`,
     `Phone: ${b.phone}`,
     `Order: ${b.orderLabel}`,
-    `Pickup: ${b.pickupDay} ${b.pickupDate}`,
+    isDelivery
+      ? `Delivery: Saturday ${b.pickupDate}`
+      : `Pickup: ${b.pickupDay} ${b.pickupDate}`,
+    isDelivery ? `Address: ${b.deliveryAddress}` : null,
+    isDelivery ? `Delivery fee: $${b.deliveryFee}` : null,
     `Total: $${b.total}`,
-  ].join("\n");
+  ].filter(Boolean).join("\n");
   lastOrderMessage = message;
 
-  doneSummary.textContent = `Thanks ${b.name.split(" ")[0]}! Here are your pickup details.`;
+  doneSummary.textContent = isDelivery
+    ? `Thanks ${b.name.split(" ")[0]}! Here are your Saturday delivery details.`
+    : `Thanks ${b.name.split(" ")[0]}! Here are your pickup details.`;
   receipt.name.textContent = b.name;
   receipt.phone.textContent = b.phone;
   receipt.order.textContent = b.orderLabel;
-  receipt.pickup.textContent = `${b.pickupDay} ${b.pickupDate} at Paddy's Markets Flemington`;
+  receipt.pickup.textContent = isDelivery
+    ? `Saturday ${b.pickupDate} delivery · ${b.deliveryAddress}`
+    : `${b.pickupDay} ${b.pickupDate} at Paddy's Markets Flemington`;
   receipt.total.textContent = `$${b.total}`;
+
+  const hint = document.querySelector(".done-hint");
+  if (hint) hint.textContent = isDelivery ? "Keep this screen for your Saturday delivery." : "Keep this screen for pickup.";
 
   const number = String(config.whatsappNumber || "").replace(/\D/g, "");
   if (number) {
@@ -1115,7 +1205,7 @@ function showConfirmation(b) {
     e.preventDefault();
     stripeLink.textContent = "Opening secure checkout…";
     const ok = await openCheckout(lastOrderId, stripeUrl);
-    if (!ok) stripeLink.textContent = "Payment unavailable, pay on pickup";
+    if (!ok) stripeLink.textContent = isDelivery ? "Payment unavailable, pay on delivery" : "Payment unavailable, pay on pickup";
   };
 
   orderSection.hidden = true;
@@ -1148,7 +1238,15 @@ form.addEventListener("submit", async (event) => {
     return;
   }
   if (orderResult?.error === "geo") {
-    showToast("Bookings are for Sydney pickup only.");
+    showToast("Bookings are for the Sydney area only.");
+    return;
+  }
+  if (orderResult?.error === "delivery_day") {
+    showToast("Delivery is Saturday only.");
+    return;
+  }
+  if (orderResult?.error === "delivery_address") {
+    showToast("Add a delivery address for Saturday delivery.");
     return;
   }
   if (orderResult?.error === "blocked") {
@@ -1177,10 +1275,15 @@ buynowBtn.addEventListener("click", async () => {
     showToast("Too many bookings from this phone or connection. Try again later.");
     return;
   }
-  if (orderResult?.error === "geo" || orderResult?.error === "blocked") {
+  if (orderResult?.error === "geo" || orderResult?.error === "blocked" || orderResult?.error === "delivery_day" || orderResult?.error === "delivery_address") {
     buynowBtn.disabled = false;
     buynowLabel.textContent = "Buy now";
-    showToast(orderResult.error === "geo" ? "Bookings are for Sydney pickup only." : "Couldn’t place that booking. Refresh and try again.");
+    const msg =
+      orderResult.error === "geo" ? "Bookings are for the Sydney area only." :
+      orderResult.error === "delivery_day" ? "Delivery is Saturday only." :
+      orderResult.error === "delivery_address" ? "Add a delivery address for Saturday delivery." :
+      "Couldn’t place that booking. Refresh and try again.";
+    showToast(msg);
     return;
   }
   lastOrderId = orderResult?.id || null;
@@ -1211,6 +1314,7 @@ copyButton.addEventListener("click", async () => {
 
 againButton.addEventListener("click", () => {
   form.reset();
+  syncFulfillmentUI();
   refreshSubmitPrice();
   doneSection.hidden = true;
   orderSection.hidden = false;
