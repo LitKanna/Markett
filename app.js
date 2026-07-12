@@ -1262,9 +1262,6 @@ async function ensureOrderToken() {
       orderTokenAt = 0;
     }
   }
-  // Server rejects tokens younger than ~0.8s (bot slam). Wait out the floor.
-  const wait = 900 - (Date.now() - orderTokenAt);
-  if (orderToken && wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
   return orderToken;
 }
 
