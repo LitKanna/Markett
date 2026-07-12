@@ -280,7 +280,7 @@ async function consumeOrderToken(env, token) {
   if (!data || !data.issuedAt) return { ok: false, reason: "invalid" };
   await env.DATA.delete(key);
   const age = Date.now() - Number(data.issuedAt);
-  if (age < 800) return { ok: false, reason: "too_fast" };
+  // No minimum age — Buy now must work immediately on every tap.
   if (age > 10 * 60 * 1000) return { ok: false, reason: "expired" };
   return { ok: true, age };
 }
@@ -633,10 +633,6 @@ async function handleApi(request, env, url) {
   // Public: short-lived one-time token required to place an order (anti-bot)
   if (url.pathname === "/api/order-token" && request.method === "GET") {
     if (!isAllowedOrigin(request)) return json({ error: "forbidden" }, 403);
-    const ip = clientIp(request);
-    if (ip && !(await allowRate(env, `tok:${ip}`, 30, 3600))) {
-      return json({ error: "too many requests" }, 429);
-    }
     const { token } = await issueOrderToken(env);
     return json({ token, ttlSec: 600 });
   }
@@ -774,7 +770,7 @@ async function handleApi(request, env, url) {
     }
 
     // Soft anti-spam: allow retries after cancelling Stripe Checkout.
-    // Prefer reusing an unpaid order for the same phone (no rate hit).
+    // Prefer reusing an unpaid order for the same phone (no duplicate rows).
     const existingOpen = await getOpenUnpaidOrder(env, phone);
     if (existingOpen) {
       const subtotal = settings.prices[bundle] * quantity;
@@ -811,15 +807,7 @@ async function handleApi(request, env, url) {
       });
     }
 
-    // Soft anti-spam: caps per IP and phone (rolling 24h). Higher than before so
-    // open→cancel→retry checkout loops don't lock real customers out.
-    if (ip && !(await allowRate(env, `ip:${ip}`, 20, 24 * 3600))) {
-      return json({ error: "too many orders", code: "rate_ip" }, 429);
-    }
-    if (!(await allowRate(env, `phone:${phone}`, 12, 24 * 3600))) {
-      return json({ error: "too many orders", code: "rate_phone" }, 429);
-    }
-
+    // No IP/phone rate limits — Buy now / cancel / retry must always work.
     const subtotal = settings.prices[bundle] * quantity;
     const deliveryFee = fulfillment === "delivery" ? SITE_DELIVERY_FEE : 0;
     const now = new Date();
