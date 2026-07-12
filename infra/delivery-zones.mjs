@@ -342,8 +342,16 @@ function printTable() {
   }
 }
 
-const isMain = import.meta.url === `file://${process.argv[1]}`;
-if (isMain) {
+function runningAsCli() {
+  try {
+    return typeof process !== "undefined" && !!process.argv?.[1] &&
+      import.meta.url === `file://${process.argv[1]}`;
+  } catch {
+    return false;
+  }
+}
+
+if (runningAsCli()) {
   const args = process.argv.slice(2);
   if (args.length === 0 || args[0] === "--table") {
     printTable();
