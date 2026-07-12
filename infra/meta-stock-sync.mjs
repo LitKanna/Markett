@@ -8,7 +8,7 @@
  *
  * Usage:
  *   META_ACCESS_TOKEN=... node infra/meta-stock-sync.mjs
- *   META_ACCESS_TOKEN=... META_ADSET_ID=120256182965760197 node infra/meta-stock-sync.mjs
+ *   META_ACCESS_TOKEN=... META_ADSET_ID=120251266112450131 node infra/meta-stock-sync.mjs
  *   META_ACCESS_TOKEN=... node infra/meta-stock-sync.mjs --dry-run
  *
  * Cloudflare Worker also runs this on stock changes + a 15-minute cron when
@@ -18,7 +18,7 @@
 const TOKEN = process.env.META_ACCESS_TOKEN;
 const API = "https://graph.facebook.com/v21.0";
 const SETTINGS_URL = process.env.YOLKO_SETTINGS_URL || "https://getyolko.com/api/settings";
-const DEFAULT_ADSET_IDS = ["120256182965760197"]; // Flemington 8km ad set
+const DEFAULT_ADSET_IDS = ["120251266112450131"]; // New Sales Ad Set — Sydney Markets 45 km
 const STATE_FILE = process.env.META_STOCK_STATE_FILE ||
   `${process.env.HOME || "/tmp"}/.config/yolko/meta-stock-sync-state.json`;
 

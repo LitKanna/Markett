@@ -1,7 +1,7 @@
 import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./delivery-zones.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "eb785f1c8e5a8b9d0f1e2a3b4c5d6e7f8a9b0c1d";
+const DEPLOY_SHA = "eb785f18c3c994eefb5a8cb5c6f5676bfc4a9679";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
@@ -412,7 +412,7 @@ async function syncStock(env, order, newStatus) {
 }
 
 /** Default Flemington ad set from Ads Manager paste kit / meta-browser.mjs */
-const DEFAULT_META_ADSET_IDS = ["120256182965760197"];
+const DEFAULT_META_ADSET_IDS = ["120251266112450131"]; // New Sales Ad Set — Sydney Markets 45 km
 const META_GRAPH = "https://graph.facebook.com/v21.0";
 const META_STOCK_FLAG = "meta:ads:pausedByStock";
 

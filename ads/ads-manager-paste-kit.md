@@ -1,7 +1,7 @@
 # Ads Manager — copy-paste kit (2 minutes)
 
 Open this while creating the ad:
-https://adsmanager.facebook.com/adsmanager/manage/ads?act=1230148938407162&selected_adset_ids=120256182965760197
+https://adsmanager.facebook.com/adsmanager/manage/ads?act=1230148938407162&selected_adset_ids=120251266112450131
 
 Click **Create** → use **existing campaign** → **YOLKO — Flemington pickup** → ad set **Flemington 45km — Fri/Sat + delivery**.
 
