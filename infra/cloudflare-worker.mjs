@@ -2816,7 +2816,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "110",
+          "X-Yolko-Admin": "111",
         },
       });
     }
