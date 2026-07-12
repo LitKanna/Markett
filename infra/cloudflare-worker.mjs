@@ -1,5 +1,5 @@
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "ff2d0978fe4d23a076fb40fcff7ddfb6a23def78";
+const DEPLOY_SHA = "59fa33f05489ef731d6703fdfcccbdc030588cfc";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
