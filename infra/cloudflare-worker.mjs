@@ -652,7 +652,7 @@ async function getSettings(env) {
   };
 }
 
-async function handleApi(request, env, url) {
+async function handleApi(request, env, url, ctx) {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS });
   }
@@ -848,22 +848,10 @@ async function handleApi(request, env, url) {
       }
     }
 
+    // Record country on the order; do not hard-block (iCloud Private Relay / VPN
+    // can make real Sydney customers look non-AU and break Buy now).
     const ip = clientIp(request);
     const meta = clientMeta(request);
-
-    // Hard block: non-Australia IPs (Sydney market / delivery area only)
-    if (meta.country && meta.country !== "AU") {
-      return json({ error: "Sydney area only", code: "geo" }, 403);
-    }
-    // Hard block: datacenter / hosting ASNs (typical bot farms)
-    if (meta.asnOrg && HOSTING_ASN_RE.test(meta.asnOrg)) {
-      return json({ error: "blocked", code: "asn" }, 403);
-    }
-    // Empty / bot user-agents
-    if (!meta.ua || meta.ua.length < 12 || /curl|wget|python-requests|scrapy|httpclient|bot/i.test(meta.ua)) {
-      return json({ error: "blocked", code: "ua" }, 403);
-    }
-
     // Soft anti-spam: allow retries after cancelling Stripe Checkout.
     // Prefer reusing an unpaid order for the same phone (no duplicate rows).
     const existingOpen = await getOpenUnpaidOrder(env, phone);
@@ -1072,9 +1060,8 @@ async function handleApi(request, env, url) {
     }
 
     const meta = clientMeta(request);
-    if (meta.country && meta.country !== "AU") {
-      return json({ error: "Sydney area only", code: "geo" }, 403);
-    }
+    // AU mobile is required already — do not hard-block on CF country
+    // (Private Relay / VPN falsely flags Sydney customers).
 
     maybeEnsureStripeBranding(env, ctx);
 
@@ -3274,7 +3261,7 @@ export default {
     }
 
     if (url.pathname.startsWith("/api/")) {
-      return handleApi(request, env, url);
+      return handleApi(request, env, url, ctx);
     }
 
     let path = url.pathname;
@@ -3299,7 +3286,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "120",
+        "X-Yolko-Build": "121",
       },
     });
   },

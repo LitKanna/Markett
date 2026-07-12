@@ -1269,6 +1269,27 @@ prefetchOrderToken();
 document.getElementById("order")?.addEventListener("pointerdown", prefetchOrderToken, { once: true, passive: true });
 document.getElementById("order")?.addEventListener("focusin", prefetchOrderToken, { once: true });
 
+function goToCheckout(url) {
+  if (!url) return false;
+  try {
+    window.location.replace(url);
+  } catch {
+    window.location.href = url;
+  }
+  // iOS sometimes ignores async redirects — force via tap-equivalent <a>.
+  setTimeout(() => {
+    if (document.visibilityState === "visible") {
+      const a = document.createElement("a");
+      a.href = url;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+  }, 400);
+  return true;
+}
+
 async function openCheckout(orderId) {
   try {
     if (!orderId) return { ok: false, error: "no order" };
@@ -1281,7 +1302,7 @@ async function openCheckout(orderId) {
     if (!d.url) {
       return { ok: false, error: d.detail || d.error || "checkout failed" };
     }
-    window.location.assign(d.url);
+    goToCheckout(d.url);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err?.message || "checkout failed" };
@@ -1290,6 +1311,15 @@ async function openCheckout(orderId) {
 
 /** Fast path: one request creates/reuses the order and returns a Stripe URL. */
 async function buyNowCheckout(b) {
+  // Prefer existing unpaid order → /api/checkout (no geo, one Stripe call).
+  const reusedId = loadMatchingCheckout(b) || lastOrderId;
+  if (reusedId) {
+    const reuse = await openCheckout(reusedId);
+    if (reuse.ok) return { ok: true };
+    clearOpenCheckout();
+    lastOrderId = null;
+  }
+
   const token = (await ensureOrderToken()) || "";
   const res = await fetch(`${API_BASE}/api/buy-now`, {
     method: "POST",
@@ -1330,7 +1360,7 @@ async function buyNowCheckout(b) {
   }
   if (d.deliveryAddress) b.deliveryAddress = d.deliveryAddress;
   if (d.price != null) b.total = d.price;
-  window.location.assign(d.url);
+  goToCheckout(d.url);
   return { ok: true, url: d.url };
 }
 
