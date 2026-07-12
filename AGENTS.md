@@ -56,6 +56,8 @@ under `assets/chalk-tray/{N}-*`. After regenerating masters, bump `CHALK_ASSET_V
 `?v=` in `index.html`, extend `infra/asset-registry.json`, re-embed `ASSET_REGISTRY` in the
 worker, pin `DEPLOY_SHA`, bump `X-Yolko-Build`, then `npx wrangler deploy`.
 
+**Hero sharpness:** keep `HERO_SIZES` honest about the showcase width (not capped at 640px) and ship chalk srcset through **2048w**. Undersized `sizes` makes retina browsers pick soft 640/928 frames.
+
 **Chalk swap:** `applyChalkPriceImage` preloads then crossfades via a hold-frame (`img.chalk-hold`) so price changes never flash the dark card background.
 
 **FOUC note:** HTML no longer hardcodes `$12` chalk srcs. An inline bootstrap next to the

@@ -46,8 +46,8 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 
 /* ---------- Hero / order tray image auto-rotate ---------- */
 const rotatorTimers = [];
-const HERO_SIZES = "(max-width: 900px) min(100vw - 24px, 1200px), min(52vw, 640px)";
-const ASSET_CACHE_VER = "102";
+const HERO_SIZES = "(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)";
+const ASSET_CACHE_VER = "110";
 
 function clearImageRotators() {
   while (rotatorTimers.length) {
@@ -102,7 +102,7 @@ initImageRotators();
 
 /* Chalkboard hero swaps to match live tray1 price ($1–$30); dozens unchanged */
 const CHALK_PRICES = Array.from({ length: 30 }, (_, i) => i + 1);
-const CHALK_ASSET_VER = "106";
+const CHALK_ASSET_VER = "110";
 const TRAY1_PRICE_CACHE_KEY = "yolko.tray1Price";
 
 function chalkPriceKey(price) {
@@ -141,9 +141,9 @@ function withVer(path) {
 
 function chalkHeroUrls(p) {
   return {
-    primary: `assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}`,
-    imgSrcset: `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w`,
-    webpSrcset: `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w`,
+    primary: `assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER}`,
+    imgSrcset: `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w, assets/chalk-tray/${p}-2048.jpg?v=${CHALK_ASSET_VER} 2048w`,
+    webpSrcset: `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w, assets/chalk-tray/${p}-2048.webp?v=${CHALK_ASSET_VER} 2048w`,
     alt: `Fresh eggs · $${p}/tray at the YOLKO stall`,
   };
 }
@@ -209,8 +209,8 @@ async function swapChalkPicture(pic, p) {
     img.src = urls.primary;
     img.srcset = urls.imgSrcset;
     img.sizes = HERO_SIZES;
-    img.width = 928;
-    img.height = 928;
+    img.width = 1536;
+    img.height = 1536;
   } else {
     if (source) source.srcset = urls.webpSrcset;
     img.src = urls.primary;
@@ -275,8 +275,8 @@ function buildHeroPicture(item, index) {
     // Always use live tray1 price — asset chalkPrice is only the registry id (e.g. chalk-tray/12).
     const p = chalkPriceKey(BUNDLES.tray1.price);
     return `<picture class="showcase-photo${active}"${chalkAttr}>
-      <source type="image/webp" srcset="assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w" sizes="${HERO_SIZES}">
-      <img${idAttr} src="assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER}" srcset="assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w" sizes="${HERO_SIZES}" alt="Fresh eggs · $${p}/tray at the YOLKO stall" width="928" height="928" data-chalk-showing="${p}"${loading} decoding="async">
+      <source type="image/webp" srcset="assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w, assets/chalk-tray/${p}-2048.webp?v=${CHALK_ASSET_VER} 2048w" sizes="${HERO_SIZES}">
+      <img${idAttr} src="assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER}" srcset="assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w, assets/chalk-tray/${p}-2048.jpg?v=${CHALK_ASSET_VER} 2048w" sizes="${HERO_SIZES}" alt="Fresh eggs · $${p}/tray at the YOLKO stall" width="1536" height="1536" data-chalk-showing="${p}"${loading} decoding="async">
     </picture>`;
   }
   const src = heroSrcset(item);
