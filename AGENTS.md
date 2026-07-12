@@ -112,48 +112,18 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
   `META_ADSET_IDS`). Manual/CLI: `node infra/meta-stock-sync.mjs`. Cron every 15m in
   `wrangler.toml`. Admin check: `GET/POST /api/meta-ads-stock-sync` with admin key.
 
-### Handoff — hero branding via Higgsfield (pending)
-**Live site:** `https://getyolko.com/` · Worker build **95** · base branch
-`cursor/setup-dev-environment-9869` · PR #44 · follow-up branch
-`cursor/yolko-tiny-corner-39c4` (agent `bc-c894bd07…`, also blocked on auth).
+### Studio hero branding (done — tiny corner YOLKO)
+Shop heroes `studio-tray-v2` / `v5` / `v6` use a **small quiet YOLKO** in the **same
+bottom corner** of each visible box face (Higgsfield edit; not Cursor `GenerateImage`).
+v6 has **no** “Fresh eggs Flemington” subline. Cache-bust with `?v=` in `index.html`
+(currently `124`). Classic `studio-tray` (no box brand) is unchanged.
 
-**User request (not finished):** On shop hero boxes, make **YOLKO** a **tiny bottom-corner**
-mark (not large/centered). On the closeup tray-on-box slide, also remove any
-**“Fresh eggs Flemington”** subline. Keep chalkboard price heroes working ($1–$30).
+Do **not** use Cursor `GenerateImage` for these — user rejected those assets. Prefer
+Higgsfield MCP for further branding edits. After regenerating masters, write
+`{name}-928.jpg` / `-640.jpg` / `-square-560.jpg` + matching `.webp` (quality ~88),
+bump `?v=` / `CHALK_ASSET_VER` as needed, pin `DEPLOY_SHA`, bump `X-Yolko-Build`,
+`npx wrangler deploy`.
 
-**Do this with Higgsfield MCP only** (`generate_image` / media tools). Do **not** use Cursor
-`GenerateImage` — user rejected those assets and we reverted them (build 94). Do **not**
-fall back to local OpenCV/Pillow redraws unless the user explicitly allows it.
-
-**Chalk-tray status (done):** `assets/chalk-tray/{1–30}-*` — plain kraft box (no large
-YOLKO), three stacked clear trays, chalkboard upper-left `FRESH EGGS — $N / TRAY`.
-Wired via `CHALK_PRICES` / `CHALK_ASSET_VER` in `app.js` (tray1 price only; dozens
-unchanged). Hero cover uses `object-position: left 28% top 18%` so the board stays in frame.
-
-**Still pending (studio heroes):**
-- `assets/studio-tray-v2-*` — large centered **YOLKO** on each box
-- `assets/studio-tray-v5-*` — large framed centered **YOLKO** stamps on boxes
-- `assets/studio-tray-v6-*` — large centered **YOLKO** + **“Fresh eggs Flemington”** subline
-- Classic `studio-tray` (no box brand) can stay as-is
-
-**Target look (studio):** same market/shop scenes, but **YOLKO** is a small quiet mark in
-the **bottom-left or bottom-right corner** of each visible cardboard box face (≈5–8% of
-box width). No centered mega-logo. No Flemington subline on v6.
-
-**Export pipeline after Higgsfield masters:** for each master, write
-`{name}-928.jpg` (hero), `{name}-640.jpg`, `{name}-square-560.jpg` + matching `.webp`
-(quality ~88). Chalk set needs all prices 1–30. Bust `?v=` in `index.html` and
-`CHALK_ASSET_VER` in `app.js`. Then pin `DEPLOY_SHA` in `infra/cloudflare-worker.mjs` to
-the asset commit, bump `X-Yolko-Build`, `npx wrangler deploy`.
-
-**Higgsfield auth note (blocking):** Cloud agents load MCP OAuth **only at start**.
-This run and the prior handoff run both saw `needsAuth`; interactive `mcp_auth` is
-desktop-IDE-only and does **not** hot-reload mid-run. To unblock:
-
-1. Cursor desktop → Agents → **+** new cloud agent
-2. MCP Servers → **Higgsfield** → Log out → toggle **ON** → complete Google OAuth
-3. Confirm Higgsfield shows a green/ready state **before** submitting the prompt
-4. Prompt: continue AGENTS.md handoff — tiny corner YOLKO on chalk-tray + v2/v5/v6,
-   remove Fresh eggs Flemington on v6, deploy like before (Higgsfield MCP only)
-
-**Prior agent transcript:** durable facts are this section + git log on PR #44.
+**Higgsfield auth:** Cloud agents load MCP OAuth **only at start**. If Higgsfield shows
+`needsAuth`, start a **new** cloud agent after completing Higgsfield OAuth in Cursor
+desktop (MCP toggle ON + Google login) before the prompt.
