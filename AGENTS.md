@@ -70,6 +70,11 @@ should match the current live tray1 price. After SEO HTML changes, pin `DEPLOY_S
 `X-Yolko-Build`, deploy, then optionally `node infra/seo-indexnow.mjs`.
 
 
+### Business accounts (non-obvious)
+- **Public / ops email for getyolko.com:** `getyolko@gmail.com` — use this for Google Business Profile, Google Ads, Gmail replies, and site-related Google logins.
+- **Cloudflare Worker account** may still be under `maruthi4a5@gmail.com` (workers.dev subdomain). Do not assume those are the same login.
+- WhatsApp sales number on site: `+61 433 975 055` (`config.js`).
+
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
 that intentionally fails (`echo "Error: no test specified" && exit 1`) — do not treat that as
