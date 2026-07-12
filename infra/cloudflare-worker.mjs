@@ -106,6 +106,30 @@ async function pushOrderIndex(env, orderId) {
   }
 }
 
+/** Latest unpaid order for a phone — reused when customer cancels Stripe and retries. */
+function openOrderKey(phone) {
+  return `openorder:${String(phone || "").replace(/\D/g, "")}`;
+}
+
+async function getOpenUnpaidOrder(env, phone) {
+  const id = await env.DATA.get(openOrderKey(phone));
+  if (!id || !String(id).startsWith("order:")) return null;
+  const order = await env.DATA.get(String(id), "json");
+  if (!order || order.paymentStatus === "paid") {
+    await env.DATA.delete(openOrderKey(phone)).catch(() => null);
+    return null;
+  }
+  return order;
+}
+
+async function rememberOpenOrder(env, phone, orderId) {
+  await env.DATA.put(openOrderKey(phone), orderId, { expirationTtl: 6 * 3600 });
+}
+
+async function clearOpenOrder(env, phone) {
+  await env.DATA.delete(openOrderKey(phone)).catch(() => null);
+}
+
 function isAdmin(request, env) {
   const raw = env.ADMIN_KEY;
   if (!raw) return false;
@@ -256,7 +280,7 @@ async function consumeOrderToken(env, token) {
   if (!data || !data.issuedAt) return { ok: false, reason: "invalid" };
   await env.DATA.delete(key);
   const age = Date.now() - Number(data.issuedAt);
-  if (age < 2500) return { ok: false, reason: "too_fast" };
+  if (age < 800) return { ok: false, reason: "too_fast" };
   if (age > 10 * 60 * 1000) return { ok: false, reason: "expired" };
   return { ok: true, age };
 }
@@ -748,11 +772,49 @@ async function handleApi(request, env, url) {
       return json({ error: "blocked", code: "ua" }, 403);
     }
 
-    // Soft anti-spam: tighter caps per IP and phone (rolling 24h)
-    if (ip && !(await allowRate(env, `ip:${ip}`, 3, 24 * 3600))) {
+    // Soft anti-spam: allow retries after cancelling Stripe Checkout.
+    // Prefer reusing an unpaid order for the same phone (no rate hit).
+    const existingOpen = await getOpenUnpaidOrder(env, phone);
+    if (existingOpen) {
+      const subtotal = settings.prices[bundle] * quantity;
+      const deliveryFee = fulfillment === "delivery" ? SITE_DELIVERY_FEE : 0;
+      existingOpen.name = name;
+      existingOpen.bundle = bundle;
+      existingOpen.quantity = quantity;
+      existingOpen.fulfillment = fulfillment;
+      existingOpen.deliveryAddress = fulfillment === "delivery" ? deliveryAddress : "";
+      existingOpen.deliveryStreet = fulfillment === "delivery" ? (deliveryZone?.street || deliveryStreet) : "";
+      existingOpen.deliverySuburb = fulfillment === "delivery" ? (deliveryZone?.suburb || deliverySuburb) : "";
+      existingOpen.deliveryCity = fulfillment === "delivery" ? (deliveryZone?.city || deliveryCity) : "";
+      existingOpen.deliveryPostcode = fulfillment === "delivery" ? (deliveryZone?.postcode || deliveryPostcode) : "";
+      existingOpen.deliveryKm = fulfillment === "delivery" ? (deliveryZone?.roadKmEstimate || null) : null;
+      existingOpen.deliveryFee = deliveryFee;
+      existingOpen.pickupDay = pickupDay;
+      existingOpen.pickupDate = pickupDate;
+      existingOpen.subtotal = subtotal;
+      existingOpen.price = subtotal + deliveryFee;
+      existingOpen.updatedAt = new Date().toISOString();
+      // Keep pending so checkout can mint a fresh session after cancel.
+      if (existingOpen.paymentStatus !== "paid") existingOpen.paymentStatus = existingOpen.paymentStatus || "new";
+      await env.DATA.put(existingOpen.id, JSON.stringify(existingOpen));
+      await rememberOpenOrder(env, phone, existingOpen.id);
+      return json({
+        ok: true,
+        id: existingOpen.id,
+        price: existingOpen.price,
+        deliveryFee,
+        deliveryKm: existingOpen.deliveryKm,
+        deliveryAddress: existingOpen.deliveryAddress,
+        reused: true,
+      });
+    }
+
+    // Soft anti-spam: caps per IP and phone (rolling 24h). Higher than before so
+    // open→cancel→retry checkout loops don't lock real customers out.
+    if (ip && !(await allowRate(env, `ip:${ip}`, 20, 24 * 3600))) {
       return json({ error: "too many orders", code: "rate_ip" }, 429);
     }
-    if (!(await allowRate(env, `phone:${phone}`, 2, 24 * 3600))) {
+    if (!(await allowRate(env, `phone:${phone}`, 12, 24 * 3600))) {
       return json({ error: "too many orders", code: "rate_phone" }, 429);
     }
 
@@ -788,6 +850,7 @@ async function handleApi(request, env, url) {
     };
     await env.DATA.put(id, JSON.stringify(order));
     await pushOrderIndex(env, id);
+    await rememberOpenOrder(env, phone, id);
     return json({
       ok: true,
       id,
@@ -943,6 +1006,7 @@ async function handleApi(request, env, url) {
         if (order.status === "new" || order.status === "cancelled") order.status = "confirmed";
         await syncStock(env, order, order.status);
         await env.DATA.put(orderId, JSON.stringify(order));
+        if (order.phone) await clearOpenOrder(env, order.phone);
       }
     }
     return json({ paid });
@@ -3076,7 +3140,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "116",
+        "X-Yolko-Build": "117",
       },
     });
   },

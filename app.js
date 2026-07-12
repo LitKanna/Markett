@@ -42,6 +42,52 @@ const receipt = {
 let lastOrderMessage = "";
 let lastOrderId = null;
 
+const OPEN_CHECKOUT_KEY = "yolko_open_checkout";
+
+function bookingFingerprint(b) {
+  return [
+    b.phoneDigits,
+    b.bundleKey,
+    b.quantity,
+    b.fulfillment,
+    b.deliveryPostcode || "",
+    b.deliverySuburb || "",
+    b.pickupDay,
+  ].join("|");
+}
+
+function saveOpenCheckout(orderId, b) {
+  if (!orderId) return;
+  try {
+    sessionStorage.setItem(
+      OPEN_CHECKOUT_KEY,
+      JSON.stringify({ orderId, fp: bookingFingerprint(b), at: Date.now() })
+    );
+  } catch {
+    /* private mode */
+  }
+}
+
+function loadMatchingCheckout(b) {
+  try {
+    const raw = JSON.parse(sessionStorage.getItem(OPEN_CHECKOUT_KEY) || "null");
+    if (!raw || !raw.orderId) return null;
+    if (Date.now() - Number(raw.at || 0) > 6 * 3600 * 1000) return null;
+    if (raw.fp !== bookingFingerprint(b)) return null;
+    return raw.orderId;
+  } catch {
+    return null;
+  }
+}
+
+function clearOpenCheckout() {
+  try {
+    sessionStorage.removeItem(OPEN_CHECKOUT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- Hero / order tray image auto-rotate ---------- */
@@ -1176,8 +1222,9 @@ function createOrder(b) {
       if (d.error) return d;
       if (d.deliveryAddress) b.deliveryAddress = d.deliveryAddress;
       if (d.deliveryKm != null) b.deliveryKm = d.deliveryKm;
+      if (d.id) saveOpenCheckout(d.id, b);
       prefetchOrderToken();
-      return d.id ? { id: d.id, price: d.price, deliveryFee: d.deliveryFee, deliveryKm: d.deliveryKm, deliveryAddress: d.deliveryAddress } : null;
+      return d.id ? { id: d.id, price: d.price, deliveryFee: d.deliveryFee, deliveryKm: d.deliveryKm, deliveryAddress: d.deliveryAddress, reused: !!d.reused } : null;
     })
     .catch(() => {
       orderToken = null;
@@ -1214,8 +1261,8 @@ async function ensureOrderToken() {
       orderTokenAt = 0;
     }
   }
-  // Server rejects tokens younger than ~2.5s (bot slam). Wait out the floor.
-  const wait = 2600 - (Date.now() - orderTokenAt);
+  // Server rejects tokens younger than ~0.8s (bot slam). Wait out the floor.
+  const wait = 900 - (Date.now() - orderTokenAt);
   if (orderToken && wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
   return orderToken;
 }
@@ -1345,6 +1392,7 @@ form.addEventListener("submit", async (event) => {
     return;
   }
   lastOrderId = orderResult?.id || null;
+  if (lastOrderId) saveOpenCheckout(lastOrderId, booking);
   showConfirmation(booking);
 });
 
@@ -1358,6 +1406,18 @@ buynowBtn.addEventListener("click", async () => {
 
   buynowBtn.disabled = true;
   buynowLabel.textContent = "Opening checkout…";
+
+  // After cancel, Stripe returns to #order — reuse the unpaid order instead of
+  // creating a new one (that was hitting the rate limit after a few tries).
+  const reusedId = loadMatchingCheckout(booking) || lastOrderId;
+  if (reusedId) {
+    lastOrderId = reusedId;
+    const okReuse = await openCheckout(reusedId);
+    if (okReuse) return;
+    // Order missing/expired — fall through and create a fresh one.
+    clearOpenCheckout();
+    lastOrderId = null;
+  }
 
   const orderResult = await createOrder(booking);
   if (orderResult?.error === "rate") {
@@ -1379,6 +1439,7 @@ buynowBtn.addEventListener("click", async () => {
     return;
   }
   lastOrderId = orderResult?.id || null;
+  if (lastOrderId) saveOpenCheckout(lastOrderId, booking);
   const ok = await openCheckout(lastOrderId);
 
   if (!ok) {
