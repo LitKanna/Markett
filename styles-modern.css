@@ -1300,6 +1300,8 @@ h3 {
   border-radius: 7px;
   color: var(--ink);
   background: var(--paper);
+  /* 16px minimum — iOS Safari zooms the page when focused inputs are <16px */
+  font-size: 16px;
   font-weight: 600;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
