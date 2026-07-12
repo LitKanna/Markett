@@ -1163,7 +1163,7 @@ function collectBooking() {
     quantity,
     total: bundle.price * quantity + deliveryFee,
     orderLabel: describeOrder(bundleKey, quantity),
-    company: String(data.get("company") || "").trim(),
+    company: String(data.get("yolko_hp") || data.get("company") || "").trim(),
   };
 }
 
@@ -1186,6 +1186,7 @@ function createOrder(b) {
           deliveryCity: b.deliveryCity || "",
           deliveryPostcode: b.deliveryPostcode || "",
           deliveryAddress: b.deliveryAddress || "",
+          yolko_hp: b.company || "",
           company: b.company || "",
           token: token || "",
         }),
@@ -1273,19 +1274,22 @@ document.getElementById("order")?.addEventListener("focusin", prefetchOrderToken
 
 async function openCheckout(orderId) {
   try {
-    if (!orderId) throw new Error("no order");
+    if (!orderId) return { ok: false, error: "no order" };
     const res = await fetch(`${API_BASE}/api/checkout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ orderId }),
     });
     const d = await res.json().catch(() => ({}));
-    if (!d.url) throw new Error(d.error || "checkout failed");
-    window.location.href = d.url;
-    return true;
-  } catch {
+    if (!d.url) {
+      return { ok: false, error: d.detail || d.error || "checkout failed" };
+    }
+    // Same-tab redirect (works after await on iOS; avoid window.open).
+    window.location.assign(d.url);
+    return { ok: true };
+  } catch (err) {
     // Never fall back to hardcoded Stripe Payment Links — those freeze old prices.
-    return false;
+    return { ok: false, error: err?.message || "checkout failed" };
   }
 }
 
@@ -1336,8 +1340,11 @@ function showConfirmation(b) {
   stripeLink.onclick = async (e) => {
     e.preventDefault();
     stripeLink.textContent = "Opening secure checkout…";
-    const ok = await openCheckout(lastOrderId);
-    if (!ok) stripeLink.textContent = isDelivery ? "Payment unavailable, pay on delivery" : "Payment unavailable, pay on pickup";
+    const result = await openCheckout(lastOrderId);
+    if (!result.ok) {
+      stripeLink.textContent = isDelivery ? "Payment unavailable, pay on delivery" : "Payment unavailable, pay on pickup";
+      showToast(result.error || "Couldn’t open payment. Try Buy now again.");
+    }
   };
 
   orderSection.hidden = true;
@@ -1407,44 +1414,64 @@ buynowBtn.addEventListener("click", async () => {
   buynowBtn.disabled = true;
   buynowLabel.textContent = "Opening checkout…";
 
+  const failBuy = (msg) => {
+    buynowBtn.disabled = false;
+    buynowLabel.textContent = "Buy now";
+    showToast(msg || "Couldn’t open payment. Try again.");
+  };
+
   // After cancel, Stripe returns to #order — reuse the unpaid order instead of
   // creating a new one (that was hitting the rate limit after a few tries).
   const reusedId = loadMatchingCheckout(booking) || lastOrderId;
   if (reusedId) {
     lastOrderId = reusedId;
-    const okReuse = await openCheckout(reusedId);
-    if (okReuse) return;
+    const reuseResult = await openCheckout(reusedId);
+    if (reuseResult.ok) return;
     // Order missing/expired — fall through and create a fresh one.
     clearOpenCheckout();
     lastOrderId = null;
   }
 
-  const orderResult = await createOrder(booking);
-  if (orderResult?.error === "rate") {
-    buynowBtn.disabled = false;
-    buynowLabel.textContent = "Buy now";
-    showToast("Too many bookings from this phone or connection. Try again later.");
-    return;
+  let orderResult = await createOrder(booking);
+  // One automatic retry on token / soft block (common after cancel loops).
+  if (!orderResult || orderResult.error === "blocked") {
+    orderToken = null;
+    orderTokenAt = 0;
+    await new Promise((r) => setTimeout(r, 1000));
+    orderResult = await createOrder(booking);
   }
-  if (orderResult?.error === "geo" || orderResult?.error === "blocked" || orderResult?.error === "delivery_day" || orderResult?.error === "delivery_address" || orderResult?.error === "delivery_range") {
-    buynowBtn.disabled = false;
-    buynowLabel.textContent = "Buy now";
-    const msg =
-      orderResult.error === "geo" ? "Bookings are for the Sydney area only." :
-      orderResult.error === "delivery_day" ? "Delivery is Saturday only." :
-      orderResult.error === "delivery_range" ? (orderResult.message || "We only deliver within 45 km of Sydney Markets.") :
-      orderResult.error === "delivery_address" ? (orderResult.message || "Check your delivery street, suburb, and postcode.") :
-      "Couldn’t place that booking. Refresh and try again.";
-    showToast(msg);
-    return;
-  }
-  lastOrderId = orderResult?.id || null;
-  if (lastOrderId) saveOpenCheckout(lastOrderId, booking);
-  const ok = await openCheckout(lastOrderId);
 
-  if (!ok) {
-    buynowBtn.disabled = false;
-    buynowLabel.textContent = "Buy now";
+  if (orderResult?.error === "rate") {
+    failBuy("Too many bookings from this phone or connection. Try again in a minute.");
+    return;
+  }
+  if (orderResult?.error === "geo") {
+    failBuy("Bookings are for the Sydney area only.");
+    return;
+  }
+  if (orderResult?.error === "delivery_day") {
+    failBuy("Delivery is Saturday only.");
+    return;
+  }
+  if (orderResult?.error === "delivery_range") {
+    failBuy(orderResult.message || "We only deliver within 45 km of Sydney Markets.");
+    return;
+  }
+  if (orderResult?.error === "delivery_address") {
+    failBuy(orderResult.message || "Check your delivery street, suburb, and postcode.");
+    return;
+  }
+  if (orderResult?.error === "blocked" || !orderResult?.id) {
+    failBuy("Couldn’t start checkout. Refresh the page and try again.");
+    return;
+  }
+
+  lastOrderId = orderResult.id;
+  saveOpenCheckout(lastOrderId, booking);
+  const pay = await openCheckout(lastOrderId);
+  if (!pay.ok) {
+    failBuy(pay.error || "Couldn’t open Stripe checkout. Tap Buy now again.");
+    // Keep confirmation available so they can retry Pay online.
     showConfirmation(booking);
   }
 });

@@ -608,10 +608,11 @@
             <input id="name" name="name" type="text" placeholder="Full name" autocomplete="name" required>
           </div>
 
-          <!-- Honeypot: leave empty. Bots that fill it are dropped server-side. -->
+          <!-- Honeypot: leave empty. Bots that fill it are dropped server-side.
+               Do NOT name this "company"/"name"/"email" — iOS autofill fills those. -->
           <div class="hp-field" aria-hidden="true">
-            <label for="company">Company</label>
-            <input id="company" name="company" type="text" tabindex="-1" autocomplete="off">
+            <label for="yolko_hp">Leave blank</label>
+            <input id="yolko_hp" name="yolko_hp" type="text" tabindex="-1" autocomplete="off" inputmode="none">
           </div>
 
           <div class="field">

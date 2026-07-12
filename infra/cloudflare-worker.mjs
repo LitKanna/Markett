@@ -681,10 +681,11 @@ async function handleApi(request, env, url) {
     const legacyAddress = String(body?.deliveryAddress || "").trim().slice(0, 200);
     let deliveryAddress = "";
     let deliveryZone = null;
-    // Honeypot: bots fill hidden "company" field — pretend success, save nothing.
-    const honeypot = String(body?.company || "").trim();
+    // Honeypot: bots fill hidden field — pretend success, save nothing.
+    // Accept legacy "company" too. Never return a fake order id (that breaks Buy now → checkout).
+    const honeypot = String(body?.yolko_hp || body?.company || "").trim();
     if (honeypot) {
-      return json({ ok: true, id: `order:blocked:${Date.now()}` });
+      return json({ ok: true, ignored: true });
     }
 
     const tokenCheck = await consumeOrderToken(env, body?.token);
@@ -796,6 +797,7 @@ async function handleApi(request, env, url) {
       existingOpen.updatedAt = new Date().toISOString();
       // Keep pending so checkout can mint a fresh session after cancel.
       if (existingOpen.paymentStatus !== "paid") existingOpen.paymentStatus = existingOpen.paymentStatus || "new";
+      if (existingOpen.status === "cancelled") existingOpen.status = "new";
       await env.DATA.put(existingOpen.id, JSON.stringify(existingOpen));
       await rememberOpenOrder(env, phone, existingOpen.id);
       return json({
