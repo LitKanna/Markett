@@ -1,5 +1,5 @@
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "af5d23b73d732c504113b96fa0e94782c64597d0";
+const DEPLOY_SHA = "b6f7a21ff5b0c5cb7f423828a94294023f40c069";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
@@ -1967,9 +1967,12 @@ function orderRow(o, lineNo) {
     '<div class="o-main">' +
       '<div class="o-name-row">' + badges + '<div class="o-name">' + escapeHtml(o.name) + '</div></div>' +
       '<div class="o-sub">' + shortBundle(o) +
-        (o.stockTaken ? ' · trays held' : '') +
-        (signals.tags[0] ? ' · ' + escapeHtml(signals.tags[0].text) : '') +
-      '</div>' +
+        (o.fulfillment === "delivery" ? " · delivery" : " · pickup") +
+        (o.fulfillment === "delivery" && o.deliveryAddress ? " · " + escapeHtml(o.deliveryAddress) : "") +
+        (o.deliveryFee ? " · +$" + o.deliveryFee + " del" : "") +
+        (o.stockTaken ? " · trays held" : "") +
+        (signals.tags[0] ? " · " + escapeHtml(signals.tags[0].text) : "") +
+      "</div>" +
     '</div>' +
     '<div class="o-right"><span class="o-price">$' + o.price + '</span>' + flag + '</div>' +
     '<div class="o-detail" onclick="event.stopPropagation()">' +
@@ -2986,7 +2989,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "111",
+        "X-Yolko-Build": "113",
       },
     });
   },
