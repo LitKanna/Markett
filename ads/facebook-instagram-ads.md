@@ -9,7 +9,7 @@ from the same campaign.
 |---|---|
 | Objective | Sales (or Traffic if starting out) |
 | Budget | $7–15 per day to start |
-| Location | Flemington NSW + 8 km radius |
+| Location | Flemington NSW (Sydney Markets) + **45 km** radius |
 | Age | 18–65 (no egg purchase-age law; Meta commerce min 18+) |
 | Interests | Cooking, Baking, Farmers markets, Grocery shopping, Family |
 | Placements | Facebook Feed, Instagram Feed, Stories, Reels |

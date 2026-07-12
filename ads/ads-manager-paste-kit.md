@@ -3,7 +3,7 @@
 Open this while creating the ad:
 https://adsmanager.facebook.com/adsmanager/manage/ads?act=1230148938407162&selected_adset_ids=120256182965760197
 
-Click **Create** → use **existing campaign** → **YOLKO — Flemington pickup** → ad set **Flemington 8km — Fri/Sat pickup**.
+Click **Create** → use **existing campaign** → **YOLKO — Flemington pickup** → ad set **Flemington 45km — Fri/Sat + delivery**.
 
 ---
 
@@ -26,7 +26,7 @@ Click **Publish**.
 ## After publishing
 
 1. Go to **Ad sets** tab
-2. Find **Flemington 8km — Fri/Sat pickup**
+2. Find **Flemington 45km — Fri/Sat + delivery**
 3. Flip the toggle **On** (left side)
 
 ---
@@ -61,7 +61,7 @@ Cafés, stalls, bakers: a full box of 180 fresh Pace Farm eggs for $66, ready ev
 ## Settings already done (don't change)
 
 - Age: **18–65**
-- Location: **Flemington + 8 km**
+- Location: **Flemington / Sydney Markets + 45 km** (same radius as website delivery)
 - Placements: **Facebook + Instagram** (feed, stories, reels)
 - CTA: **Shop now**
 - Auto-pause when website stock (`traysAvailable`) hits **0** (box = 6 trays)

@@ -20,7 +20,7 @@ const PAGE_ID = "1208071762387787";
 const IMAGE_HASH = "b2bcac98c3e840b89706c8cc5c3e3b02";
 const SITE = "https://getyolko.com/";
 const CAMPAIGN_NAME = "YOLKO — Flemington pickup";
-const ADSET_NAME = "Flemington 8km — Fri/Sat pickup";
+const ADSET_NAME = "Flemington 45km — Fri/Sat + delivery";
 
 async function api(path, body, method = "POST") {
   const url = path.startsWith("http") ? path : `${API}${path}`;
@@ -65,6 +65,35 @@ async function ensureCampaign() {
 }
 
 async function ensureAdSet(campaignId) {
+  const targeting = {
+    geo_locations: {
+      custom_locations: [
+        {
+          latitude: -33.8667,
+          longitude: 151.0694,
+          radius: 45,
+          distance_unit: "kilometer",
+        },
+      ],
+    },
+    age_min: 18,
+    age_max: 65,
+    flexible_spec: [
+      {
+        interests: [
+          { id: "6003659420716", name: "Cooking (food and drink)" },
+          { id: "6003134986700", name: "Baking (cooking)" },
+          { id: "6003380299181", name: "Farmers' market (food retailer)" },
+          { id: "6003174128015", name: "Supermarket (food retailer)" },
+          { id: "6003476182657", name: "Family (social concept)" },
+        ],
+      },
+    ],
+    publisher_platforms: ["facebook", "instagram"],
+    facebook_positions: ["feed", "story", "facebook_reels"],
+    instagram_positions: ["stream", "story", "reels"],
+  };
+
   const list = await api(
     `/${ACT_ID}/adsets?fields=id,name,status,campaign_id&limit=50`,
     null,
@@ -72,9 +101,15 @@ async function ensureAdSet(campaignId) {
   );
   const existing = (list.data || []).find(
     (x) => x.name === ADSET_NAME && x.campaign_id === campaignId
+  ) || (list.data || []).find(
+    (x) => /flemington/i.test(x.name) && x.campaign_id === campaignId
   );
   if (existing) {
-    console.log("Reusing ad set:", existing.id);
+    console.log("Updating ad set geo to 45 km:", existing.id, existing.name);
+    await api(`/${existing.id}`, {
+      name: ADSET_NAME,
+      targeting,
+    });
     return existing.id;
   }
   console.log("Creating ad set…");
@@ -87,34 +122,7 @@ async function ensureAdSet(campaignId) {
     bid_strategy: "LOWEST_COST_WITHOUT_CAP",
     status: "PAUSED",
     start_time: new Date().toISOString(),
-    targeting: {
-      geo_locations: {
-        custom_locations: [
-          {
-            latitude: -33.8688,
-            longitude: 151.069,
-            radius: 8,
-            distance_unit: "kilometer",
-          },
-        ],
-      },
-      age_min: 18,
-      age_max: 65,
-      flexible_spec: [
-        {
-          interests: [
-            { id: "6003659420716", name: "Cooking (food and drink)" },
-            { id: "6003134986700", name: "Baking (cooking)" },
-            { id: "6003380299181", name: "Farmers' market (food retailer)" },
-            { id: "6003174128015", name: "Supermarket (food retailer)" },
-            { id: "6003476182657", name: "Family (social concept)" },
-          ],
-        },
-      ],
-      publisher_platforms: ["facebook", "instagram"],
-      facebook_positions: ["feed", "story", "facebook_reels"],
-      instagram_positions: ["stream", "story", "reels"],
-    },
+    targeting,
   });
   console.log("Ad set:", adset.id);
   return adset.id;

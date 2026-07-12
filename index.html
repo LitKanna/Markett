@@ -156,7 +156,7 @@
     <span style="font-size:14px;margin:0 8px;">·</span>
     <a href="#order" style="color:#000;text-decoration:underline;font-weight:700;">Book pickup or delivery below</a>
     <span style="font-size:14px;margin:0 8px;">·</span>
-    <span style="font-size:13px;opacity:0.8;">+$5 on the entire order for delivery</span>
+    <span style="font-size:13px;opacity:0.8;">+$5 · within 45 km of Sydney Markets</span>
   </div>
   <header class="topbar">
     <div class="wrap topbar-inner">
@@ -430,7 +430,7 @@
           <h2>Lock in your eggs.</h2>
           <p>Pick your pack, then choose Flemington pickup or Saturday delivery. Pay at pickup, or pay online to keep your trays set aside.</p>
 
-          <p class="delivery-note"><b>Saturday delivery</b> is +$5 on the entire order (Sydney area). Pickup stays Friday or Saturday at Flemington.</p>
+          <p class="delivery-note"><b>Saturday delivery</b> is +$5 on the entire order within 45 km of Sydney Markets Flemington. Pickup stays Friday or Saturday at Flemington.</p>
 
           <div class="order-tray-note">
             <div class="order-tray-rotator" data-rotator="order" aria-hidden="true">
@@ -591,9 +591,23 @@
           </div>
 
           <div class="field" id="delivery-address-field" hidden>
-            <label for="delivery-address">Delivery address</label>
-            <input id="delivery-address" name="deliveryAddress" type="text" placeholder="Street, suburb, postcode" autocomplete="street-address">
-            <p class="field-hint">Saturday delivery only · +$5 on the entire order · Sydney area</p>
+            <label for="delivery-street">Delivery address</label>
+            <input id="delivery-street" name="deliveryStreet" type="text" placeholder="Street number and name" autocomplete="address-line1">
+            <div class="field-row delivery-loc-row">
+              <div class="field">
+                <label for="delivery-suburb">Suburb</label>
+                <input id="delivery-suburb" name="deliverySuburb" type="text" placeholder="e.g. Strathfield" autocomplete="address-level2">
+              </div>
+              <div class="field">
+                <label for="delivery-city">City</label>
+                <input id="delivery-city" name="deliveryCity" type="text" placeholder="Sydney" autocomplete="address-level1" value="Sydney">
+              </div>
+              <div class="field">
+                <label for="delivery-postcode">Postcode</label>
+                <input id="delivery-postcode" name="deliveryPostcode" type="text" inputmode="numeric" maxlength="4" placeholder="2135" autocomplete="postal-code">
+              </div>
+            </div>
+            <p class="field-hint" id="delivery-zone-hint">Saturday delivery only · +$5 · within 45 km of Sydney Markets Flemington</p>
           </div>
 
           <div class="field">

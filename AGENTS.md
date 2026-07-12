@@ -24,6 +24,18 @@ Then open http://localhost:8080. No install is required just to view/use the sit
 works end-to-end locally **without** any backend. Use the "Reserve" button (not "Buy now") to
 demonstrate the flow without needing Stripe.
 
+### Saturday delivery (45 km from Sydney Markets)
+- Hub: Paddy's Markets Flemington / Sydney Markets (`-33.8667, 151.0694`).
+- Delivery is **Saturday only**, flat **+$5** on the entire order, and **only within 45 km**
+  (road-km estimate = haversine × 1.3, or × 1.5 for harbour crossings).
+- Checkout captures **street, suburb, city, postcode**. Server validates via
+  `infra/delivery-zones.mjs` (`checkDeliveryAddress`) inside `POST /api/orders`.
+- Client can preview with `POST /api/delivery-check` (same origin rules as orders).
+- Out-of-range returns `code: "delivery_range"`. Unknown suburb/postcode returns
+  `code: "delivery_address"`.
+- Meta ads geo should match: **45 km** custom location on the same hub
+  (`infra/meta-launch.mjs`, `infra/meta-update-radius.mjs`).
+
 ### Optional backend (not needed to run/demo the site)
 `infra/cloudflare-worker.mjs` is a Cloudflare Worker (config in `wrangler.toml`) providing
 `/api/*` and an `/admin` dashboard. Run with `npx wrangler dev` (defaults to port 8787). It

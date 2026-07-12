@@ -537,12 +537,16 @@ function syncFulfillmentUI() {
   const whenLabel = document.getElementById("when-label");
   const daySeg = document.getElementById("day-seg");
   const addrField = document.getElementById("delivery-address-field");
-  const addrInput = document.getElementById("delivery-address");
+  const streetInput = document.getElementById("delivery-street");
+  const suburbInput = document.getElementById("delivery-suburb");
+  const postcodeInput = document.getElementById("delivery-postcode");
   const formNote = document.querySelector(".form-note");
 
   if (whenLabel) whenLabel.textContent = delivery ? "Delivery day" : "Pickup day";
   if (addrField) addrField.hidden = !delivery;
-  if (addrInput) addrInput.required = delivery;
+  if (streetInput) streetInput.required = delivery;
+  if (suburbInput) suburbInput.required = delivery;
+  if (postcodeInput) postcodeInput.required = delivery;
 
   if (delivery && daySeg) {
     const satDate = nextPickupDate("Saturday");
@@ -557,7 +561,7 @@ function syncFulfillmentUI() {
 
   if (formNote) {
     formNote.textContent = delivery
-      ? "Reserve now, or buy now for priority. Delivery is Saturday only (+$5)."
+      ? "Reserve now, or buy now for priority. Delivery is Saturday only (+$5 within 45 km of Sydney Markets)."
       : "Reserve and pay at pickup, or buy now for priority stock.";
   }
   refreshSubmitPrice();
@@ -570,6 +574,53 @@ document.querySelectorAll('input[name="bundle"]').forEach((radio) => {
 // Day radios are re-rendered from settings, so listen on the container
 document.getElementById("day-seg").addEventListener("change", refreshSubmitPrice);
 document.getElementById("fulfillment-seg").addEventListener("change", syncFulfillmentUI);
+
+async function refreshDeliveryZoneHint() {
+  const hint = document.getElementById("delivery-zone-hint");
+  if (!hint || currentFulfillment() !== "delivery") return;
+  const suburb = String(document.getElementById("delivery-suburb")?.value || "").trim();
+  const city = String(document.getElementById("delivery-city")?.value || "Sydney").trim();
+  const postcode = String(document.getElementById("delivery-postcode")?.value || "").replace(/\D/g, "").slice(0, 4);
+  if (!suburb && !postcode) {
+    hint.textContent = "Saturday delivery only · +$5 · within 45 km of Sydney Markets Flemington";
+    hint.style.color = "";
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/delivery-check`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        street: document.getElementById("delivery-street")?.value || "Address check",
+        suburb,
+        city,
+        postcode,
+      }),
+    });
+    const d = await res.json().catch(() => ({}));
+    if (d.deliver) {
+      hint.textContent = `✓ ${d.matchedSuburb || suburb} · ~${d.roadKmEstimate} km · +$${d.fee || DELIVERY_FEE} Saturday delivery`;
+      hint.style.color = "var(--green, #1a7a3c)";
+    } else if (d.code === "out_of_range") {
+      hint.textContent = `✗ Outside 45 km (~${d.roadKmEstimate} km) — pickup at Flemington only`;
+      hint.style.color = "var(--red, #b00020)";
+    } else {
+      hint.textContent = d.error || "Enter suburb + postcode so we can check the 45 km zone.";
+      hint.style.color = "var(--red, #b00020)";
+    }
+  } catch {
+    hint.textContent = "Saturday delivery only · +$5 · within 45 km of Sydney Markets Flemington";
+    hint.style.color = "";
+  }
+}
+
+["delivery-suburb", "delivery-postcode", "delivery-city"].forEach((id) => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener("blur", refreshDeliveryZoneHint);
+    el.addEventListener("change", refreshDeliveryZoneHint);
+  }
+});
 
 /* ---------- Australian mobile handling ---------- */
 const phoneInput = document.getElementById("phone");
@@ -1009,7 +1060,10 @@ function collectBooking() {
   const bundleKey = String(data.get("bundle") || "tray1");
   const fulfillment = currentFulfillment();
   const pickupDay = fulfillment === "delivery" ? "Saturday" : String(data.get("pickupDay") || "Saturday");
-  const deliveryAddress = String(data.get("deliveryAddress") || "").trim();
+  const deliveryStreet = String(data.get("deliveryStreet") || "").trim();
+  const deliverySuburb = String(data.get("deliverySuburb") || "").trim();
+  const deliveryCity = String(data.get("deliveryCity") || "Sydney").trim() || "Sydney";
+  const deliveryPostcode = String(data.get("deliveryPostcode") || "").replace(/\D/g, "").slice(0, 4);
   const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
   const quantity = currentQuantity();
   const deliveryFee = fulfillment === "delivery" ? DELIVERY_FEE : 0;
@@ -1023,12 +1077,28 @@ function collectBooking() {
     flagInvalid(phoneInput);
     return null;
   }
-  if (fulfillment === "delivery" && deliveryAddress.length < 5) {
-    const addr = document.getElementById("delivery-address");
-    flagInvalid(addr);
-    showToast("Add a delivery address for Saturday delivery.");
-    return null;
+  if (fulfillment === "delivery") {
+    if (deliveryStreet.length < 3) {
+      flagInvalid(document.getElementById("delivery-street"));
+      showToast("Add a street address for Saturday delivery.");
+      return null;
+    }
+    if (!deliverySuburb) {
+      flagInvalid(document.getElementById("delivery-suburb"));
+      showToast("Add your suburb for Saturday delivery.");
+      return null;
+    }
+    if (!/^2\d{3}$/.test(deliveryPostcode)) {
+      flagInvalid(document.getElementById("delivery-postcode"));
+      showToast("Enter a valid NSW postcode.");
+      return null;
+    }
   }
+
+  const deliveryAddress =
+    fulfillment === "delivery"
+      ? [deliveryStreet, deliverySuburb, deliveryCity, deliveryPostcode].filter(Boolean).join(", ")
+      : "";
 
   return {
     name,
@@ -1036,7 +1106,11 @@ function collectBooking() {
     phone: formatAuMobile(phoneDigits),
     bundleKey,
     fulfillment,
-    deliveryAddress: fulfillment === "delivery" ? deliveryAddress : "",
+    deliveryStreet: fulfillment === "delivery" ? deliveryStreet : "",
+    deliverySuburb: fulfillment === "delivery" ? deliverySuburb : "",
+    deliveryCity: fulfillment === "delivery" ? deliveryCity : "",
+    deliveryPostcode: fulfillment === "delivery" ? deliveryPostcode : "",
+    deliveryAddress,
     deliveryFee,
     pickupDay,
     pickupDate: nextPickupDate(pickupDay),
@@ -1061,6 +1135,10 @@ function createOrder(b) {
           pickupDate: b.pickupDate,
           quantity: b.quantity,
           fulfillment: b.fulfillment,
+          deliveryStreet: b.deliveryStreet || "",
+          deliverySuburb: b.deliverySuburb || "",
+          deliveryCity: b.deliveryCity || "",
+          deliveryPostcode: b.deliveryPostcode || "",
           deliveryAddress: b.deliveryAddress || "",
           company: b.company || "",
           token: token || "",
@@ -1079,7 +1157,16 @@ function createOrder(b) {
       if (!r.ok) {
         const d = await r.json().catch(() => ({}));
         if (d.code === "delivery_day") return { error: "delivery_day" };
-        if (d.code === "delivery_address") return { error: "delivery_address" };
+        if (d.code === "delivery_range") {
+          return {
+            error: "delivery_range",
+            message: d.error || "Outside 45 km of Sydney Markets.",
+            roadKmEstimate: d.roadKmEstimate,
+          };
+        }
+        if (d.code === "delivery_address") {
+          return { error: "delivery_address", message: d.error || "Check your delivery address." };
+        }
         return null;
       }
       return r.json();
@@ -1087,8 +1174,10 @@ function createOrder(b) {
     .then((d) => {
       if (!d) return null;
       if (d.error) return d;
+      if (d.deliveryAddress) b.deliveryAddress = d.deliveryAddress;
+      if (d.deliveryKm != null) b.deliveryKm = d.deliveryKm;
       prefetchOrderToken();
-      return d.id ? { id: d.id } : null;
+      return d.id ? { id: d.id, price: d.price, deliveryFee: d.deliveryFee, deliveryKm: d.deliveryKm, deliveryAddress: d.deliveryAddress } : null;
     })
     .catch(() => {
       orderToken = null;
@@ -1245,8 +1334,14 @@ form.addEventListener("submit", async (event) => {
     showToast("Delivery is Saturday only.");
     return;
   }
+  if (orderResult?.error === "delivery_range") {
+    showToast(orderResult.message || "We only deliver within 45 km of Sydney Markets. Pickup at Flemington is still available.");
+    flagInvalid(document.getElementById("delivery-suburb"));
+    flagInvalid(document.getElementById("delivery-postcode"));
+    return;
+  }
   if (orderResult?.error === "delivery_address") {
-    showToast("Add a delivery address for Saturday delivery.");
+    showToast(orderResult.message || "Check your delivery street, suburb, and postcode.");
     return;
   }
   if (orderResult?.error === "blocked") {
@@ -1275,13 +1370,14 @@ buynowBtn.addEventListener("click", async () => {
     showToast("Too many bookings from this phone or connection. Try again later.");
     return;
   }
-  if (orderResult?.error === "geo" || orderResult?.error === "blocked" || orderResult?.error === "delivery_day" || orderResult?.error === "delivery_address") {
+  if (orderResult?.error === "geo" || orderResult?.error === "blocked" || orderResult?.error === "delivery_day" || orderResult?.error === "delivery_address" || orderResult?.error === "delivery_range") {
     buynowBtn.disabled = false;
     buynowLabel.textContent = "Buy now";
     const msg =
       orderResult.error === "geo" ? "Bookings are for the Sydney area only." :
       orderResult.error === "delivery_day" ? "Delivery is Saturday only." :
-      orderResult.error === "delivery_address" ? "Add a delivery address for Saturday delivery." :
+      orderResult.error === "delivery_range" ? (orderResult.message || "We only deliver within 45 km of Sydney Markets.") :
+      orderResult.error === "delivery_address" ? (orderResult.message || "Check your delivery street, suburb, and postcode.") :
       "Couldn’t place that booking. Refresh and try again.";
     showToast(msg);
     return;

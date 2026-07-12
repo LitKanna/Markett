@@ -1,3 +1,5 @@
+import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./delivery-zones.mjs";
+
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
 const DEPLOY_SHA = "b6f7a21ff5b0c5cb7f423828a94294023f40c069";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
@@ -615,6 +617,25 @@ async function handleApi(request, env, url) {
     return json({ token, ttlSec: 600 });
   }
 
+  // Public: check delivery suburb / postcode is within 45 km of Sydney Markets
+  if (url.pathname === "/api/delivery-check" && request.method === "POST") {
+    if (!isAllowedOrigin(request)) {
+      return json({ error: "forbidden", code: "origin" }, 403);
+    }
+    const body = await request.json().catch(() => null);
+    const result = checkDeliveryAddress({
+      street: body?.street || body?.deliveryStreet || "Address check",
+      suburb: body?.suburb || body?.deliverySuburb,
+      city: body?.city || body?.deliveryCity,
+      postcode: body?.postcode || body?.deliveryPostcode,
+    });
+    return json({
+      ...result,
+      maxKm: MAX_DELIVERY_KM,
+      fee: result.deliver ? SITE_DELIVERY_FEE : null,
+    }, result.ok ? 200 : 400);
+  }
+
   // Public: place an order
   if (url.pathname === "/api/orders" && request.method === "POST") {
     if (!isAllowedOrigin(request)) {
@@ -629,7 +650,13 @@ async function handleApi(request, env, url) {
     let pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
     const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
     let pickupDate = String(body?.pickupDate || "").replace(/[^0-9A-Za-z ]/g, "").slice(0, 12);
-    const deliveryAddress = String(body?.deliveryAddress || "").trim().slice(0, 200);
+    const deliveryStreet = String(body?.deliveryStreet || "").trim().slice(0, 120);
+    const deliverySuburb = String(body?.deliverySuburb || "").trim().slice(0, 60);
+    const deliveryCity = String(body?.deliveryCity || "").trim().slice(0, 60);
+    const deliveryPostcode = String(body?.deliveryPostcode || "").replace(/\D/g, "").slice(0, 4);
+    const legacyAddress = String(body?.deliveryAddress || "").trim().slice(0, 200);
+    let deliveryAddress = "";
+    let deliveryZone = null;
     // Honeypot: bots fill hidden "company" field — pretend success, save nothing.
     const honeypot = String(body?.company || "").trim();
     if (honeypot) {
@@ -643,9 +670,36 @@ async function handleApi(request, env, url) {
 
     if (fulfillment === "delivery") {
       pickupDay = "Saturday";
-      if (deliveryAddress.length < 5) {
-        return json({ error: "delivery address required", code: "delivery_address" }, 400);
+      const street = deliveryStreet || legacyAddress;
+      deliveryZone = checkDeliveryAddress({
+        street,
+        suburb: deliverySuburb,
+        city: deliveryCity,
+        postcode: deliveryPostcode,
+      });
+      // Legacy free-text: "street, suburb, postcode"
+      if (!deliveryZone.ok && !deliverySuburb && !deliveryPostcode && legacyAddress.length >= 5) {
+        const parts = legacyAddress.split(",").map((p) => p.trim()).filter(Boolean);
+        const maybePc = parts.length ? String(parts[parts.length - 1]).replace(/\D/g, "") : "";
+        const pc = maybePc.length === 4 ? maybePc : "";
+        const suburb = parts.length >= 2 ? parts[parts.length - (pc ? 2 : 1)] : "";
+        const streetPart = parts.length >= 2 ? parts.slice(0, parts.length - (pc ? 2 : 1)).join(", ") : legacyAddress;
+        deliveryZone = checkDeliveryAddress({
+          street: streetPart || legacyAddress,
+          suburb,
+          city: deliveryCity || "Sydney",
+          postcode: pc || deliveryPostcode,
+        });
       }
+      if (!deliveryZone.ok) {
+        return json({
+          error: deliveryZone.error || "delivery address required",
+          code: deliveryZone.code === "out_of_range" ? "delivery_range" : "delivery_address",
+          maxKm: MAX_DELIVERY_KM,
+          roadKmEstimate: deliveryZone.roadKmEstimate || null,
+        }, 400);
+      }
+      deliveryAddress = deliveryZone.formatted;
     }
 
     if (!name || name.length < 2 || !/^04\d{8}$/.test(phone) || !bundle || !pickupDay) {
@@ -703,7 +757,7 @@ async function handleApi(request, env, url) {
     }
 
     const subtotal = settings.prices[bundle] * quantity;
-    const deliveryFee = fulfillment === "delivery" ? 5 : 0;
+    const deliveryFee = fulfillment === "delivery" ? SITE_DELIVERY_FEE : 0;
     const now = new Date();
     const id = `order:${now.toISOString()}:${Math.random().toString(36).slice(2, 8)}`;
     const order = {
@@ -714,6 +768,11 @@ async function handleApi(request, env, url) {
       quantity,
       fulfillment,
       deliveryAddress: fulfillment === "delivery" ? deliveryAddress : "",
+      deliveryStreet: fulfillment === "delivery" ? (deliveryZone?.street || deliveryStreet) : "",
+      deliverySuburb: fulfillment === "delivery" ? (deliveryZone?.suburb || deliverySuburb) : "",
+      deliveryCity: fulfillment === "delivery" ? (deliveryZone?.city || deliveryCity) : "",
+      deliveryPostcode: fulfillment === "delivery" ? (deliveryZone?.postcode || deliveryPostcode) : "",
+      deliveryKm: fulfillment === "delivery" ? (deliveryZone?.roadKmEstimate || null) : null,
       deliveryFee,
       pickupDay,
       pickupDate,
@@ -729,7 +788,14 @@ async function handleApi(request, env, url) {
     };
     await env.DATA.put(id, JSON.stringify(order));
     await pushOrderIndex(env, id);
-    return json({ ok: true, id, price: order.price, deliveryFee });
+    return json({
+      ok: true,
+      id,
+      price: order.price,
+      deliveryFee,
+      deliveryKm: order.deliveryKm,
+      deliveryAddress: order.deliveryAddress,
+    });
   }
 
   // Admin: auth check only (no KV list — free tier list() has a daily cap)
@@ -768,7 +834,7 @@ async function handleApi(request, env, url) {
     await ensureStripeBranding(env).catch(() => null);
 
     const quantity = order.quantity || 1;
-    const deliveryFee = Number(order.deliveryFee) > 0 ? Number(order.deliveryFee) : (order.fulfillment === "delivery" ? 5 : 0);
+    const deliveryFee = Number(order.deliveryFee) > 0 ? Number(order.deliveryFee) : (order.fulfillment === "delivery" ? SITE_DELIVERY_FEE : 0);
     const subtotal = Number.isFinite(Number(order.subtotal))
       ? Number(order.subtotal)
       : Math.max(0, Number(order.price) - deliveryFee);
@@ -2989,7 +3055,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "113",
+        "X-Yolko-Build": "114",
       },
     });
   },
