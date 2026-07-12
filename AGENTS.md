@@ -71,9 +71,11 @@ should match the current live tray1 price. After SEO HTML changes, pin `DEPLOY_S
 
 
 ### Business accounts (non-obvious)
-- **Public / ops email for getyolko.com:** `getyolko@gmail.com` — use this for Google Business Profile, Google Ads, Gmail replies, and site-related Google logins.
-- **Cloudflare Worker account** may still be under `maruthi4a5@gmail.com` (workers.dev subdomain). Do not assume those are the same login.
+- **Two owner accounts (both yours):**
+  - `getyolko@gmail.com` — public/business Google for getyolko.com (GBP, Google Ads, customer-facing Gmail). Prefer this for storefront Google logins.
+  - `maruthi4a5@gmail.com` — also an owner account; Cloudflare Worker (`yolko-site.maruthi4a5.workers.dev`) and some cloud/infra access may live here.
 - WhatsApp sales number on site: `+61 433 975 055` (`config.js`).
+- When logging into Desktop for ads/GBP, use **`getyolko@gmail.com`** unless the specific console is already tied to `maruthi4a5@gmail.com`.
 
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
