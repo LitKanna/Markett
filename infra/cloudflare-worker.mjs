@@ -344,8 +344,9 @@ function stripeDetailsFromSession(session) {
 }
 
 const STRIPE_BRAND = "YOLKO";
+const STRIPE_BRAND_FLAG = "stripe:branded:yolko";
 
-/** Ensure Checkout / Payment Links show YOLKO, not the personal account name. */
+/** Ensure Checkout shows YOLKO. Cached so Buy now is not blocked on Stripe account API. */
 async function ensureStripeBranding(env) {
   if (!env.STRIPE_KEY) return { ok: false, error: "payments not configured" };
   const body = new URLSearchParams({
@@ -364,12 +365,106 @@ async function ensureStripeBranding(env) {
   });
   const account = await resp.json();
   if (account.error) return { ok: false, error: account.error.message || "stripe error", account };
+  await env.DATA.put(STRIPE_BRAND_FLAG, "1", { expirationTtl: 30 * 24 * 3600 }).catch(() => null);
   return {
     ok: true,
     name: account.business_profile?.name || null,
     statementDescriptor: account.settings?.payments?.statement_descriptor || null,
     email: account.email || null,
   };
+}
+
+/** Fire-and-forget branding unless we already did it recently. */
+async function maybeEnsureStripeBranding(env, ctx) {
+  const done = await env.DATA.get(STRIPE_BRAND_FLAG).catch(() => null);
+  if (done) return;
+  const job = ensureStripeBranding(env).catch(() => null);
+  if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(job);
+}
+
+const BUNDLE_CHECKOUT_LABELS = {
+  tray1: "Egg tray (30 eggs)",
+  tray2: "2 egg trays (60 eggs)",
+  box: "Full box (180 eggs)",
+  cage600: "Cage dozen 600g (12 eggs)",
+  cage700: "Cage dozen 700g (12 eggs)",
+  cage800: "Cage dozen 800g (12 eggs)",
+  fr600: "Free range dozen 600g (12 eggs)",
+  fr700: "Free range dozen 700g (12 eggs)",
+  fr800: "Free range dozen 800g (12 eggs)",
+  cage600case: "Cage case 600g (15 dozens)",
+  cage700case: "Cage case 700g (15 dozens)",
+  cage800case: "Cage case 800g (15 dozens)",
+  fr600case: "Free range case 600g (15 dozens)",
+  fr700case: "Free range case 700g (15 dozens)",
+  fr800case: "Free range case 800g (15 dozens)",
+};
+
+/** Build Stripe Checkout Session for an order using live admin prices. */
+async function createCheckoutForOrder(env, order, settings) {
+  const quantity = Math.min(20, Math.max(1, Math.floor(Number(order.quantity)) || 1));
+  const bundle = BUNDLE_KEYS.includes(order.bundle) ? order.bundle : null;
+  if (!bundle || !Number.isFinite(Number(settings.prices[bundle]))) {
+    return { error: "invalid order bundle", status: 400 };
+  }
+
+  const unitPrice = Number(settings.prices[bundle]);
+  const subtotal = unitPrice * quantity;
+  const isDelivery = order.fulfillment === "delivery";
+  const deliveryFee = isDelivery
+    ? (Number(order.deliveryFee) > 0 ? Number(order.deliveryFee) : SITE_DELIVERY_FEE)
+    : 0;
+  const total = subtotal + deliveryFee;
+  const unitAmount = Math.round(unitPrice * 100);
+
+  order.quantity = quantity;
+  order.subtotal = subtotal;
+  order.deliveryFee = deliveryFee;
+  order.price = total;
+
+  const fulfillDesc = isDelivery
+    ? `Saturday ${order.pickupDate || ""} delivery · ${order.deliveryAddress || "Sydney area"}`.trim()
+    : `Pickup ${order.pickupDay}${order.pickupDate ? " " + order.pickupDate : ""} at Paddy's Markets Flemington`;
+
+  const params = new URLSearchParams({
+    mode: "payment",
+    "line_items[0][price_data][currency]": "aud",
+    "line_items[0][price_data][product_data][name]": BUNDLE_CHECKOUT_LABELS[bundle] || "Eggs",
+    "line_items[0][price_data][product_data][description]": fulfillDesc,
+    "line_items[0][price_data][unit_amount]": String(unitAmount),
+    "line_items[0][quantity]": String(quantity),
+    "metadata[orderId]": order.id,
+    "metadata[bundle]": bundle,
+    "metadata[subtotal]": String(subtotal),
+    "metadata[deliveryFee]": String(deliveryFee),
+    success_url: "https://getyolko.com/?paid={CHECKOUT_SESSION_ID}",
+    cancel_url: "https://getyolko.com/#order",
+  });
+  if (deliveryFee > 0) {
+    params.set("line_items[1][price_data][currency]", "aud");
+    params.set("line_items[1][price_data][product_data][name]", "Saturday delivery");
+    params.set("line_items[1][price_data][product_data][description]", "Flat fee on entire order");
+    params.set("line_items[1][price_data][unit_amount]", String(Math.round(deliveryFee * 100)));
+    params.set("line_items[1][quantity]", "1");
+  }
+
+  const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.STRIPE_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params.toString(),
+  });
+  const session = await resp.json();
+  if (!session.url) {
+    return { error: "checkout failed", detail: session.error?.message || null, status: 502 };
+  }
+
+  order.paymentStatus = "pending";
+  order.sessionId = session.id;
+  await env.DATA.put(order.id, JSON.stringify(order));
+  return { url: session.url, price: total, subtotal, deliveryFee, unitPrice, orderId: order.id };
 }
 
 // How many physical trays an order consumes (dozen packs do not use tray stock)
@@ -874,7 +969,6 @@ async function handleApi(request, env, url) {
 
   // Public: create a locked-amount Stripe checkout for an existing order
   // Amounts always come from live admin settings (+ delivery fee on the order).
-  // Do NOT use Stripe Payment Links — those freeze old prices ($12/$23/$66).
   if (url.pathname === "/api/checkout" && request.method === "POST") {
     if (!env.STRIPE_KEY) return json({ error: "payments not configured" }, 503);
     const body = await request.json().catch(() => null);
@@ -885,91 +979,166 @@ async function handleApi(request, env, url) {
     if (!order) return json({ error: "order not found" }, 404);
     if (order.paymentStatus === "paid") return json({ error: "already paid" }, 400);
 
-    // Keep Checkout header as YOLKO (not personal account name).
-    await ensureStripeBranding(env).catch(() => null);
+    // Don't block checkout on branding — refresh in background if needed.
+    maybeEnsureStripeBranding(env, ctx);
 
     const settings = await getSettings(env);
-    const quantity = Math.min(20, Math.max(1, Math.floor(Number(order.quantity)) || 1));
-    const bundle = BUNDLE_KEYS.includes(order.bundle) ? order.bundle : null;
-    if (!bundle || !Number.isFinite(Number(settings.prices[bundle]))) {
-      return json({ error: "invalid order bundle" }, 400);
+    const result = await createCheckoutForOrder(env, order, settings);
+    if (result.error) return json({ error: result.error, detail: result.detail || null }, result.status || 502);
+    return json(result);
+  }
+
+  // Public: ONE-SHOT Buy now — create/reuse order + Stripe session in a single request.
+  if (url.pathname === "/api/buy-now" && request.method === "POST") {
+    if (!env.STRIPE_KEY) return json({ error: "payments not configured" }, 503);
+    if (!isAllowedOrigin(request)) {
+      return json({ error: "forbidden", code: "origin" }, 403);
     }
 
-    // Live webpage/admin prices — never hardcoded Payment Link amounts.
-    const unitPrice = Number(settings.prices[bundle]);
-    const subtotal = unitPrice * quantity;
-    const isDelivery = order.fulfillment === "delivery";
-    const deliveryFee = isDelivery
-      ? (Number(order.deliveryFee) > 0 ? Number(order.deliveryFee) : SITE_DELIVERY_FEE)
-      : 0;
-    const total = subtotal + deliveryFee;
-    const unitAmount = Math.round(unitPrice * 100);
+    const body = await request.json().catch(() => null);
+    const name = String(body?.name || "").trim().slice(0, 80);
+    const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
+    const bundle = BUNDLE_KEYS.includes(body?.bundle) ? body.bundle : null;
+    const fulfillment = body?.fulfillment === "delivery" ? "delivery" : "pickup";
+    let pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
+    const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
+    let pickupDate = String(body?.pickupDate || "").replace(/[^0-9A-Za-z ]/g, "").slice(0, 12);
+    const deliveryStreet = String(body?.deliveryStreet || "").trim().slice(0, 120);
+    const deliverySuburb = String(body?.deliverySuburb || "").trim().slice(0, 60);
+    const deliveryCity = String(body?.deliveryCity || "").trim().slice(0, 60);
+    const deliveryPostcode = String(body?.deliveryPostcode || "").replace(/\D/g, "").slice(0, 4);
+    const legacyAddress = String(body?.deliveryAddress || "").trim().slice(0, 200);
+    let deliveryAddress = "";
+    let deliveryZone = null;
 
-    // Keep stored order in sync with what Stripe will charge.
-    order.quantity = quantity;
-    order.subtotal = subtotal;
-    order.deliveryFee = deliveryFee;
-    order.price = total;
+    const honeypot = String(body?.yolko_hp || body?.company || "").trim();
+    if (honeypot) return json({ ok: true, ignored: true });
 
-    const labels = {
-      tray1: "Egg tray (30 eggs)",
-      tray2: "2 egg trays (60 eggs)",
-      box: "Full box (180 eggs)",
-      cage600: "Cage dozen 600g (12 eggs)",
-      cage700: "Cage dozen 700g (12 eggs)",
-      cage800: "Cage dozen 800g (12 eggs)",
-      fr600: "Free range dozen 600g (12 eggs)",
-      fr700: "Free range dozen 700g (12 eggs)",
-      fr800: "Free range dozen 800g (12 eggs)",
-      cage600case: "Cage case 600g (15 dozens)",
-      cage700case: "Cage case 700g (15 dozens)",
-      cage800case: "Cage case 800g (15 dozens)",
-      fr600case: "Free range case 600g (15 dozens)",
-      fr700case: "Free range case 700g (15 dozens)",
-      fr800case: "Free range case 800g (15 dozens)",
-    };
-
-    const fulfillDesc = isDelivery
-      ? `Saturday ${order.pickupDate || ""} delivery · ${order.deliveryAddress || "Sydney area"}`.trim()
-      : `Pickup ${order.pickupDay}${order.pickupDate ? " " + order.pickupDate : ""} at Paddy's Markets Flemington`;
-
-    const params = new URLSearchParams({
-      mode: "payment",
-      "line_items[0][price_data][currency]": "aud",
-      "line_items[0][price_data][product_data][name]": labels[bundle] || "Eggs",
-      "line_items[0][price_data][product_data][description]": fulfillDesc,
-      "line_items[0][price_data][unit_amount]": String(unitAmount),
-      "line_items[0][quantity]": String(quantity),
-      "metadata[orderId]": orderId,
-      "metadata[bundle]": bundle,
-      "metadata[subtotal]": String(subtotal),
-      "metadata[deliveryFee]": String(deliveryFee),
-      success_url: "https://getyolko.com/?paid={CHECKOUT_SESSION_ID}",
-      cancel_url: "https://getyolko.com/#order",
-    });
-    if (deliveryFee > 0) {
-      params.set("line_items[1][price_data][currency]", "aud");
-      params.set("line_items[1][price_data][product_data][name]", "Saturday delivery");
-      params.set("line_items[1][price_data][product_data][description]", "Flat fee on entire order");
-      params.set("line_items[1][price_data][unit_amount]", String(Math.round(deliveryFee * 100)));
-      params.set("line_items[1][quantity]", "1");
+    // Token optional for speed when already prefetched; still consume if present.
+    if (body?.token) {
+      const tokenCheck = await consumeOrderToken(env, body.token);
+      if (!tokenCheck.ok && tokenCheck.reason !== "missing") {
+        // Ignore expired/invalid — Buy now must stay fast; other checks remain.
+      }
     }
 
-    const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.STRIPE_KEY}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: params.toString(),
-    });
-    const session = await resp.json();
-    if (!session.url) return json({ error: "checkout failed", detail: session.error?.message || null }, 502);
+    if (fulfillment === "delivery") {
+      pickupDay = "Saturday";
+      const street = deliveryStreet || legacyAddress;
+      deliveryZone = checkDeliveryAddress({
+        street,
+        suburb: deliverySuburb,
+        city: deliveryCity,
+        postcode: deliveryPostcode,
+      });
+      if (!deliveryZone.ok && !deliverySuburb && !deliveryPostcode && legacyAddress.length >= 5) {
+        const parts = legacyAddress.split(",").map((p) => p.trim()).filter(Boolean);
+        const maybePc = parts.length ? String(parts[parts.length - 1]).replace(/\D/g, "") : "";
+        const pc = maybePc.length === 4 ? maybePc : "";
+        const suburb = parts.length >= 2 ? parts[parts.length - (pc ? 2 : 1)] : "";
+        const streetPart = parts.length >= 2 ? parts.slice(0, parts.length - (pc ? 2 : 1)).join(", ") : legacyAddress;
+        deliveryZone = checkDeliveryAddress({
+          street: streetPart || legacyAddress,
+          suburb,
+          city: deliveryCity || "Sydney",
+          postcode: pc || deliveryPostcode,
+        });
+      }
+      if (!deliveryZone.ok) {
+        return json({
+          error: deliveryZone.error || "delivery address required",
+          code: deliveryZone.code === "out_of_range" ? "delivery_range" : "delivery_address",
+          maxKm: MAX_DELIVERY_KM,
+          roadKmEstimate: deliveryZone.roadKmEstimate || null,
+        }, 400);
+      }
+      deliveryAddress = deliveryZone.formatted;
+    }
 
-    order.paymentStatus = "pending";
-    order.sessionId = session.id;
-    await env.DATA.put(orderId, JSON.stringify(order));
-    return json({ url: session.url, price: total, subtotal, deliveryFee, unitPrice });
+    if (!name || name.length < 2 || !/^04\d{8}$/.test(phone) || !bundle || !pickupDay) {
+      return json({ error: "invalid order" }, 400);
+    }
+    if (/^[a-z]{1,2}$/i.test(name) || /https?:|www\.|@/.test(name)) {
+      return json({ error: "invalid order" }, 400);
+    }
+
+    const settings = await getSettings(env);
+    if (fulfillment === "delivery") {
+      if (pickupDay !== "Saturday") {
+        return json({ error: "delivery only on Saturday", code: "delivery_day" }, 400);
+      }
+    } else if (!settings.pickup[pickupDay]?.enabled) {
+      return json({ error: "pickup day unavailable" }, 400);
+    }
+
+    const meta = clientMeta(request);
+    if (meta.country && meta.country !== "AU") {
+      return json({ error: "Sydney area only", code: "geo" }, 403);
+    }
+
+    maybeEnsureStripeBranding(env, ctx);
+
+    const subtotal = settings.prices[bundle] * quantity;
+    const deliveryFee = fulfillment === "delivery" ? SITE_DELIVERY_FEE : 0;
+    let order = await getOpenUnpaidOrder(env, phone);
+    if (order) {
+      order.name = name;
+      order.bundle = bundle;
+      order.quantity = quantity;
+      order.fulfillment = fulfillment;
+      order.deliveryAddress = fulfillment === "delivery" ? deliveryAddress : "";
+      order.deliveryStreet = fulfillment === "delivery" ? (deliveryZone?.street || deliveryStreet) : "";
+      order.deliverySuburb = fulfillment === "delivery" ? (deliveryZone?.suburb || deliverySuburb) : "";
+      order.deliveryCity = fulfillment === "delivery" ? (deliveryZone?.city || deliveryCity) : "";
+      order.deliveryPostcode = fulfillment === "delivery" ? (deliveryZone?.postcode || deliveryPostcode) : "";
+      order.deliveryKm = fulfillment === "delivery" ? (deliveryZone?.roadKmEstimate || null) : null;
+      order.deliveryFee = deliveryFee;
+      order.pickupDay = pickupDay;
+      order.pickupDate = pickupDate;
+      order.subtotal = subtotal;
+      order.price = subtotal + deliveryFee;
+      order.updatedAt = new Date().toISOString();
+      if (order.status === "cancelled") order.status = "new";
+    } else {
+      const now = new Date();
+      const id = `order:${now.toISOString()}:${Math.random().toString(36).slice(2, 8)}`;
+      order = {
+        id,
+        name,
+        phone,
+        bundle,
+        quantity,
+        fulfillment,
+        deliveryAddress: fulfillment === "delivery" ? deliveryAddress : "",
+        deliveryStreet: fulfillment === "delivery" ? (deliveryZone?.street || deliveryStreet) : "",
+        deliverySuburb: fulfillment === "delivery" ? (deliveryZone?.suburb || deliverySuburb) : "",
+        deliveryCity: fulfillment === "delivery" ? (deliveryZone?.city || deliveryCity) : "",
+        deliveryPostcode: fulfillment === "delivery" ? (deliveryZone?.postcode || deliveryPostcode) : "",
+        deliveryKm: fulfillment === "delivery" ? (deliveryZone?.roadKmEstimate || null) : null,
+        deliveryFee,
+        pickupDay,
+        pickupDate,
+        subtotal,
+        price: subtotal + deliveryFee,
+        status: "new",
+        createdAt: now.toISOString(),
+        ip: clientIp(request) || null,
+        country: meta.country,
+        asnOrg: meta.asnOrg,
+        colo: meta.colo,
+        ua: meta.ua,
+      };
+      if (ctx && typeof ctx.waitUntil === "function") {
+        ctx.waitUntil(pushOrderIndex(env, id));
+      } else {
+        await pushOrderIndex(env, id);
+      }
+    }
+
+    await rememberOpenOrder(env, phone, order.id);
+    const result = await createCheckoutForOrder(env, order, settings);
+    if (result.error) return json({ error: result.error, detail: result.detail || null }, result.status || 502);
+    return json({ ok: true, ...result });
   }
 
   // Public: confirm payment after returning from Stripe
@@ -3077,7 +3246,7 @@ export default {
     ctx.waitUntil(syncMetaAdsForStock(env, settings.traysAvailable));
   },
 
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     // Canonical: force https and apex host in production, but keep
@@ -3130,7 +3299,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "119",
+        "X-Yolko-Build": "120",
       },
     });
   },
