@@ -820,6 +820,8 @@ async function handleApi(request, env, url) {
   }
 
   // Public: create a locked-amount Stripe checkout for an existing order
+  // Amounts always come from live admin settings (+ delivery fee on the order).
+  // Do NOT use Stripe Payment Links — those freeze old prices ($12/$23/$66).
   if (url.pathname === "/api/checkout" && request.method === "POST") {
     if (!env.STRIPE_KEY) return json({ error: "payments not configured" }, 503);
     const body = await request.json().catch(() => null);
@@ -833,12 +835,29 @@ async function handleApi(request, env, url) {
     // Keep Checkout header as YOLKO (not personal account name).
     await ensureStripeBranding(env).catch(() => null);
 
-    const quantity = order.quantity || 1;
-    const deliveryFee = Number(order.deliveryFee) > 0 ? Number(order.deliveryFee) : (order.fulfillment === "delivery" ? SITE_DELIVERY_FEE : 0);
-    const subtotal = Number.isFinite(Number(order.subtotal))
-      ? Number(order.subtotal)
-      : Math.max(0, Number(order.price) - deliveryFee);
-    const unitAmount = Math.round((subtotal / quantity) * 100);
+    const settings = await getSettings(env);
+    const quantity = Math.min(20, Math.max(1, Math.floor(Number(order.quantity)) || 1));
+    const bundle = BUNDLE_KEYS.includes(order.bundle) ? order.bundle : null;
+    if (!bundle || !Number.isFinite(Number(settings.prices[bundle]))) {
+      return json({ error: "invalid order bundle" }, 400);
+    }
+
+    // Live webpage/admin prices — never hardcoded Payment Link amounts.
+    const unitPrice = Number(settings.prices[bundle]);
+    const subtotal = unitPrice * quantity;
+    const isDelivery = order.fulfillment === "delivery";
+    const deliveryFee = isDelivery
+      ? (Number(order.deliveryFee) > 0 ? Number(order.deliveryFee) : SITE_DELIVERY_FEE)
+      : 0;
+    const total = subtotal + deliveryFee;
+    const unitAmount = Math.round(unitPrice * 100);
+
+    // Keep stored order in sync with what Stripe will charge.
+    order.quantity = quantity;
+    order.subtotal = subtotal;
+    order.deliveryFee = deliveryFee;
+    order.price = total;
+
     const labels = {
       tray1: "Egg tray (30 eggs)",
       tray2: "2 egg trays (60 eggs)",
@@ -857,7 +876,6 @@ async function handleApi(request, env, url) {
       fr800case: "Free range case 800g (15 dozens)",
     };
 
-    const isDelivery = order.fulfillment === "delivery";
     const fulfillDesc = isDelivery
       ? `Saturday ${order.pickupDate || ""} delivery · ${order.deliveryAddress || "Sydney area"}`.trim()
       : `Pickup ${order.pickupDay}${order.pickupDate ? " " + order.pickupDate : ""} at Paddy's Markets Flemington`;
@@ -865,11 +883,14 @@ async function handleApi(request, env, url) {
     const params = new URLSearchParams({
       mode: "payment",
       "line_items[0][price_data][currency]": "aud",
-      "line_items[0][price_data][product_data][name]": labels[order.bundle] || "Eggs",
+      "line_items[0][price_data][product_data][name]": labels[bundle] || "Eggs",
       "line_items[0][price_data][product_data][description]": fulfillDesc,
       "line_items[0][price_data][unit_amount]": String(unitAmount),
       "line_items[0][quantity]": String(quantity),
       "metadata[orderId]": orderId,
+      "metadata[bundle]": bundle,
+      "metadata[subtotal]": String(subtotal),
+      "metadata[deliveryFee]": String(deliveryFee),
       success_url: "https://getyolko.com/?paid={CHECKOUT_SESSION_ID}",
       cancel_url: "https://getyolko.com/#order",
     });
@@ -895,7 +916,7 @@ async function handleApi(request, env, url) {
     order.paymentStatus = "pending";
     order.sessionId = session.id;
     await env.DATA.put(orderId, JSON.stringify(order));
-    return json({ url: session.url });
+    return json({ url: session.url, price: total, subtotal, deliveryFee, unitPrice });
   }
 
   // Public: confirm payment after returning from Stripe
@@ -3055,7 +3076,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "114",
+        "X-Yolko-Build": "115",
       },
     });
   },

@@ -1224,7 +1224,7 @@ prefetchOrderToken();
 document.getElementById("order")?.addEventListener("pointerdown", prefetchOrderToken, { once: true, passive: true });
 document.getElementById("order")?.addEventListener("focusin", prefetchOrderToken, { once: true });
 
-async function openCheckout(orderId, fallbackUrl) {
+async function openCheckout(orderId) {
   try {
     if (!orderId) throw new Error("no order");
     const res = await fetch(`${API_BASE}/api/checkout`, {
@@ -1232,15 +1232,12 @@ async function openCheckout(orderId, fallbackUrl) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ orderId }),
     });
-    const d = await res.json();
-    if (!d.url) throw new Error("checkout failed");
+    const d = await res.json().catch(() => ({}));
+    if (!d.url) throw new Error(d.error || "checkout failed");
     window.location.href = d.url;
     return true;
   } catch {
-    if (fallbackUrl) {
-      window.location.href = fallbackUrl;
-      return true;
-    }
+    // Never fall back to hardcoded Stripe Payment Links — those freeze old prices.
     return false;
   }
 }
@@ -1285,7 +1282,6 @@ function showConfirmation(b) {
     whatsappLink.hidden = true;
   }
 
-  const stripeUrl = config.stripeLinks && config.stripeLinks[b.bundleKey];
   stripeLink.textContent = `Pay $${b.total} online for priority`;
   stripeLink.href = "#";
   stripeLink.hidden = false;
@@ -1293,7 +1289,7 @@ function showConfirmation(b) {
   stripeLink.onclick = async (e) => {
     e.preventDefault();
     stripeLink.textContent = "Opening secure checkout…";
-    const ok = await openCheckout(lastOrderId, stripeUrl);
+    const ok = await openCheckout(lastOrderId);
     if (!ok) stripeLink.textContent = isDelivery ? "Payment unavailable, pay on delivery" : "Payment unavailable, pay on pickup";
   };
 
@@ -1383,8 +1379,7 @@ buynowBtn.addEventListener("click", async () => {
     return;
   }
   lastOrderId = orderResult?.id || null;
-  const fallback = config.stripeLinks && config.stripeLinks[booking.bundleKey];
-  const ok = await openCheckout(lastOrderId, fallback);
+  const ok = await openCheckout(lastOrderId);
 
   if (!ok) {
     buynowBtn.disabled = false;

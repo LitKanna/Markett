@@ -24,6 +24,12 @@ Then open http://localhost:8080. No install is required just to view/use the sit
 works end-to-end locally **without** any backend. Use the "Reserve" button (not "Buy now") to
 demonstrate the flow without needing Stripe.
 
+### Dynamic Stripe Checkout (no fixed Payment Links)
+Buy now / Pay online call `POST /api/checkout`, which builds a Stripe Checkout Session from
+**live admin `settings.prices`** plus `deliveryFee` when fulfillment is delivery. Do **not**
+paste `buy.stripe.com` Payment Links into `config.js` — those freeze old amounts ($12/$23/$66)
+and ignore delivery. `config.stripeLinks` is intentionally empty.
+
 ### Saturday delivery (45 km from Sydney Markets)
 - Hub: Paddy's Markets Flemington / Sydney Markets (`-33.8667, 151.0694`).
 - Delivery is **Saturday only**, flat **+$5** on the entire order, and **only within 45 km**
