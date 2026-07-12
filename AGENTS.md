@@ -112,18 +112,13 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
   `META_ADSET_IDS`). Manual/CLI: `node infra/meta-stock-sync.mjs`. Cron every 15m in
   `wrangler.toml`. Admin check: `GET/POST /api/meta-ads-stock-sync` with admin key.
 
-### Studio hero branding (done — tiny corner YOLKO)
-Shop heroes `studio-tray-v2` / `v5` / `v6` use a **small quiet YOLKO** in the **same
-bottom corner** of each visible box face (Higgsfield edit; not Cursor `GenerateImage`).
-v6 has **no** “Fresh eggs Flemington” subline. Cache-bust with `?v=` in `index.html`
-(currently `124`). Classic `studio-tray` (no box brand) is unchanged.
-
-Do **not** use Cursor `GenerateImage` for these — user rejected those assets. Prefer
-Higgsfield MCP for further branding edits. After regenerating masters, write
-`{name}-928.jpg` / `-640.jpg` / `-square-560.jpg` + matching `.webp` (quality ~88),
-bump `?v=` / `CHALK_ASSET_VER` as needed, pin `DEPLOY_SHA`, bump `X-Yolko-Build`,
+### Studio hero branding
+Only `studio-tray-v2` was intentionally edited to a **small same-corner YOLKO**
+(user request for that one stacked-boxes shot). Do **not** regenerate `v5` / `v6` /
+other heroes unless the user explicitly asks. Prefer Higgsfield MCP for branding
+edits — not Cursor `GenerateImage`. After asset changes: write size variants +
+`.webp`, bump `?v=` in `index.html`, pin `DEPLOY_SHA`, bump `X-Yolko-Build`,
 `npx wrangler deploy`.
 
-**Higgsfield auth:** Cloud agents load MCP OAuth **only at start**. If Higgsfield shows
-`needsAuth`, start a **new** cloud agent after completing Higgsfield OAuth in Cursor
-desktop (MCP toggle ON + Google login) before the prompt.
+**Higgsfield auth:** Cloud agents load MCP OAuth **only at start**. If Higgsfield
+shows `needsAuth`, start a **new** cloud agent after OAuth in Cursor desktop.
