@@ -98,7 +98,7 @@ async function ensureAdSet(campaignId) {
           },
         ],
       },
-      age_min: 25,
+      age_min: 18,
       age_max: 65,
       flexible_spec: [
         {
@@ -178,7 +178,7 @@ async function createAd(adsetId, spec) {
         message: spec.message,
         name: spec.headline,
         description: spec.description,
-        call_to_action: { type: "LEARN_MORE" },
+        call_to_action: { type: "SHOP_NOW" },
         image_hash: IMAGE_HASH,
       },
     },

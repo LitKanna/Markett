@@ -88,6 +88,11 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
 - `infra/*.py` image generators need `pip install -r requirements.txt` (opencv, Pillow).
 - `infra/meta-*.mjs` Meta ad automation uses Playwright (installed via `npm install`) and
   requires `npx playwright install chromium` plus a `META_ACCESS_TOKEN`.
+- **Sold-out auto-pause:** when `traysAvailable` hits `0` (box = 6 trays), the Worker pauses
+  configured Meta ad sets; when stock is restocked it resumes **only if** this automation
+  paused them. Needs Worker secret `META_ACCESS_TOKEN` (optional `META_ADSET_ID` /
+  `META_ADSET_IDS`). Manual/CLI: `node infra/meta-stock-sync.mjs`. Cron every 15m in
+  `wrangler.toml`. Admin check: `GET/POST /api/meta-ads-stock-sync` with admin key.
 
 ### Handoff — hero branding via Higgsfield (pending)
 **Live site:** `https://getyolko.com/` · Worker build **95** · base branch

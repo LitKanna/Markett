@@ -389,6 +389,10 @@ async function syncStock(env, order, newStatus) {
       settings.dozensAvailable = Math.max(0, (settings.dozensAvailable || 0) + dozenDelta);
     }
     await env.DATA.put("settings", JSON.stringify(settings));
+    if (trayDelta !== 0) {
+      // Fire-and-forget: pause Meta ads at 0 trays, resume when restocked.
+      syncMetaAdsForStock(env, settings.traysAvailable).catch(() => {});
+    }
     return {
       delta: trayDelta,
       dozenDelta,
@@ -403,6 +407,74 @@ async function syncStock(env, order, newStatus) {
     traysAvailable: s.traysAvailable,
     dozensAvailable: s.dozensAvailable || 0,
   };
+}
+
+/** Default Flemington ad set from Ads Manager paste kit / meta-browser.mjs */
+const DEFAULT_META_ADSET_IDS = ["120256182965760197"];
+const META_GRAPH = "https://graph.facebook.com/v21.0";
+const META_STOCK_FLAG = "meta:ads:pausedByStock";
+
+function metaAdSetIds(env) {
+  const raw = String(env.META_ADSET_IDS || env.META_ADSET_ID || "").trim();
+  if (!raw) return DEFAULT_META_ADSET_IDS;
+  return raw.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
+}
+
+/**
+ * Pause Meta ad sets when traysAvailable hits 0; re-activate only if we paused them.
+ * Needs Cloudflare secret META_ACCESS_TOKEN. Optional META_ADSET_ID / META_ADSET_IDS.
+ * Box = 6 trays already counted in traysAvailable / traysFor().
+ */
+async function syncMetaAdsForStock(env, traysAvailable) {
+  const token = String(env.META_ACCESS_TOKEN || "").trim();
+  if (!token) return { ok: false, skipped: true, reason: "no_token" };
+
+  const trays = Math.max(0, Math.floor(Number(traysAvailable) || 0));
+  const ids = metaAdSetIds(env);
+  if (!ids.length) return { ok: false, skipped: true, reason: "no_adset" };
+
+  const flag = await env.DATA.get(META_STOCK_FLAG);
+  const wePaused = flag === "1";
+
+  if (trays <= 0) {
+    const results = [];
+    for (const id of ids) {
+      const res = await fetch(`${META_GRAPH}/${encodeURIComponent(id)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "PAUSED", access_token: token }),
+      });
+      const json = await res.json().catch(() => ({}));
+      results.push({ id, ok: !json.error, error: json.error?.message || null });
+    }
+    await env.DATA.put(META_STOCK_FLAG, "1");
+    await env.DATA.put(
+      "meta:ads:lastSync",
+      JSON.stringify({ at: new Date().toISOString(), trays, action: "pause", results })
+    );
+    return { ok: results.every((r) => r.ok), action: "pause", trays, results };
+  }
+
+  if (wePaused && trays > 0) {
+    const results = [];
+    for (const id of ids) {
+      const res = await fetch(`${META_GRAPH}/${encodeURIComponent(id)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ACTIVE", access_token: token }),
+      });
+      const json = await res.json().catch(() => ({}));
+      results.push({ id, ok: !json.error, error: json.error?.message || null });
+    }
+    await env.DATA.delete(META_STOCK_FLAG);
+    await env.DATA.put(
+      "meta:ads:lastSync",
+      JSON.stringify({ at: new Date().toISOString(), trays, action: "activate", results })
+    );
+    return { ok: results.every((r) => r.ok), action: "activate", trays, results };
+  }
+
+  return { ok: true, action: "noop", trays, wePaused: !!wePaused };
 }
 
 function normalizeDozenCosts(stored) {
@@ -510,7 +582,26 @@ async function handleApi(request, env, url) {
       ),
     };
     await env.DATA.put("settings", JSON.stringify(next));
+    if (next.traysAvailable !== current.traysAvailable) {
+      syncMetaAdsForStock(env, next.traysAvailable).catch(() => {});
+    }
     return json(next);
+  }
+
+  // Admin: sync Meta ad pause/resume from current tray stock (sold out = pause)
+  if (url.pathname === "/api/meta-ads-stock-sync" && (request.method === "POST" || request.method === "GET")) {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const settings = await getSettings(env);
+    const result = await syncMetaAdsForStock(env, settings.traysAvailable);
+    const last = await env.DATA.get("meta:ads:lastSync", "json");
+    return json({
+      traysAvailable: settings.traysAvailable,
+      note: "Pauses configured Meta ad sets when traysAvailable is 0 (box = 6 trays). Resumes only if this automation paused them.",
+      ...result,
+      last,
+      hasToken: Boolean(String(env.META_ACCESS_TOKEN || "").trim()),
+      adSetIds: metaAdSetIds(env),
+    });
   }
 
   // Public: short-lived one-time token required to place an order (anti-bot)
@@ -2798,6 +2889,12 @@ if (KEY) boot();
 </html>`;
 
 export default {
+  // Safety net every 15m: pause ads if stock hit 0, resume if we paused and stock returned.
+  async scheduled(_event, env, ctx) {
+    const settings = await getSettings(env);
+    ctx.waitUntil(syncMetaAdsForStock(env, settings.traysAvailable));
+  },
+
   async fetch(request, env) {
     const url = new URL(request.url);
 

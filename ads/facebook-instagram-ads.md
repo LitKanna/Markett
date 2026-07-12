@@ -10,11 +10,15 @@ from the same campaign.
 | Objective | Sales (or Traffic if starting out) |
 | Budget | $7–15 per day to start |
 | Location | Flemington NSW + 8 km radius |
-| Age | 25–65 |
+| Age | 18–65 (no egg purchase-age law; Meta commerce min 18+) |
 | Interests | Cooking, Baking, Farmers markets, Grocery shopping, Family |
 | Placements | Facebook Feed, Instagram Feed, Stories, Reels |
 | Destination | https://getyolko.com/ |
+| CTA | Shop now |
 | Image | assets/social-eggs-1080.jpg (or a real photo of your trays, real photos often win) |
+
+**Sold out auto-pause:** when site `traysAvailable` hits 0, Meta ad sets pause automatically
+(Worker + `infra/meta-stock-sync.mjs`; needs `META_ACCESS_TOKEN`).
 
 ## Ad 1 — Price lead (pre-order for next market day)
 
