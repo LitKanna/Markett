@@ -17,7 +17,7 @@ Click **Create** → use **existing campaign** → **YOLKO — Flemington pickup
 | **Headline** | 30 Eggs $12 — Book Now, Pickup Fri/Sat |
 | **Description** | Paddy's Markets Flemington |
 | **Website URL** | https://getyolko.com/ |
-| **Call to action** | Learn more |
+| **Call to action** | Shop now |
 
 Click **Publish**.
 
@@ -60,10 +60,11 @@ Cafés, stalls, bakers: a full box of 180 fresh Pace Farm eggs for $66, ready ev
 
 ## Settings already done (don't change)
 
-- Budget: **$10/day**
+- Age: **18–65**
 - Location: **Flemington + 8 km**
-- Age: **25–65**
 - Placements: **Facebook + Instagram** (feed, stories, reels)
+- CTA: **Shop now**
+- Auto-pause when website stock (`traysAvailable`) hits **0** (box = 6 trays)
 
 ---
 

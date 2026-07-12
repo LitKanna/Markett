@@ -1,8 +1,24 @@
+const DOZENS_PER_CASE = 15;
+
 const BUNDLES = {
-  tray1: { label: "1 tray (30 eggs)", price: 12 },
-  tray2: { label: "2 trays (60 eggs)", price: 23 },
-  box: { label: "Full box (6 trays, 180 eggs)", price: 66 },
+  tray1: { label: "1 tray (30 eggs)", price: 13, eggs: 30, kind: "tray" },
+  tray2: { label: "2 trays (60 eggs)", price: 25, eggs: 60, kind: "tray" },
+  box: { label: "Full box (6 trays, 180 eggs)", price: 72, eggs: 180, kind: "tray" },
+  cage600: { label: "Cage dozen 600g", price: 6, eggs: 12, kind: "dozen", housing: "cage", weight: "600g" },
+  cage700: { label: "Cage dozen 700g", price: 7, eggs: 12, kind: "dozen", housing: "cage", weight: "700g" },
+  cage800: { label: "Cage dozen 800g", price: 8, eggs: 12, kind: "dozen", housing: "cage", weight: "800g" },
+  fr600: { label: "Free range dozen 600g", price: 8, eggs: 12, kind: "dozen", housing: "free range", weight: "600g" },
+  fr700: { label: "Free range dozen 700g", price: 9, eggs: 12, kind: "dozen", housing: "free range", weight: "700g" },
+  fr800: { label: "Free range dozen 800g", price: 10, eggs: 12, kind: "dozen", housing: "free range", weight: "800g" },
+  cage600case: { label: "Cage case 600g (15 dozens)", price: 90, eggs: 180, kind: "case", housing: "cage", weight: "600g", unitKey: "cage600" },
+  cage700case: { label: "Cage case 700g (15 dozens)", price: 105, eggs: 180, kind: "case", housing: "cage", weight: "700g", unitKey: "cage700" },
+  cage800case: { label: "Cage case 800g (15 dozens)", price: 120, eggs: 180, kind: "case", housing: "cage", weight: "800g", unitKey: "cage800" },
+  fr600case: { label: "Free range case 600g (15 dozens)", price: 120, eggs: 180, kind: "case", housing: "free range", weight: "600g", unitKey: "fr600" },
+  fr700case: { label: "Free range case 700g (15 dozens)", price: 135, eggs: 180, kind: "case", housing: "free range", weight: "700g", unitKey: "fr700" },
+  fr800case: { label: "Free range case 800g (15 dozens)", price: 150, eggs: 180, kind: "case", housing: "free range", weight: "800g", unitKey: "fr800" },
 };
+
+const BUNDLE_KEYS = Object.keys(BUNDLES);
 
 const config = typeof SITE_CONFIG === "object" && SITE_CONFIG !== null ? SITE_CONFIG : {};
 
@@ -28,10 +44,297 @@ let lastOrderId = null;
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/* ---------- Hero / order tray image auto-rotate ---------- */
+const rotatorTimers = [];
+const HERO_SIZES = "(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)";
+const ASSET_CACHE_VER = "111";
+
+function clearImageRotators() {
+  while (rotatorTimers.length) {
+    const t = rotatorTimers.pop();
+    window.clearTimeout(t.timeoutId);
+    window.clearInterval(t.intervalId);
+  }
+}
+
+function initImageRotators() {
+  clearImageRotators();
+  if (reducedMotion) return;
+
+  document.querySelectorAll("[data-rotator]").forEach((root) => {
+    const slides = [...root.querySelectorAll(".showcase-photo, .order-tray-photo")];
+    if (slides.length < 2) return;
+
+    let index = slides.findIndex((slide) => slide.classList.contains("is-active"));
+    if (index < 0) {
+      index = 0;
+      slides[0].classList.add("is-active");
+    }
+
+    const intervalMs = root.dataset.rotator === "order" ? 14000 : 12000;
+    const offsetMs = root.dataset.rotator === "order" ? 3500 : 0;
+    const fadeMs = 900;
+    const state = { timeoutId: 0, intervalId: 0 };
+
+    state.timeoutId = window.setTimeout(() => {
+      state.intervalId = window.setInterval(() => {
+        const prev = slides[index];
+        index = (index + 1) % slides.length;
+        const next = slides[index];
+
+        // Keep outgoing slide under the incoming one until fade finishes
+        // so the frame never flashes empty mid-transition.
+        prev.classList.add("is-leaving");
+        prev.classList.remove("is-active");
+        next.classList.add("is-active");
+
+        window.setTimeout(() => {
+          prev.classList.remove("is-leaving");
+        }, fadeMs);
+      }, intervalMs);
+    }, offsetMs);
+
+    rotatorTimers.push(state);
+  });
+}
+
+initImageRotators();
+
+/* Chalkboard hero swaps to match live tray1 price ($1–$30); dozens unchanged */
+const CHALK_PRICES = Array.from({ length: 30 }, (_, i) => i + 1);
+const CHALK_ASSET_VER = "111";
+const TRAY1_PRICE_CACHE_KEY = "yolko.tray1Price";
+
+function chalkPriceKey(price) {
+  const n = Math.round(Number(price));
+  if (CHALK_PRICES.includes(n)) return n;
+  if (!Number.isFinite(n)) return 14;
+  if (n < 1) return 1;
+  if (n > 30) return 30;
+  return 14;
+}
+
+function readCachedTray1Price() {
+  try {
+    const n = Math.round(Number(localStorage.getItem(TRAY1_PRICE_CACHE_KEY)));
+    if (CHALK_PRICES.includes(n)) return n;
+  } catch (_) {}
+  const boot = Math.round(Number(window.__YOLKO_TRAY1));
+  if (CHALK_PRICES.includes(boot)) return boot;
+  return null;
+}
+
+function cacheTray1Price(price) {
+  try {
+    localStorage.setItem(TRAY1_PRICE_CACHE_KEY, String(chalkPriceKey(price)));
+  } catch (_) {}
+}
+
+const cachedTray1 = readCachedTray1Price();
+if (cachedTray1 != null) BUNDLES.tray1.price = cachedTray1;
+
+function withVer(path) {
+  if (!path) return "";
+  const clean = path.startsWith("/") ? path.slice(1) : path;
+  return `${clean}${clean.includes("?") ? "&" : "?"}v=${ASSET_CACHE_VER}`;
+}
+
+function chalkHeroUrls(p) {
+  return {
+    primary: `assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER}`,
+    imgSrcset: `assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w, assets/chalk-tray/${p}-2048.jpg?v=${CHALK_ASSET_VER} 2048w`,
+    webpSrcset: `assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w, assets/chalk-tray/${p}-2048.webp?v=${CHALK_ASSET_VER} 2048w`,
+    alt: `Fresh eggs · $${p}/tray at the YOLKO stall`,
+  };
+}
+
+function chalkOrderUrls(p) {
+  return {
+    primary: `assets/chalk-tray/${p}-square-560.jpg?v=${CHALK_ASSET_VER}`,
+    webpSrcset: `assets/chalk-tray/${p}-square-560.webp?v=${CHALK_ASSET_VER}`,
+    alt: `Fresh eggs · $${p}/tray`,
+  };
+}
+
+function preloadImage(url) {
+  return new Promise((resolve) => {
+    if (!url) { resolve(); return; }
+    const im = new Image();
+    im.decoding = "async";
+    im.onload = () => {
+      if (im.decode) im.decode().then(resolve, resolve);
+      else resolve();
+    };
+    im.onerror = () => resolve();
+    im.src = url;
+  });
+}
+
+function waitMs(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+let chalkSwapToken = 0;
+
+async function swapChalkPicture(pic, p) {
+  const kind = pic.getAttribute("data-chalk-price");
+  const source = pic.querySelector("source:not([data-chalk-hold])");
+  const img = pic.querySelector("img:not([data-chalk-hold])");
+  if (!img) return;
+
+  if (img.dataset.chalkShowing === String(p)) return;
+
+  const urls = kind === "hero" ? chalkHeroUrls(p) : chalkOrderUrls(p);
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  await preloadImage(urls.primary);
+
+  // If a newer swap started, bail.
+  if (pic.dataset.chalkSwapPending && pic.dataset.chalkSwapPending !== String(p)) return;
+
+  // Hold the current frame on top while the main img swaps underneath.
+  pic.querySelectorAll("[data-chalk-hold]").forEach((el) => el.remove());
+  const hold = img.cloneNode(true);
+  hold.removeAttribute("id");
+  hold.setAttribute("data-chalk-hold", "1");
+  hold.setAttribute("aria-hidden", "true");
+  hold.classList.add("chalk-hold");
+  pic.appendChild(hold);
+
+  if (kind === "hero") {
+    if (source) {
+      source.srcset = urls.webpSrcset;
+      source.sizes = HERO_SIZES;
+    }
+    img.src = urls.primary;
+    img.srcset = urls.imgSrcset;
+    img.sizes = HERO_SIZES;
+    img.width = 1536;
+    img.height = 1536;
+  } else {
+    if (source) source.srcset = urls.webpSrcset;
+    img.src = urls.primary;
+    img.removeAttribute("srcset");
+  }
+  img.alt = urls.alt;
+  img.dataset.chalkShowing = String(p);
+
+  try { await img.decode(); } catch (_) {}
+
+  if (reduceMotion) {
+    hold.remove();
+    return;
+  }
+
+  // Force paint of hold, then fade it away over the already-decoded new frame.
+  hold.getBoundingClientRect();
+  await waitMs(16);
+  hold.classList.add("is-fading");
+  await waitMs(560);
+  if (hold.parentNode === pic) hold.remove();
+}
+
+function applyChalkPriceImage(trayPrice) {
+  const p = chalkPriceKey(trayPrice);
+  const token = ++chalkSwapToken;
+  const pics = [...document.querySelectorAll("picture[data-chalk-price]")];
+  pics.forEach((pic) => { pic.dataset.chalkSwapPending = String(p); });
+
+  // Fire-and-forget async crossfades; never blank the frame while loading.
+  Promise.all(pics.map((pic) => {
+    if (token !== chalkSwapToken) return null;
+    return swapChalkPicture(pic, p);
+  })).catch(() => {});
+}
+
+function heroSrcset(item) {
+  const h = item.hero || {};
+  if (h.webp640 && h.webp928) {
+    return {
+      webp: `${withVer(h.webp640)} 640w, ${withVer(h.webp928)} 928w`,
+      jpg: `${withVer(h.jpg640 || h.jpg928)} 640w, ${withVer(h.jpg928 || h.jpg640)} 928w`,
+      src: withVer(h.jpg928 || h.jpg640 || h.jpg1080 || h.jpg1400),
+    };
+  }
+  const jpg = h.jpg1080 || h.jpg1400 || h.jpg700 || h.jpg540 || (item.square && item.square.jpg) || item.preview;
+  const webp = h.webp1080 || h.webp640 || (item.square && item.square.webp);
+  return {
+    webp: webp ? `${withVer(webp)} 1080w` : "",
+    jpg: jpg ? `${withVer(jpg)} 1080w` : "",
+    src: withVer(jpg),
+  };
+}
+
+function buildHeroPicture(item, index) {
+  const isChalk = item.kind === "chalk";
+  const active = index === 0 ? " is-active" : "";
+  const chalkAttr = isChalk ? ' data-chalk-price="hero"' : "";
+  const idAttr = index === 0 ? ' id="hero-tray-img"' : "";
+  const loading = index === 0 ? ' fetchpriority="high"' : ' loading="lazy"';
+  if (isChalk) {
+    // Always use live tray1 price — asset chalkPrice is only the registry id (e.g. chalk-tray/12).
+    const p = chalkPriceKey(BUNDLES.tray1.price);
+    return `<picture class="showcase-photo${active}"${chalkAttr}>
+      <source type="image/webp" srcset="assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w, assets/chalk-tray/${p}-2048.webp?v=${CHALK_ASSET_VER} 2048w" sizes="${HERO_SIZES}">
+      <img${idAttr} src="assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER}" srcset="assets/chalk-tray/${p}-640.jpg?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.jpg?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.jpg?v=${CHALK_ASSET_VER} 1536w, assets/chalk-tray/${p}-2048.jpg?v=${CHALK_ASSET_VER} 2048w" sizes="${HERO_SIZES}" alt="Fresh eggs · $${p}/tray at the YOLKO stall" width="1536" height="1536" data-chalk-showing="${p}"${loading} decoding="async">
+    </picture>`;
+  }
+  const src = heroSrcset(item);
+  const source = src.webp
+    ? `<source type="image/webp" srcset="${src.webp}" sizes="${HERO_SIZES}">`
+    : "";
+  return `<picture class="showcase-photo${active}">
+      ${source}
+      <img${idAttr} src="${src.src}" ${src.jpg ? `srcset="${src.jpg}"` : ""} sizes="${HERO_SIZES}" alt="${item.label || "YOLKO eggs"}" width="928" height="1242"${loading} decoding="async">
+    </picture>`;
+}
+
+function buildOrderPicture(item, index) {
+  const isChalk = item.kind === "chalk";
+  const active = index === 0 ? " is-active" : "";
+  const chalkAttr = isChalk ? ' data-chalk-price="order"' : "";
+  const idAttr = index === 0 ? ' id="order-tray-img"' : "";
+  if (isChalk) {
+    const p = chalkPriceKey(item.chalkPrice || BUNDLES.tray1.price);
+    return `<picture class="order-tray-photo${active}"${chalkAttr}>
+      <source type="image/webp" srcset="assets/chalk-tray/${p}-square-560.webp?v=${CHALK_ASSET_VER}">
+      <img${idAttr} src="assets/chalk-tray/${p}-square-560.jpg?v=${CHALK_ASSET_VER}" alt="Fresh eggs · $${p}/tray" width="560" height="560" data-chalk-showing="${p}" loading="lazy" decoding="async">
+    </picture>`;
+  }
+  const sq = item.square || {};
+  const jpg = withVer(sq.jpg || item.preview);
+  const webp = sq.webp ? withVer(sq.webp) : "";
+  return `<picture class="order-tray-photo${active}">
+      ${webp ? `<source type="image/webp" srcset="${webp}">` : ""}
+      <img${idAttr} src="${jpg}" alt="" width="560" height="560" loading="lazy" decoding="async">
+    </picture>`;
+}
+
+async function applyPublishedAssets(apiBase) {
+  try {
+    const res = await fetch(`${apiBase}/api/assets`, { credentials: "omit" });
+    if (!res.ok) return;
+    const data = await res.json();
+    const published = Array.isArray(data.published) ? data.published : [];
+    if (!published.length) return;
+
+    const heroRoot = document.querySelector('.showcase-rotator[data-rotator="hero"]');
+    const orderRoot = document.querySelector('.order-tray-rotator[data-rotator="order"]');
+    if (heroRoot) heroRoot.innerHTML = published.map(buildHeroPicture).join("");
+    if (orderRoot) orderRoot.innerHTML = published.map(buildOrderPicture).join("");
+    applyChalkPriceImage(BUNDLES.tray1.price);
+    initImageRotators();
+  } catch (_) {
+    // Keep HTML defaults if the asset API is unavailable.
+  }
+}
+
+applyChalkPriceImage(BUNDLES.tray1.price);
+
 /* ---------- Ticker: always covers the screen, loops seamlessly ---------- */
 const TICKER_ITEMS = [
   "Fresh eggs every week",
-  "30 eggs for $12",
+  "30 eggs for $13",
   "Pickup Friday & Saturday",
   "Paddy's Markets Flemington",
 ];
@@ -164,6 +467,10 @@ function setQuantity(qty) {
   const next = Math.min(10, Math.max(1, qty));
   quantityInput.value = String(next);
   qtyValue.textContent = String(next);
+  // Brief pop so the quantity change registers visually.
+  qtyValue.classList.remove("bump");
+  void qtyValue.offsetWidth;
+  qtyValue.classList.add("bump");
   refreshSubmitPrice();
 }
 
@@ -171,12 +478,24 @@ document.getElementById("qty-minus").addEventListener("click", () => setQuantity
 document.getElementById("qty-plus").addEventListener("click", () => setQuantity(currentQuantity() + 1));
 
 function eggCount(bundleKey) {
-  return bundleKey === "box" ? 180 : bundleKey === "tray2" ? 60 : 30;
+  const b = BUNDLES[bundleKey];
+  return b && b.eggs ? b.eggs : 30;
 }
 
-// Human-clear order description: "20 trays (600 eggs)", "3 full boxes (540 eggs)"
+// Human-clear order description
 function describeOrder(bundleKey, qty) {
+  const b = BUNDLES[bundleKey] || BUNDLES.tray1;
   const eggs = (eggCount(bundleKey) * qty).toLocaleString("en-AU");
+  if (b.kind === "dozen") {
+    const unit = `${b.housing === "cage" ? "Cage" : "Free range"} dozen ${b.weight}`;
+    return qty === 1 ? `${unit} (12 eggs)` : `${qty}× ${unit} (${eggs} eggs)`;
+  }
+  if (b.kind === "case") {
+    const unit = `${b.housing === "cage" ? "Cage" : "Free range"} case ${b.weight}`;
+    return qty === 1
+      ? `${unit} (15 dozens, 180 eggs)`
+      : `${qty}× ${unit} (${eggs} eggs)`;
+  }
   if (bundleKey === "box") {
     return qty === 1
       ? `Full box (6 trays, 180 eggs)`
@@ -254,16 +573,52 @@ if (Number.isFinite(traysLeft) && traysLeft > 0) {
 
 /* ---------- Live prices and stock from the shop API ---------- */
 const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://getyolko.com";
+applyPublishedAssets(API_BASE);
+
+const DOZEN_PUBLIC_KEYS = ["cage600", "cage700", "cage800", "fr600", "fr700", "fr800"];
+
+/** Dozen packs stay off the public site until admin sets stock > 0. */
+function applyDozenVisibility(settings) {
+  const live = Number(settings.dozensAvailable) > 0;
+  const block = document.getElementById("dozen-block");
+  if (block) block.hidden = !live;
+  document.querySelectorAll("[data-dozen-picker]").forEach((el) => {
+    el.hidden = !live;
+  });
+  // If dozens were selected but are now hidden, fall back to tray1
+  if (!live) {
+    const selected = form?.querySelector('input[name="bundle"]:checked');
+    if (selected && DOZEN_PUBLIC_KEYS.includes(selected.value)) {
+      const tray1 = form.querySelector('input[name="bundle"][value="tray1"]');
+      if (tray1) {
+        tray1.checked = true;
+        tray1.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+  }
+}
 
 function applySettings(settings) {
   const p = settings.prices || {};
-  if (p.tray1) BUNDLES.tray1.price = p.tray1;
-  if (p.tray2) BUNDLES.tray2.price = p.tray2;
-  if (p.box) BUNDLES.box.price = p.box;
+  BUNDLE_KEYS.forEach((key) => {
+    if (Number.isFinite(Number(p[key])) && Number(p[key]) > 0) {
+      BUNDLES[key].price = Number(p[key]);
+    }
+  });
 
   const p1 = BUNDLES.tray1.price;
   const perEgg = Math.round((p1 / 30) * 100);
   const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
+
+  cacheTray1Price(p1);
+  applyChalkPriceImage(p1);
+  // Warm nearby chalk frames so the next price tweak crossfades instantly.
+  [p1 - 1, p1 + 1, p1 - 2, p1 + 2]
+    .filter((n) => CHALK_PRICES.includes(n))
+    .forEach((n) => {
+      preloadImage(chalkHeroUrls(n).primary);
+      preloadImage(chalkOrderUrls(n).primary);
+    });
 
   // Hero
   const badge = document.querySelector(".badge-price");
@@ -280,15 +635,15 @@ function applySettings(settings) {
   const ctaStrong = document.querySelector(".mobile-cta-text strong");
   if (ctaStrong) ctaStrong.textContent = `30 eggs · $${p1}`;
 
-  // Price cards
-  const bigs = document.querySelectorAll(".price-big");
-  const pers = document.querySelectorAll(".price-per");
-  if (bigs[0]) bigs[0].textContent = `$${BUNDLES.tray1.price}`;
-  if (bigs[1]) bigs[1].textContent = `$${BUNDLES.tray2.price}`;
-  if (bigs[2]) bigs[2].textContent = `$${BUNDLES.box.price}`;
-  if (pers[0]) pers[0].innerHTML = `30 eggs · ${perEgg}&cent; each`;
-  if (pers[1]) pers[1].textContent = saving > 0 ? `60 eggs · save $${saving}` : "60 eggs";
-  if (pers[2]) pers[2].textContent = "6 trays · 180 eggs";
+  // Price cards — trays only (dozen cards use #price-* ids)
+  const trayCards = document.querySelectorAll(".price-grid:not(.dozen-grid) .price-big");
+  const trayPers = document.querySelectorAll(".price-grid:not(.dozen-grid) .price-per");
+  if (trayCards[0]) trayCards[0].textContent = `$${BUNDLES.tray1.price}`;
+  if (trayCards[1]) trayCards[1].textContent = `$${BUNDLES.tray2.price}`;
+  if (trayCards[2]) trayCards[2].textContent = `$${BUNDLES.box.price}`;
+  if (trayPers[0]) trayPers[0].innerHTML = `30 eggs · ${perEgg}&cent; each`;
+  if (trayPers[1]) trayPers[1].textContent = saving > 0 ? `60 eggs · save $${saving}` : "60 eggs";
+  if (trayPers[2]) trayPers[2].textContent = "6 trays · 180 eggs";
 
   // Form options and submit chip
   const bpTray1 = document.getElementById("bp-tray1");
@@ -297,6 +652,12 @@ function applySettings(settings) {
   if (bpTray1) bpTray1.textContent = `$${BUNDLES.tray1.price}`;
   if (bpTray2) bpTray2.textContent = `$${BUNDLES.tray2.price}`;
   if (bpBox) bpBox.textContent = `$${BUNDLES.box.price}`;
+  BUNDLE_KEYS.forEach((key) => {
+    const el = document.getElementById("bp-" + key);
+    if (el) el.textContent = "$" + BUNDLES[key].price;
+    const card = document.getElementById("price-" + key);
+    if (card) card.textContent = "$" + BUNDLES[key].price;
+  });
   refreshSubmitPrice();
 
   // Stock note
@@ -313,16 +674,128 @@ function applySettings(settings) {
     }
   }
 
-  // Tray weight (1.5kg or 1.75kg)
-  const weight = settings.trayWeight === "1.5" ? "1.5" : "1.75";
-  const size = weight === "1.5" ? "large" : "extra large";
-  const traySpec = document.getElementById("tray-spec");
-  if (traySpec) traySpec.textContent = `${size[0].toUpperCase()}${size.slice(1)}, ${weight}kg a tray`;
-  const faqEggs = document.getElementById("faq-eggs");
-  if (faqEggs) faqEggs.textContent = `Pace Farm cage ${size} eggs, 30 to a tray (${weight}kg). Same brand as the big shops, better price.`;
+  // Dozen packs: only on the public site when admin has stocked them
+  applyDozenVisibility(settings);
+
+  // Product type from admin (cage trays or free-range packs)
+  applyProductType(settings.trayWeight);
 
   // Pickup days and hours
   if (settings.pickup) applyPickup(settings.pickup);
+
+  // Keep SERP/social/JSON-LD in sync with live admin settings
+  applySeoMeta(settings);
+}
+
+function setMetaContent(attr, key, value) {
+  let el = document.head.querySelector(`meta[${attr}="${key}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", value);
+}
+
+function applySeoMeta(settings) {
+  const p1 = BUNDLES.tray1.price;
+  const priceKey = chalkPriceKey(p1);
+  const title = `YOLKO | 30 Eggs for $${p1} at Flemington Markets`;
+  const description = `Fresh Pace Farm eggs at Paddy's Markets Flemington. 30 eggs for $${p1}. Book online and pick up Friday or Saturday at Building D, Sydney Markets NSW.`;
+  const ogDescription = `Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.`;
+  const image = `https://getyolko.com/assets/chalk-tray/${priceKey}-1536.jpg?v=${CHALK_ASSET_VER}`;
+  const imageAlt = `Fresh Pace Farm egg trays · $${p1}/tray at the YOLKO stall`;
+
+  document.title = title;
+  setMetaContent("name", "description", description);
+  setMetaContent("property", "og:title", title);
+  setMetaContent("property", "og:description", ogDescription);
+  setMetaContent("property", "og:image", image);
+  setMetaContent("property", "og:image:alt", imageAlt);
+  setMetaContent("name", "twitter:title", title);
+  setMetaContent("name", "twitter:description", ogDescription);
+  setMetaContent("name", "twitter:image", image);
+  setMetaContent("name", "twitter:image:alt", imageAlt);
+
+  const script = document.getElementById("yolko-jsonld");
+  if (!script) return;
+  let data;
+  try {
+    data = JSON.parse(script.textContent);
+  } catch {
+    return;
+  }
+  const graph = Array.isArray(data["@graph"]) ? data["@graph"] : [];
+  const business = graph.find((n) => n && n["@id"] === "https://getyolko.com/#business");
+  const product = graph.find((n) => n && n["@id"] === "https://getyolko.com/#product-tray");
+
+  if (business) {
+    business.image = [image, "https://getyolko.com/assets/studio-tray-928.jpg?v=71"];
+    const pickup = settings && settings.pickup;
+    if (pickup && typeof pickup === "object") {
+      business.openingHoursSpecification = Object.keys(pickup)
+        .filter((day) => pickup[day] && pickup[day].enabled)
+        .map((day) => ({
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: day,
+          opens: pickup[day].open,
+          closes: pickup[day].close,
+        }));
+    }
+  }
+
+  if (product) {
+    product.image = image;
+    if (!product.offers || typeof product.offers !== "object") product.offers = { "@type": "Offer" };
+    product.offers.price = Number(p1).toFixed(2);
+    product.offers.priceCurrency = "AUD";
+    product.offers.availability = "https://schema.org/InStock";
+    product.offers.url = "https://getyolko.com/#order";
+    product.offers.seller = { "@id": "https://getyolko.com/#business" };
+  }
+
+  script.textContent = JSON.stringify(data);
+}
+
+const PRODUCT_TYPES = {
+  "1.75": {
+    shortSpec: "Cage · Extra large · 1.75kg",
+    packLine: "Cage eggs · 1.75kg tray",
+    faq: "Pace Farm cage eggs, 30 to a tray (1.75kg). The same brand you'll find in the big supermarkets, for less.",
+    alt: "Cage eggs · 1.75kg tray",
+  },
+  "1.5": {
+    shortSpec: "Cage · Large · 1.5kg",
+    packLine: "Cage eggs · 1.5kg tray",
+    faq: "Pace Farm cage eggs, 30 to a tray (1.5kg). The same brand you'll find in the big supermarkets, for less.",
+    alt: "Cage eggs · 1.5kg tray",
+  },
+  "fr-700": {
+    shortSpec: "Free range · 700g",
+    packLine: "Free range · 700g",
+    faq: "Pace Farm free range eggs, 700g pack. The same brand you'll find in the big supermarkets, for less.",
+    alt: "Free range · 700g Pace Farm eggs",
+  },
+  "fr-600": {
+    shortSpec: "Free range · 600g",
+    packLine: "Free range · 600g",
+    faq: "Pace Farm free range eggs, 600g pack. The same brand you'll find in the big supermarkets, for less.",
+    alt: "Free range · 600g Pace Farm eggs",
+  },
+};
+
+function applyProductType(key) {
+  const product = PRODUCT_TYPES[key] || PRODUCT_TYPES["1.75"];
+  const traySpec = document.getElementById("tray-spec");
+  if (traySpec) traySpec.textContent = product.shortSpec;
+  const packLine = document.getElementById("pack-eggs-line");
+  if (packLine) packLine.textContent = product.packLine;
+  const faqEggs = document.getElementById("faq-eggs");
+  if (faqEggs) faqEggs.textContent = product.faq;
+  const heroImg = document.getElementById("hero-tray-img");
+  if (heroImg) heroImg.alt = `${product.alt} — fresh Pace Farm tray`;
+  const orderImg = document.getElementById("order-tray-img");
+  if (orderImg) orderImg.alt = product.alt;
 }
 
 function formatTime(hhmm) {
@@ -348,8 +821,8 @@ function nextPickupDate(dayName) {
   const get = (type) => parts.find((p) => p.type === type)?.value;
   const todayIdx = DAY_INDEX[{ Sun: "Sunday", Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday" }[get("weekday")]];
 
-  // Anchor on Sydney's calendar date as a UTC instant, then add whole days —
-  // no fixed offset, so DST transitions never shift the result by a day.
+  // Anchor on Sydney's calendar date as a UTC instant, then add whole days.
+  // No fixed offset, so DST transitions never shift the result by a day.
   const base = Date.UTC(Number(get("year")), Number(get("month")) - 1, Number(get("day")));
   let ahead = (DAY_INDEX[dayName] - todayIdx + 7) % 7;
   if (ahead === 0) ahead = 7;
@@ -373,7 +846,7 @@ function applyPickup(pickup) {
   const cardsBox = document.querySelector(".day-cards");
   if (cardsBox) {
     cardsBox.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
+      const hours = `${formatTime(pickup[day].open)} to ${formatTime(pickup[day].close)}`;
       return `<article class="day-card">
         <p class="day-name">${day} ${nextPickupDate(day)}</p>
         <p class="day-time">${hours}</p>
@@ -387,7 +860,7 @@ function applyPickup(pickup) {
   if (seg) {
     const pick = enabledDays.includes(previousChoice) ? previousChoice : enabledDays[enabledDays.length - 1];
     seg.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} – ${formatTime(pickup[day].close)}`;
+      const hours = `${formatTime(pickup[day].open)} to ${formatTime(pickup[day].close)}`;
       return `<label class="seg-opt">
         <input type="radio" name="pickupDay" value="${day}"${day === pick ? " checked" : ""}>
         <span class="seg-day">${day} ${nextPickupDate(day)}</span>
@@ -501,19 +974,90 @@ function collectBooking() {
     quantity,
     total: bundle.price * quantity,
     orderLabel: describeOrder(bundleKey, quantity),
+    company: String(data.get("company") || "").trim(),
   };
 }
 
 function createOrder(b) {
-  return fetch(`${API_BASE}/api/orders`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: b.name, phone: b.phoneDigits, bundle: b.bundleKey, pickupDay: b.pickupDay, pickupDate: b.pickupDate, quantity: b.quantity }),
-  })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((d) => (d && d.id ? d.id : null))
-    .catch(() => null);
+  return ensureOrderToken()
+    .then((token) =>
+      fetch(`${API_BASE}/api/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: b.name,
+          phone: b.phoneDigits,
+          bundle: b.bundleKey,
+          pickupDay: b.pickupDay,
+          pickupDate: b.pickupDate,
+          quantity: b.quantity,
+          company: b.company || "",
+          token: token || "",
+        }),
+      })
+    )
+    .then(async (r) => {
+      orderToken = null;
+      orderTokenAt = 0;
+      if (r.status === 429) return { error: "rate" };
+      if (r.status === 403) {
+        const d = await r.json().catch(() => ({}));
+        if (d.code === "geo") return { error: "geo" };
+        return { error: "blocked" };
+      }
+      if (!r.ok) return null;
+      return r.json();
+    })
+    .then((d) => {
+      if (!d) return null;
+      if (d.error) return d;
+      prefetchOrderToken();
+      return d.id ? { id: d.id } : null;
+    })
+    .catch(() => {
+      orderToken = null;
+      orderTokenAt = 0;
+      prefetchOrderToken();
+      return null;
+    });
 }
+
+let orderToken = null;
+let orderTokenAt = 0;
+
+function prefetchOrderToken() {
+  fetch(`${API_BASE}/api/order-token`)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => {
+      if (d && d.token) {
+        orderToken = d.token;
+        orderTokenAt = Date.now();
+      }
+    })
+    .catch(() => {});
+}
+
+async function ensureOrderToken() {
+  if (!orderToken || Date.now() - orderTokenAt > 8 * 60 * 1000) {
+    try {
+      const r = await fetch(`${API_BASE}/api/order-token`);
+      const d = r.ok ? await r.json() : null;
+      orderToken = d && d.token ? d.token : null;
+      orderTokenAt = Date.now();
+    } catch {
+      orderToken = null;
+      orderTokenAt = 0;
+    }
+  }
+  // Server rejects tokens younger than ~2.5s (bot slam). Wait out the floor.
+  const wait = 2600 - (Date.now() - orderTokenAt);
+  if (orderToken && wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+  return orderToken;
+}
+
+prefetchOrderToken();
+document.getElementById("order")?.addEventListener("pointerdown", prefetchOrderToken, { once: true, passive: true });
+document.getElementById("order")?.addEventListener("focusin", prefetchOrderToken, { once: true });
 
 async function openCheckout(orderId, fallbackUrl) {
   try {
@@ -592,14 +1136,26 @@ form.addEventListener("submit", async (event) => {
   submitBtn.disabled = true;
   submitBtn.setAttribute("aria-busy", "true");
   document.getElementById("submit-label").textContent = "Reserving…";
-  const [orderId] = await Promise.all([
+  const [orderResult] = await Promise.all([
     createOrder(booking),
     new Promise((resolve) => setTimeout(resolve, 850)),
   ]);
-  lastOrderId = orderId;
   submitBtn.disabled = false;
   submitBtn.removeAttribute("aria-busy");
   document.getElementById("submit-label").textContent = "Reserve";
+  if (orderResult?.error === "rate") {
+    showToast("Too many bookings from this phone or connection. Try again later.");
+    return;
+  }
+  if (orderResult?.error === "geo") {
+    showToast("Bookings are for Sydney pickup only.");
+    return;
+  }
+  if (orderResult?.error === "blocked") {
+    showToast("Couldn’t place that booking. Refresh and try again.");
+    return;
+  }
+  lastOrderId = orderResult?.id || null;
   showConfirmation(booking);
 });
 
@@ -614,10 +1170,22 @@ buynowBtn.addEventListener("click", async () => {
   buynowBtn.disabled = true;
   buynowLabel.textContent = "Opening checkout…";
 
-  const orderId = await createOrder(booking);
-  lastOrderId = orderId;
+  const orderResult = await createOrder(booking);
+  if (orderResult?.error === "rate") {
+    buynowBtn.disabled = false;
+    buynowLabel.textContent = "Buy now";
+    showToast("Too many bookings from this phone or connection. Try again later.");
+    return;
+  }
+  if (orderResult?.error === "geo" || orderResult?.error === "blocked") {
+    buynowBtn.disabled = false;
+    buynowLabel.textContent = "Buy now";
+    showToast(orderResult.error === "geo" ? "Bookings are for Sydney pickup only." : "Couldn’t place that booking. Refresh and try again.");
+    return;
+  }
+  lastOrderId = orderResult?.id || null;
   const fallback = config.stripeLinks && config.stripeLinks[booking.bundleKey];
-  const ok = await openCheckout(orderId, fallback);
+  const ok = await openCheckout(lastOrderId, fallback);
 
   if (!ok) {
     buynowBtn.disabled = false;
