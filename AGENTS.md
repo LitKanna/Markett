@@ -112,13 +112,11 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
   `META_ADSET_IDS`). Manual/CLI: `node infra/meta-stock-sync.mjs`. Cron every 15m in
   `wrangler.toml`. Admin check: `GET/POST /api/meta-ads-stock-sync` with admin key.
 
-### Studio hero branding
-Only `studio-tray-v2` was intentionally edited to a **small same-corner YOLKO**
-(user request for that one stacked-boxes shot). Do **not** regenerate `v5` / `v6` /
-other heroes unless the user explicitly asks. Prefer Higgsfield MCP for branding
-edits — not Cursor `GenerateImage`. After asset changes: write size variants +
-`.webp`, bump `?v=` in `index.html`, pin `DEPLOY_SHA`, bump `X-Yolko-Build`,
-`npx wrangler deploy`.
+### Studio hero images (paused)
+Branded `studio-tray*` heroes (YOLKO on boxes + broken yellow tray) are **filtered out**
+of the live rotator in `resolveLiveAssets` until remade **without** any YOLKO wordmark.
+Chalk-tray heroes stay (chalkboard price only — not the YOLKO logo).
 
-**Higgsfield auth:** Cloud agents load MCP OAuth **only at start**. If Higgsfield
-shows `needsAuth`, start a **new** cloud agent after OAuth in Cursor desktop.
+**Blocked on Higgsfield:** MCP token expired (`Invalid or expired token`). Re-auth in
+Cursor desktop (Higgsfield MCP → Log out → ON → Google OAuth) **before** starting a
+new cloud agent, then remake plain kraft box shots and a clean tray photo.

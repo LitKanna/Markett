@@ -875,7 +875,7 @@ function applySeoMeta(settings) {
   const product = graph.find((n) => n && n["@id"] === "https://getyolko.com/#product-tray");
 
   if (business) {
-    business.image = [image, "https://getyolko.com/assets/studio-tray-928.jpg?v=71"];
+    business.image = [image];
     business.description = `30 Pace Farm eggs for $${p1} at Paddy's Markets Flemington. Book online for Friday or Saturday pickup, or Saturday delivery.`;
     business.priceRange = `$${p1}–$${BUNDLES.box.price}`;
     const pickup = settings && settings.pickup;
