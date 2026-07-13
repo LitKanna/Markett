@@ -8,7 +8,7 @@ Paste into Google Ads (ads.google.com) as a Search campaign.
 |---|---|
 | Type | Search |
 | Budget | $5–10 per day to start |
-| Location | 8 km around Flemington NSW 2129 |
+| Location | 45 km around Flemington NSW 2129 (Sydney Markets) |
 | Bidding | Maximise clicks (switch to conversions later) |
 | Final URL | https://getyolko.com/ |
 | Schedule | Tuesday–Saturday (people plan and buy late week) |
