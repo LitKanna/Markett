@@ -846,8 +846,8 @@ function applySeoMeta(settings) {
   const p1 = BUNDLES.tray1.price;
   const priceKey = chalkPriceKey(p1);
   const title = `YOLKO | 30 Eggs for $${p1} at Flemington Markets`;
-  const description = `Fresh Pace Farm eggs at Paddy's Markets Flemington. 30 eggs for $${p1}. Book online and pick up Friday or Saturday at Building D, Sydney Markets NSW.`;
-  const ogDescription = `Fresh Pace Farm eggs at Paddy's Markets Flemington. Book online, pick up Friday or Saturday.`;
+  const description = `30 Pace Farm eggs for $${p1} at Paddy's Markets Flemington. Book online, pick up Friday 2–4pm or Saturday 5–8am. Saturday delivery +$5 within 45 km.`;
+  const ogDescription = `30 Pace Farm eggs for $${p1}. Book online, pick up Friday or Saturday at Flemington — or Saturday delivery +$5.`;
   const image = `https://getyolko.com/assets/chalk-tray/${priceKey}-1536.jpg?v=${CHALK_ASSET_VER}`;
   const imageAlt = `Fresh Pace Farm egg trays · $${p1}/tray at the YOLKO stall`;
 
@@ -876,6 +876,8 @@ function applySeoMeta(settings) {
 
   if (business) {
     business.image = [image, "https://getyolko.com/assets/studio-tray-928.jpg?v=71"];
+    business.description = `30 Pace Farm eggs for $${p1} at Paddy's Markets Flemington. Book online for Friday or Saturday pickup, or Saturday delivery.`;
+    business.priceRange = `$${p1}–$${BUNDLES.box.price}`;
     const pickup = settings && settings.pickup;
     if (pickup && typeof pickup === "object") {
       business.openingHoursSpecification = Object.keys(pickup)
@@ -891,6 +893,7 @@ function applySeoMeta(settings) {
 
   if (product) {
     product.image = image;
+    product.description = `30 fresh Pace Farm eggs for $${p1}. Pickup at Paddy's Markets Flemington Friday or Saturday.`;
     if (!product.offers || typeof product.offers !== "object") product.offers = { "@type": "Offer" };
     product.offers.price = Number(p1).toFixed(2);
     product.offers.priceCurrency = "AUD";
