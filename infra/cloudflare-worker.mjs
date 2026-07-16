@@ -607,6 +607,122 @@ async function syncMetaAdsForStock(env, traysAvailable) {
   return { ok: true, action: "noop", trays, wePaused: !!wePaused };
 }
 
+/** Public Meta Pixel ID (Events Manager → YOLKO). Override with env.META_PIXEL_ID. */
+const DEFAULT_META_PIXEL_ID = "2008953469766472";
+
+function metaPixelId(env) {
+  return String(env.META_PIXEL_ID || DEFAULT_META_PIXEL_ID).trim();
+}
+
+async function sha256Hex(value) {
+  const data = new TextEncoder().encode(String(value || ""));
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function normalizeMetaPhone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("61")) return digits;
+  if (digits.startsWith("0")) return "61" + digits.slice(1);
+  return digits;
+}
+
+function normalizeMetaEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+/**
+ * Send Purchase to Meta Conversions API (server-side).
+ * Needs META_ACCESS_TOKEN. Dedupes with browser Pixel via event_id = order.id.
+ */
+async function sendMetaPurchase(env, order, opts = {}) {
+  const token = String(env.META_ACCESS_TOKEN || "").trim();
+  const pixelId = metaPixelId(env);
+  if (!token) return { ok: false, skipped: true, reason: "no_token" };
+  if (!pixelId) return { ok: false, skipped: true, reason: "no_pixel" };
+  if (!order || order.paymentStatus !== "paid") {
+    return { ok: false, skipped: true, reason: "not_paid" };
+  }
+  if (order.metaPurchaseSent && !opts.force) {
+    return { ok: true, skipped: true, reason: "already_sent", eventId: order.id };
+  }
+
+  const email = normalizeMetaEmail(order.stripe?.email || opts.email || "");
+  const phone = normalizeMetaPhone(order.phone);
+  const userData = {};
+  if (email) userData.em = [await sha256Hex(email)];
+  if (phone) userData.ph = [await sha256Hex(phone)];
+  if (order.ip) userData.client_ip_address = String(order.ip);
+  if (order.ua) userData.client_user_agent = String(order.ua).slice(0, 512);
+  if (opts.fbp) userData.fbp = String(opts.fbp);
+  if (opts.fbc) userData.fbc = String(opts.fbc);
+
+  const paidAt = order.stripe?.paidAt || order.createdAt || new Date().toISOString();
+  let eventTime = Math.floor(new Date(paidAt).getTime() / 1000);
+  if (!Number.isFinite(eventTime)) eventTime = Math.floor(Date.now() / 1000);
+  // Meta accepts events up to ~7 days old for attribution windows.
+  const oldest = Math.floor(Date.now() / 1000) - 7 * 24 * 3600;
+  if (eventTime < oldest) eventTime = oldest + 60;
+
+  const value = Number(order.stripe?.amountTotal != null ? order.stripe.amountTotal : order.price) || 0;
+  const contentName =
+    order.bundle === "tray2" ? "2 egg trays (60 eggs)"
+      : order.bundle === "box" ? "Full box (180 eggs)"
+      : order.bundle === "tray1" ? "Egg tray (30 eggs)"
+      : String(order.bundle || "eggs");
+
+  const event = {
+    event_name: "Purchase",
+    event_time: eventTime,
+    event_id: String(order.id),
+    event_source_url: "https://getyolko.com/",
+    action_source: "website",
+    user_data: userData,
+    custom_data: {
+      currency: "AUD",
+      value,
+      content_type: "product",
+      content_name: contentName,
+      order_id: String(order.id),
+      num_items: Math.max(1, Number(order.quantity) || 1),
+    },
+  };
+
+  const url = `${META_GRAPH}/${encodeURIComponent(pixelId)}/events?access_token=${encodeURIComponent(token)}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data: [event], partner_agent: "yolko-worker" }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (body.error || !res.ok) {
+    return {
+      ok: false,
+      error: body.error?.message || `meta http ${res.status}`,
+      code: body.error?.code || null,
+      body,
+    };
+  }
+  return {
+    ok: true,
+    eventId: order.id,
+    eventsReceived: body.events_received ?? null,
+    fbtrace_id: body.fbtrace_id || null,
+    value,
+    contentName,
+  };
+}
+
+async function markMetaPurchaseSent(env, order, metaResult) {
+  if (!order?.id || !metaResult?.ok || metaResult.skipped) return order;
+  order.metaPurchaseSent = true;
+  order.metaPurchaseSentAt = new Date().toISOString();
+  order.metaPurchaseEventId = metaResult.eventId || order.id;
+  await env.DATA.put(order.id, JSON.stringify(order));
+  return order;
+}
+
 function normalizeDozenCosts(stored) {
   const defaults = DEFAULT_SETTINGS.dozenCosts;
   const fromMap = stored?.dozenCosts && typeof stored.dozenCosts === "object" ? stored.dozenCosts : null;
@@ -1151,20 +1267,86 @@ async function handleApi(request, env, url, ctx) {
     const orderId = session?.metadata?.orderId;
     const paid = session?.payment_status === "paid";
 
+    let meta = null;
+    let purchase = null;
     if (paid && orderId) {
-      const order = await env.DATA.get(orderId, "json");
-      if (order && order.paymentStatus !== "paid") {
-        order.paymentStatus = "paid";
-        order.sessionId = order.sessionId || sid;
-        order.stripe = stripeDetailsFromSession(session);
-        // Paid customers jump the queue: auto-confirm and allocate trays.
-        if (order.status === "new" || order.status === "cancelled") order.status = "confirmed";
-        await syncStock(env, order, order.status);
-        await env.DATA.put(orderId, JSON.stringify(order));
-        if (order.phone) await clearOpenOrder(env, order.phone);
+      let order = await env.DATA.get(orderId, "json");
+      if (order) {
+        const wasUnpaid = order.paymentStatus !== "paid";
+        if (wasUnpaid) {
+          order.paymentStatus = "paid";
+          order.sessionId = order.sessionId || sid;
+          order.stripe = stripeDetailsFromSession(session);
+          // Paid customers jump the queue: auto-confirm and allocate trays.
+          if (order.status === "new" || order.status === "cancelled") order.status = "confirmed";
+          await syncStock(env, order, order.status);
+          await env.DATA.put(orderId, JSON.stringify(order));
+          if (order.phone) await clearOpenOrder(env, order.phone);
+        } else if (!order.stripe?.amountTotal) {
+          order.stripe = stripeDetailsFromSession(session);
+          await env.DATA.put(orderId, JSON.stringify(order));
+        }
+
+        // Meta CAPI Purchase (dedupe with browser Pixel via event_id = order.id)
+        const fbp = url.searchParams.get("fbp") || "";
+        const fbc = url.searchParams.get("fbc") || "";
+        meta = await sendMetaPurchase(env, order, {
+          email: session?.customer_details?.email || order.stripe?.email || "",
+          fbp: fbp || undefined,
+          fbc: fbc || undefined,
+        });
+        if (meta?.ok && !meta.skipped) {
+          order = await markMetaPurchaseSent(env, order, meta);
+        }
+        purchase = {
+          eventId: order.id,
+          value: Number(order.stripe?.amountTotal != null ? order.stripe.amountTotal : order.price) || 0,
+          currency: "AUD",
+          contentName:
+            order.bundle === "tray2" ? "2 egg trays (60 eggs)"
+              : order.bundle === "box" ? "Full box (180 eggs)"
+              : order.bundle === "tray1" ? "Egg tray (30 eggs)"
+              : String(order.bundle || "eggs"),
+          numItems: Math.max(1, Number(order.quantity) || 1),
+        };
       }
     }
-    return json({ paid });
+    return json({
+      paid,
+      purchase,
+      meta: meta
+        ? { ok: meta.ok, skipped: !!meta.skipped, reason: meta.reason || null, error: meta.error || null }
+        : null,
+      pixelId: metaPixelId(env),
+    });
+  }
+
+  // Admin: backfill Meta Purchase for a paid order (e.g. first sale before CAPI existed)
+  if (url.pathname === "/api/meta-purchase-backfill" && request.method === "POST") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const body = await request.json().catch(() => null);
+    const id = String(body?.id || "");
+    if (!id.startsWith("order:")) return json({ error: "bad order" }, 400);
+    let order = await env.DATA.get(id, "json");
+    if (!order) return json({ error: "not found" }, 404);
+    const force = Boolean(body?.force);
+    const meta = await sendMetaPurchase(env, order, {
+      force,
+      email: body?.email || order.stripe?.email || "",
+      fbp: body?.fbp || undefined,
+      fbc: body?.fbc || undefined,
+    });
+    if (meta?.ok && !meta.skipped) {
+      order = await markMetaPurchaseSent(env, order, meta);
+    }
+    return json({
+      ok: !!meta?.ok,
+      orderId: id,
+      metaPurchaseSent: !!order.metaPurchaseSent,
+      metaPurchaseSentAt: order.metaPurchaseSentAt || null,
+      ...meta,
+      pixelId: metaPixelId(env),
+    });
   }
 
   // Admin: set Stripe public business name to YOLKO (Checkout "Pay …" header)
@@ -3381,7 +3563,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "138",
+        "X-Yolko-Build": "140",
       },
     });
   },

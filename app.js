@@ -1070,13 +1070,44 @@ fetch(`${API_BASE}/api/settings`)
   .catch(() => {});
 
 /* ---------- Payment confirmation on return from Stripe ---------- */
+function cookieValue(name) {
+  const m = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/[$()*+.?[\\\]^{|}]/g, "\\$&") + "=([^;]*)"));
+  return m ? decodeURIComponent(m[1]) : "";
+}
+
+function trackMetaPurchase(purchase) {
+  if (!purchase || typeof fbq !== "function") return;
+  try {
+    fbq(
+      "track",
+      "Purchase",
+      {
+        value: Number(purchase.value) || 0,
+        currency: purchase.currency || "AUD",
+        content_name: purchase.contentName || "eggs",
+        content_type: "product",
+        num_items: Math.max(1, Number(purchase.numItems) || 1),
+      },
+      { eventID: String(purchase.eventId || "") }
+    );
+  } catch (_) { /* ignore pixel errors */ }
+}
+
 const paidSession = new URLSearchParams(location.search).get("paid");
 if (paidSession && paidSession.startsWith("cs_")) {
   history.replaceState(null, "", location.pathname);
-  fetch(`${API_BASE}/api/confirm-payment?session=${encodeURIComponent(paidSession)}`)
+  const fbp = cookieValue("_fbp");
+  const fbc = cookieValue("_fbc");
+  const qs = new URLSearchParams({ session: paidSession });
+  if (fbp) qs.set("fbp", fbp);
+  if (fbc) qs.set("fbc", fbc);
+  fetch(`${API_BASE}/api/confirm-payment?${qs}`)
     .then((r) => (r.ok ? r.json() : null))
     .then((d) => {
-      if (d && d.paid) showToast("Payment received! Your eggs are locked in. See you at the market. 🥚");
+      if (d && d.paid) {
+        showToast("Payment received! Your eggs are locked in. See you at the market. 🥚");
+        trackMetaPurchase(d.purchase);
+      }
     })
     .catch(() => {});
 }
