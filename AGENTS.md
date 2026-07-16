@@ -111,6 +111,14 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
   paused them. Needs Worker secret `META_ACCESS_TOKEN` (optional `META_ADSET_ID` /
   `META_ADSET_IDS`). Manual/CLI: `node infra/meta-stock-sync.mjs`. Cron every 15m in
   `wrangler.toml`. Admin check: `GET/POST /api/meta-ads-stock-sync` with admin key.
+- **Purchase tracking (Pixel + CAPI):** Pixel ID `2008953469766472` is in `index.html`.
+  On Stripe return, `app.js` calls `/api/confirm-payment`, which sends a server Purchase via
+  Conversions API (`sendMetaPurchase`) and returns `purchase.eventId` so the browser
+  `fbq('track','Purchase',…,{eventID})` dedupes. Needs Worker secret `META_ACCESS_TOKEN`
+  (ads_management; prefer a System User / long-lived token — Graph Explorer user tokens
+  expire). Admin backfill: `POST /api/meta-purchase-backfill` with `{ "id": "order:…" }`.
+  Overview in Events Manager can lag hours; use Test events (`test_event_code`) for
+  immediate proof. Do not place live test bookings against production.
 
 ### Studio hero images (paused)
 Branded `studio-tray*` heroes (YOLKO on boxes + broken yellow tray) are **filtered out**
