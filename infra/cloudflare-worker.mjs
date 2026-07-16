@@ -1632,17 +1632,23 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 .sale-chip.refunded { background:var(--red-soft); color:var(--red); }
 .sale-contacts { display:grid; gap:8px; margin-top:14px; padding-left:8px; }
 .sale-row {
-  display:grid; grid-template-columns:34px minmax(0,1fr); gap:10px; align-items:center;
-  padding:10px 12px; border-radius:12px; background:rgba(23,23,20,.035);
+  display:grid; grid-template-columns:40px minmax(0,1fr); gap:12px; align-items:center;
+  padding:10px 12px; border-radius:14px; background:rgba(23,23,20,.035);
   border:1px solid rgba(23,23,20,.05); text-decoration:none; color:inherit;
   transition:background .15s ease, border-color .15s ease, transform .15s ease;
 }
 a.sale-row:hover { background:rgba(246,83,47,.06); border-color:rgba(246,83,47,.18); transform:translateY(-1px); }
 .sale-ico {
-  width:36px; height:36px; border-radius:11px; display:grid; place-items:center;
-  background:#fff; border:1px solid rgba(23,23,20,.08); color:var(--ink);
+  width:40px; height:40px; border-radius:14px; display:grid; place-items:center;
+  background:linear-gradient(145deg, #fff 0%, #fff8d6 100%);
+  border:1px solid rgba(23,23,20,.1); color:var(--ink);
+  box-shadow:2px 2px 0 rgba(23,23,20,.08);
 }
-.sale-ico svg { width:18px; height:18px; display:block; }
+.sale-ico svg { width:22px; height:22px; display:block; overflow:visible; }
+.sale-ico .i-fill { fill:var(--yellow); }
+.sale-ico .i-ink { fill:var(--ink); }
+.sale-ico .i-stroke { fill:none; stroke:var(--ink); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.sale-ico .i-soft { fill:#fff; }
 .sale-copy { min-width:0; }
 .sale-k {
   display:block; font-size:10px; font-weight:800; letter-spacing:.08em;
@@ -1658,30 +1664,33 @@ a.sale-row:hover { background:rgba(246,83,47,.06); border-color:rgba(246,83,47,.
   border-top:1px solid rgba(23,23,20,.08); flex-wrap:wrap;
 }
 .icon-btn {
-  width:44px; height:44px; min-height:44px; padding:0; display:inline-grid; place-items:center;
-  border:1px solid rgba(23,23,20,.10); border-radius:14px; background:#fff; color:var(--ink);
-  cursor:pointer; text-decoration:none; box-shadow:0 4px 12px rgba(23,23,20,.05);
-  transition:transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease;
+  width:48px; height:48px; min-height:48px; padding:0; display:inline-grid; place-items:center;
+  border:1.5px solid var(--ink); border-radius:16px; background:var(--yellow); color:var(--ink);
+  cursor:pointer; text-decoration:none; box-shadow:3px 3px 0 var(--ink);
+  transition:transform .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease;
 }
 .icon-btn:hover {
-  background:var(--ink); color:var(--paper); border-color:var(--ink);
-  box-shadow:0 8px 18px rgba(23,23,20,.14); transform:translateY(-1px);
+  background:var(--ink); color:var(--yellow); border-color:var(--ink);
+  box-shadow:4px 4px 0 var(--orange); transform:translate(-1px,-1px);
 }
-.icon-btn.danger { border-color:rgba(179,35,35,.18); color:var(--red); background:var(--red-soft); }
+.icon-btn.danger {
+  border-color:var(--ink); color:var(--ink); background:#ffd0c8;
+  box-shadow:3px 3px 0 var(--ink);
+}
 .icon-btn.danger:hover {
-  background:var(--red); color:#fff; border-color:var(--red);
-  box-shadow:0 8px 18px rgba(179,35,35,.22);
+  background:var(--red); color:#fff; border-color:var(--ink);
+  box-shadow:4px 4px 0 #7a1010;
 }
 .icon-btn:disabled, .icon-btn[aria-disabled="true"] { opacity:.4; pointer-events:none; }
-.icon-btn svg { width:20px; height:20px; display:block; }
+.icon-btn svg { width:22px; height:22px; display:block; overflow:visible; }
+.icon-btn .i-fill { fill:currentColor; opacity:.22; }
+.icon-btn .i-ink { fill:currentColor; }
+.icon-btn .i-stroke { fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.icon-btn .i-soft { fill:transparent; }
+.icon-btn:hover .i-fill { opacity:.35; }
 .sale-status { display:flex; flex-wrap:wrap; gap:8px; margin-left:auto; }
 .sale-status button {
   min-height:40px; padding:8px 14px; font-size:12px; border-radius:12px; box-shadow:none;
-}
-.o-actions { display:none; }
-.callbtn { background:var(--yellow); color:var(--ink); }
-
-x; padding:6px 10px; font-size:12px; box-shadow:none;
 }
 .o-actions { display:none; }
 .callbtn { background:var(--yellow); color:var(--ink); }
@@ -1719,8 +1728,6 @@ button.danger { background:var(--red-soft); color:var(--red); border-color:var(-
 .callbtn { background:var(--yellow); color:var(--ink); }
 button:not(.ghost):not(.danger):not(.icon-btn):hover { background:var(--orange); border-color:var(--orange); color:#fff; }
 .callbtn:hover { background:var(--ink); color:var(--paper); }
-.icon-btn:hover { background:var(--ink); color:var(--paper); border-color:var(--ink); }
-.icon-btn.danger:hover { background:var(--red); color:#fff; border-color:var(--red); }
 
 label { display:block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:6px; }
 input, select {
@@ -2323,22 +2330,48 @@ function orderEmail(o) {
 }
 
 function iconSvg(kind) {
-  const base = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
-  // Clearer commerce icons: zig-zag receipt, $ refund, envelope, handset, map pin.
-  if (kind === "receipt") {
-    return '<svg ' + base + '><path d="M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5 4 2z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>';
-  }
+  const vb = 'viewBox="0 0 24 24" aria-hidden="true"';
+  // Chunky YOLKO duotone: yellow blob + ink outline.
   if (kind === "mail") {
-    return '<svg ' + base + '><path d="M3.5 6.5h17a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18V8a1.5 1.5 0 0 1 1.5-1.5z"/><path d="m3 8.5 9 6 9-6"/></svg>';
+    return '<svg ' + vb + '>' +
+      '<ellipse class="i-fill" cx="12" cy="13" rx="10" ry="7.5"/>' +
+      '<path class="i-stroke" d="M3.2 7.2h17.6c.9 0 1.6.7 1.6 1.6v9.4c0 .9-.7 1.6-1.6 1.6H3.2c-.9 0-1.6-.7-1.6-1.6V8.8c0-.9.7-1.6 1.6-1.6z"/>' +
+      '<path class="i-stroke" d="m2.4 8.4 8.4 6.2c.7.5 1.7.5 2.4 0l8.4-6.2"/>' +
+      '<circle class="i-ink" cx="18.2" cy="6.2" r="1.5"/>' +
+    '</svg>';
   }
   if (kind === "phone") {
-    return '<svg ' + base + '><path d="M8.2 3.8 10 7.2a1.2 1.2 0 0 1-.3 1.4L8.4 10a12.5 12.5 0 0 0 5.6 5.6l1.4-1.3a1.2 1.2 0 0 1 1.4-.3l3.4 1.8a1.2 1.2 0 0 1 .7 1.3l-.6 2.6a1.2 1.2 0 0 1-1.2 1C9.8 20.3 3.7 14.2 3.3 5.3a1.2 1.2 0 0 1 1-1.2l2.6-.6a1.2 1.2 0 0 1 1.3.7z"/></svg>';
+    return '<svg ' + vb + '>' +
+      '<circle class="i-fill" cx="12" cy="12" r="9.2"/>' +
+      '<path class="i-stroke" d="M8.1 4.2 10.2 8a1.1 1.1 0 0 1-.25 1.3L8.6 10.5a11.5 11.5 0 0 0 5 5l1.2-1.3a1.1 1.1 0 0 1 1.3-.25L19.8 16a1.1 1.1 0 0 1 .6 1.2l-.5 2.3a1.1 1.1 0 0 1-1.1.9C10 20 4 14 3.6 5.7a1.1 1.1 0 0 1 .9-1.1l2.3-.5a1.1 1.1 0 0 1 1.3.6z"/>' +
+      '<path class="i-ink" d="M14.8 5.2c2.2.6 3.9 2.3 4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+    '</svg>';
   }
   if (kind === "pin") {
-    return '<svg ' + base + '><path d="M12 21s-7-5.8-7-11a7 7 0 1 1 14 0c0 5.2-7 11-7 11z"/><circle cx="12" cy="10" r="2.25"/></svg>';
+    return '<svg ' + vb + '>' +
+      '<path class="i-fill" d="M12 21.5S4.5 15 4.5 9.2a7.5 7.5 0 1 1 15 0C19.5 15 12 21.5 12 21.5z"/>' +
+      '<path class="i-stroke" d="M12 21.5S4.5 15 4.5 9.2a7.5 7.5 0 1 1 15 0C19.5 15 12 21.5 12 21.5z"/>' +
+      '<circle class="i-soft" cx="12" cy="9.2" r="2.8"/>' +
+      '<circle class="i-ink" cx="12" cy="9.2" r="1.5"/>' +
+    '</svg>';
   }
-  // refund — money back (arrow + dollar)
-  return '<svg ' + base + '><path d="M3.5 12a8.5 8.5 0 1 0 2.4-5.9"/><path d="M3.5 4.5v4h4"/><path d="M12 7.5v9"/><path d="M9.8 9.3c.4-.7 1.2-1.1 2.2-1.1 1.3 0 2.2.7 2.2 1.8s-.9 1.8-2.2 1.8h-.9c-1.3 0-2.2.7-2.2 1.8s.9 1.8 2.2 1.8c1 0 1.8-.4 2.2-1.1"/></svg>';
+  if (kind === "receipt") {
+    return '<svg ' + vb + '>' +
+      '<path class="i-fill" d="M5 2.5h14v19l-2.2-1.4-2.2 1.4-2.2-1.4-2.2 1.4-2.2-1.4-2.2 1.4-2.2-1.4V2.5z"/>' +
+      '<path class="i-stroke" d="M5 2.5h14v19l-2.2-1.4-2.2 1.4-2.2-1.4-2.2 1.4-2.2-1.4-2.2 1.4-2.2-1.4V2.5z"/>' +
+      '<path class="i-ink" d="M8 8h8M8 11.5h8M8 15h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
+      '<circle class="i-ink" cx="16.5" cy="6" r="1.3"/>' +
+    '</svg>';
+  }
+  // refund — spinning coin coming back
+  return '<svg ' + vb + '>' +
+    '<circle class="i-fill" cx="12" cy="12" r="9"/>' +
+    '<circle class="i-stroke" cx="12" cy="12" r="9"/>' +
+    '<circle class="i-soft" cx="12" cy="12" r="6.2"/>' +
+    '<path class="i-ink" d="M12 8.2v7.6M10 9.4c.4-.7 1.1-1 2-1 1.2 0 2 .6 2 1.6s-.8 1.6-2 1.6h-.8c-1.2 0-2 .6-2 1.6s.8 1.6 2 1.6c.9 0 1.6-.3 2-1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>' +
+    '<path class="i-ink" d="M4.2 8.2A9 9 0 0 1 12 3.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>' +
+    '<path class="i-ink" d="M4.2 4.4v4h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>' +
+  '</svg>';
 }
 
 function contactRow(kind, label, value, href) {
@@ -3415,7 +3448,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "132",
+        "X-Yolko-Build": "133",
       },
     });
   },
