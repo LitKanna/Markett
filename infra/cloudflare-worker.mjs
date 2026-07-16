@@ -346,7 +346,7 @@ function stripeDetailsFromSession(session) {
 }
 
 const STRIPE_BRAND = "YOLKO";
-const STRIPE_SUPPORT_EMAIL = "getyolko@gmail.com";
+const STRIPE_SUPPORT_EMAIL = "getyolkonow@gmail.com";
 const STRIPE_SUPPORT_PHONE = "+61433975055";
 const STRIPE_BRAND_FLAG = "stripe:branded:yolko";
 
