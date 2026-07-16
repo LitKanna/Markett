@@ -1599,73 +1599,61 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
   font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
 }
 .badge-refunded {
-  flex-shrink:0; padding:3px 8px; border-ra.o-detail {
-  display:none; grid-column:1 / -1; gap:0; padding:8px 0 4px;
-  margin-top:2px;
-}
-.order.open .o-detail { display:grid; animation:saleIn .22s ease; }
-@keyframes saleIn {
-  from { opacity:0; transform:translateY(-4px); }
-  to { opacity:1; transform:none; }
+  flex-shrink:0; padding:3px 8px; border-radius:999px; background:var(--red-soft); color:var(--red);
+  font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
 }
 
+.o-detail {
+  display:none; grid-column:1 / -1; gap:0; padding:10px 0 6px;
+  margin-top:4px;
+}
+.order.open .o-detail { display:block; }
+
 .sale-card {
-  position:relative; overflow:hidden;
-  padding:16px 16px 14px; border:1px solid rgba(23,23,20,.10);
-  border-radius:16px; background:linear-gradient(180deg, #ffffff 0%, #fbfaf6 100%);
-  box-shadow:0 10px 28px rgba(23,23,20,.07), 0 1px 0 rgba(255,255,255,.8) inset;
+  margin-top:4px; padding:14px 14px 12px;
+  border:1px solid rgba(23,23,20,.12); border-radius:12px; background:#fff;
 }
-.sale-card::before {
-  content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
-  background:linear-gradient(180deg, var(--yellow), var(--orange));
-}
-.sale-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-left:8px; }
 .sale-name {
-  font-family:var(--display); font-weight:800; font-size:20px; letter-spacing:-.04em;
-  line-height:1.15; margin:0;
+  margin:0 0 12px; font-family:var(--display); font-weight:800; font-size:18px;
+  letter-spacing:-.03em; line-height:1.2;
 }
 .sale-chip {
-  flex-shrink:0; margin-top:2px; padding:5px 10px; border-radius:999px;
-  background:var(--ink); color:var(--yellow); font-size:10px; font-weight:800;
-  letter-spacing:.06em; text-transform:uppercase;
+  display:inline-block; margin-left:8px; padding:3px 8px; border-radius:999px; vertical-align:middle;
+  background:var(--ink); color:var(--yellow); font-size:9px; font-weight:800;
+  letter-spacing:.06em; text-transform:uppercase; position:relative; top:-2px;
 }
 .sale-chip.refunded { background:var(--red-soft); color:var(--red); }
-.sale-contacts { display:grid; gap:2px; margin-top:12px; padding-left:8px; }
-.sale-row {
-  display:block; padding:6px 0; text-decoration:none; color:inherit;
+.sale-contacts { display:grid; gap:10px; }
+.sale-row, a.sale-row {
+  display:block; text-decoration:none; color:inherit;
 }
-a.sale-row:hover .sale-v { color:var(--orange); }
 .sale-k {
-  display:block; font-size:10px; font-weight:700; letter-spacing:.06em;
-  text-transform:uppercase; color:var(--muted); margin-bottom:2px;
+  display:block; margin:0 0 2px; font-size:10px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
 }
 .sale-v {
-  display:block; font-size:14px; font-weight:600; line-height:1.35;
+  display:block; margin:0; font-size:14px; font-weight:600; line-height:1.4;
   word-break:break-word; white-space:pre-line; color:var(--ink);
 }
 .sale-v.muted { color:var(--muted); }
+a.sale-row:hover .sale-v { color:var(--orange); }
 .sale-tools {
-  display:flex; align-items:center; gap:8px; margin-top:14px; padding:12px 0 0 8px;
-  border-top:1px solid rgba(23,23,20,.08); flex-wrap:wrap;
+  display:flex; align-items:center; gap:8px; margin-top:14px; padding-top:12px;
+  border-top:1px solid rgba(23,23,20,.1); flex-wrap:wrap;
 }
 .icon-btn {
-  width:40px; height:40px; min-width:40px; min-height:40px; max-width:40px; max-height:40px;
-  padding:0; display:inline-grid; place-items:center; overflow:hidden;
-  border:1px solid rgba(23,23,20,.14); border-radius:10px; background:#fff; color:var(--ink);
-  cursor:pointer; text-decoration:none; box-shadow:none; flex:0 0 40px;
-  transition:background .15s ease, color .15s ease, border-color .15s ease;
+  width:36px; height:36px; min-width:36px; min-height:36px;
+  padding:0; display:inline-flex; align-items:center; justify-content:center; overflow:hidden;
+  border:1px solid rgba(23,23,20,.16); border-radius:8px; background:#fff; color:var(--ink);
+  cursor:pointer; text-decoration:none; box-shadow:none; flex:0 0 36px;
 }
 .icon-btn:hover { background:var(--ink); color:#fff; border-color:var(--ink); }
-.icon-btn.danger { border-color:rgba(179,35,35,.25); color:var(--red); background:#fff; }
+.icon-btn.danger { color:var(--red); border-color:rgba(179,35,35,.3); }
 .icon-btn.danger:hover { background:var(--red); color:#fff; border-color:var(--red); }
-.icon-btn:disabled, .icon-btn[aria-disabled="true"] { opacity:.4; pointer-events:none; }
-.icon-btn svg {
-  width:18px !important; height:18px !important; max-width:18px; max-height:18px;
-  display:block; flex:none;
-}
+.icon-btn svg { width:16px; height:16px; display:block; }
 .sale-status { display:flex; flex-wrap:wrap; gap:8px; margin-left:auto; }
 .sale-status button {
-  min-height:40px; padding:8px 14px; font-size:12px; border-radius:10px; box-shadow:none;
+  min-height:36px; padding:6px 12px; font-size:12px; border-radius:8px; box-shadow:none;
 }
 .o-actions { display:none; }
 .callbtn { background:var(--yellow); color:var(--ink); }
@@ -2316,9 +2304,9 @@ function iconSvg(kind) {
 
 function contactRow(label, value, href) {
   const val = value
-    ? '<span class="sale-v">' + escapeHtml(value) + '</span>'
-    : '<span class="sale-v muted">—</span>';
-  const inner = '<span class="sale-k">' + escapeHtml(label) + '</span>' + val;
+    ? '<div class="sale-v">' + escapeHtml(value) + '</div>'
+    : '<div class="sale-v muted">—</div>';
+  const inner = '<div class="sale-k">' + escapeHtml(label) + '</div>' + val;
   if (href && value) {
     return '<a class="sale-row" href="' + escapeHtml(href) + '">' + inner + '</a>';
   }
@@ -2352,10 +2340,7 @@ function saleCardHtml(o) {
     : "";
 
   return '<div class="sale-card" data-sale-id="' + escapeHtml(o.id) + '">' +
-    '<div class="sale-head">' +
-      '<h4 class="sale-name">' + escapeHtml(o.name || "—") + '</h4>' +
-      chip +
-    '</div>' +
+    '<h4 class="sale-name">' + escapeHtml(o.name || "—") + chip + '</h4>' +
     '<div class="sale-contacts">' +
       contactRow("Email", email || (canReceipt ? "…" : ""), email ? ("mailto:" + email) : "") +
       contactRow("Phone", phone, o.phone ? ("tel:" + o.phone) : "") +
