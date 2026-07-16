@@ -1630,44 +1630,39 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
   letter-spacing:.06em; text-transform:uppercase;
 }
 .sale-chip.refunded { background:var(--red-soft); color:var(--red); }
-.sale-contacts { display:grid; gap:8px; margin-top:14px; padding-left:8px; }
+.sale-contacts { display:grid; gap:2px; margin-top:12px; padding-left:8px; }
 .sale-row {
-  display:grid; grid-template-columns:32px minmax(0,1fr); gap:12px; align-items:center;
-  padding:10px 12px; border-radius:12px; background:rgba(23,23,20,.03);
-  border:1px solid transparent; text-decoration:none; color:inherit;
-  transition:background .15s ease, border-color .15s ease;
+  display:block; padding:6px 0; text-decoration:none; color:inherit;
 }
-a.sale-row:hover { background:rgba(23,23,20,.05); border-color:rgba(23,23,20,.06); }
-.sale-ico {
-  width:32px; height:32px; border-radius:10px; display:grid; place-items:center;
-  background:rgba(23,23,20,.04); color:var(--muted);
-}
-.sale-ico svg { width:16px; height:16px; display:block; }
-.sale-copy { min-width:0; }
+a.sale-row:hover .sale-v { color:var(--orange); }
 .sale-k {
   display:block; font-size:10px; font-weight:700; letter-spacing:.06em;
   text-transform:uppercase; color:var(--muted); margin-bottom:2px;
 }
 .sale-v {
-  display:block; font-size:13.5px; font-weight:650; line-height:1.35;
-  word-break:break-word; white-space:pre-line;
+  display:block; font-size:14px; font-weight:600; line-height:1.35;
+  word-break:break-word; white-space:pre-line; color:var(--ink);
 }
-.sale-v.muted { color:var(--muted); font-weight:600; }
+.sale-v.muted { color:var(--muted); }
 .sale-tools {
   display:flex; align-items:center; gap:8px; margin-top:14px; padding:12px 0 0 8px;
   border-top:1px solid rgba(23,23,20,.08); flex-wrap:wrap;
 }
 .icon-btn {
-  width:40px; height:40px; min-height:40px; padding:0; display:inline-grid; place-items:center;
-  border:1px solid rgba(23,23,20,.12); border-radius:10px; background:#fff; color:var(--ink);
-  cursor:pointer; text-decoration:none; box-shadow:none;
+  width:40px; height:40px; min-width:40px; min-height:40px; max-width:40px; max-height:40px;
+  padding:0; display:inline-grid; place-items:center; overflow:hidden;
+  border:1px solid rgba(23,23,20,.14); border-radius:10px; background:#fff; color:var(--ink);
+  cursor:pointer; text-decoration:none; box-shadow:none; flex:0 0 40px;
   transition:background .15s ease, color .15s ease, border-color .15s ease;
 }
 .icon-btn:hover { background:var(--ink); color:#fff; border-color:var(--ink); }
-.icon-btn.danger { border-color:rgba(179,35,35,.2); color:var(--red); background:#fff; }
+.icon-btn.danger { border-color:rgba(179,35,35,.25); color:var(--red); background:#fff; }
 .icon-btn.danger:hover { background:var(--red); color:#fff; border-color:var(--red); }
 .icon-btn:disabled, .icon-btn[aria-disabled="true"] { opacity:.4; pointer-events:none; }
-.icon-btn svg { width:18px; height:18px; display:block; }
+.icon-btn svg {
+  width:18px !important; height:18px !important; max-width:18px; max-height:18px;
+  display:block; flex:none;
+}
 .sale-status { display:flex; flex-wrap:wrap; gap:8px; margin-left:auto; }
 .sale-status button {
   min-height:40px; padding:8px 14px; font-size:12px; border-radius:10px; box-shadow:none;
@@ -2310,29 +2305,20 @@ function orderEmail(o) {
 }
 
 function iconSvg(kind) {
-  const base = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
-  if (kind === "mail") {
-    return '<svg ' + base + '><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>';
-  }
-  if (kind === "phone") {
-    return '<svg ' + base + '><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.81.36 1.6.7 2.34a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.74-1.27a2 2 0 0 1 2.11-.45c.74.34 1.53.57 2.34.7A2 2 0 0 1 22 16.92z"/></svg>';
-  }
-  if (kind === "pin") {
-    return '<svg ' + base + '><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
-  }
+  // Hard width/height on the <svg> — CSS alone was letting icons explode to full lane size.
+  const base = 'xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:18px;height:18px;display:block"';
   if (kind === "receipt") {
     return '<svg ' + base + '><path d="M6 2h12v20l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2-2 1.2V2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>';
   }
+  // refund
   return '<svg ' + base + '><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v8"/><path d="M9.5 10c.4-.8 1.2-1.2 2.5-1.2 1.4 0 2.5.7 2.5 1.9s-1.1 1.9-2.5 1.9h-1c-1.4 0-2.5.7-2.5 1.9s1.1 1.9 2.5 1.9c1.3 0 2.1-.4 2.5-1.2"/></svg>';
 }
 
-function contactRow(kind, label, value, href) {
+function contactRow(label, value, href) {
   const val = value
     ? '<span class="sale-v">' + escapeHtml(value) + '</span>'
     : '<span class="sale-v muted">—</span>';
-  const inner =
-    '<span class="sale-ico">' + iconSvg(kind) + '</span>' +
-    '<span class="sale-copy"><span class="sale-k">' + label + '</span>' + val + '</span>';
+  const inner = '<span class="sale-k">' + escapeHtml(label) + '</span>' + val;
   if (href && value) {
     return '<a class="sale-row" href="' + escapeHtml(href) + '">' + inner + '</a>';
   }
@@ -2371,9 +2357,9 @@ function saleCardHtml(o) {
       chip +
     '</div>' +
     '<div class="sale-contacts">' +
-      contactRow("mail", "Email", email || (canReceipt ? "…" : ""), email ? ("mailto:" + email) : "") +
-      contactRow("phone", "Phone", phone, o.phone ? ("tel:" + o.phone) : "") +
-      contactRow("pin", isDelivery ? "Address" : "Pickup", addr, "") +
+      contactRow("Email", email || (canReceipt ? "…" : ""), email ? ("mailto:" + email) : "") +
+      contactRow("Phone", phone, o.phone ? ("tel:" + o.phone) : "") +
+      contactRow(isDelivery ? "Address" : "Pickup", addr, "") +
     '</div>' +
     '<div class="sale-tools">' +
       receiptBtn +
@@ -3400,7 +3386,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "134",
+        "X-Yolko-Build": "135",
       },
     });
   },
