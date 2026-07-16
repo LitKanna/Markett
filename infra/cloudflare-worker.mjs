@@ -2294,12 +2294,12 @@ function orderEmail(o) {
 
 function iconSvg(kind) {
   // Hard width/height on the <svg> — CSS alone was letting icons explode to full lane size.
-  const base = 'xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:18px;height:18px;display:block"';
+  const base = 'xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:18px;height:18px;display:block"';
   if (kind === "receipt") {
-    return '<svg ' + base + '><path d="M6 2h12v20l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2-2 1.2V2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>';
+    return '<svg ' + base + '><path d="M7 3.5h10v17l-1.8-1.1-1.7 1.1-1.7-1.1-1.7 1.1-1.7-1.1-1.7 1.1-1.7-1.1V3.5z"/><path d="M10 8h6M10 12h6M10 16h3.5"/></svg>';
   }
-  // refund
-  return '<svg ' + base + '><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v8"/><path d="M9.5 10c.4-.8 1.2-1.2 2.5-1.2 1.4 0 2.5.7 2.5 1.9s-1.1 1.9-2.5 1.9h-1c-1.4 0-2.5.7-2.5 1.9s1.1 1.9 2.5 1.9c1.3 0 2.1-.4 2.5-1.2"/></svg>';
+  // refund — clean return arrow (reads clearly at 18px)
+  return '<svg ' + base + '><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>';
 }
 
 function contactRow(label, value, href) {
@@ -3371,7 +3371,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "136",
+        "X-Yolko-Build": "137",
       },
     });
   },
