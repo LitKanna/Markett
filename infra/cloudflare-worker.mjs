@@ -1612,6 +1612,16 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 }
 .order.open .o-detail { display:grid; }
 .o-meta { font-size:11px; color:var(--muted); word-break:break-all; margin:0; }
+.customer-box {
+  padding:10px 12px; border:1px solid var(--ink); background:var(--paper);
+  font-size:13px; line-height:1.45;
+}
+.customer-box b { font-family:var(--display); font-size:12px; letter-spacing:-.02em; text-transform:uppercase; }
+.customer-name { font-weight:800; font-size:15px; margin-top:4px; word-break:break-word; }
+.customer-line { margin-top:4px; word-break:break-word; }
+.customer-label { color:var(--muted); font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-top:8px; }
+.customer-addr { font-weight:700; white-space:pre-line; }
+.customer-muted { color:var(--muted); font-size:12px; margin-top:2px; }
 .stripe-box {
   padding:10px 12px; border:1px solid var(--ink); background:var(--canvas);
   font-size:12.5px; line-height:1.45;
@@ -1866,7 +1876,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <h2>Orders</h2>
         <button class="ghost" onclick="loadOrders()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
       </div>
-      <p class="orders-hint">Paid customers go first and get trays held automatically. Tap a paid row for Stripe receipt details (email, card, receipt link).</p>
+      <p class="orders-hint">Paid customers go first and get trays held automatically. Tap a row for customer name, address, phone, and Stripe receipt.</p>
       <div id="orders"></div>
       <div id="orders-archive" class="archive"></div>
       <p class="empty" id="empty" style="display:none">No open orders.</p>
@@ -2247,6 +2257,47 @@ function shortBundle(o) {
   return trays + (trays === 1 ? " tray" : " trays");
 }
 
+function formatDeliveryAddress(o) {
+  const parts = [o.deliveryStreet, o.deliverySuburb, o.deliveryCity, o.deliveryPostcode]
+    .map(function(p) { return String(p || "").trim(); })
+    .filter(Boolean);
+  if (parts.length) return parts.join("\\n");
+  return String(o.deliveryAddress || "").trim();
+}
+
+function customerDetailsHtml(o) {
+  const isDelivery = o.fulfillment === "delivery";
+  const when = o.pickupDate
+    ? ((o.pickupDay || "") + " " + o.pickupDate).trim()
+    : (o.pickupDay || "");
+  const email = (o.stripe && o.stripe.email) ? String(o.stripe.email) : "";
+  let locationBlock = "";
+  if (isDelivery) {
+    const addr = formatDeliveryAddress(o);
+    locationBlock =
+      '<div class="customer-label">Delivery address</div>' +
+      (addr
+        ? '<div class="customer-line customer-addr">' + escapeHtml(addr) + '</div>'
+        : '<div class="customer-muted">No address saved on this order</div>') +
+      (o.deliveryKm != null
+        ? '<div class="customer-muted">~' + o.deliveryKm + ' km from Flemington' + (o.deliveryFee ? ' · +$' + o.deliveryFee + ' delivery' : '') + '</div>'
+        : (o.deliveryFee ? '<div class="customer-muted">+$' + o.deliveryFee + ' delivery</div>' : '')) +
+      (when ? '<div class="customer-muted">Saturday delivery · ' + escapeHtml(when) + '</div>' : '');
+  } else {
+    locationBlock =
+      '<div class="customer-label">Pickup</div>' +
+      '<div class="customer-line customer-addr">Paddy\\'s Markets Flemington</div>' +
+      (when ? '<div class="customer-muted">' + escapeHtml(when) + '</div>' : '');
+  }
+  return '<div class="customer-box">' +
+    '<b>Customer</b>' +
+    '<div class="customer-name">' + escapeHtml(o.name || "—") + '</div>' +
+    '<div class="customer-line">' + escapeHtml(o.phone ? fmtPhone(o.phone) : "—") + '</div>' +
+    (email ? '<div class="customer-line">' + escapeHtml(email) + '</div>' : '') +
+    locationBlock +
+  '</div>';
+}
+
 function orderRow(o, lineNo) {
   const signals = orderSignals(o, ALL_ORDERS);
   const prio = isPaid(o);
@@ -2261,13 +2312,17 @@ function orderRow(o, lineNo) {
     (prio ? '<span class="badge-paid">Paid</span>' : '') +
     (lineNo ? '<span class="badge-line">#' + lineNo + '</span>' : '');
 
+  const suburbHint = (o.fulfillment === "delivery" && (o.deliverySuburb || o.deliveryPostcode))
+    ? (" · " + escapeHtml([o.deliverySuburb, o.deliveryPostcode].filter(Boolean).join(" ")))
+    : "";
+
   return '<div class="order st-' + o.status + (prio ? ' prio' : '') + (signals.suspicious ? ' sus' : '') +
     (open ? ' open' : '') + '" data-id="' + escapeHtml(o.id) + '">' +
     '<div class="o-main">' +
       '<div class="o-name-row">' + badges + '<div class="o-name">' + escapeHtml(o.name) + '</div></div>' +
       '<div class="o-sub">' + shortBundle(o) +
         (o.fulfillment === "delivery" ? " · delivery" : " · pickup") +
-        (o.fulfillment === "delivery" && o.deliveryAddress ? " · " + escapeHtml(o.deliveryAddress) : "") +
+        suburbHint +
         (o.deliveryFee ? " · +$" + o.deliveryFee + " del" : "") +
         (o.stockTaken ? " · trays held" : "") +
         (signals.tags[0] ? " · " + escapeHtml(signals.tags[0].text) : "") +
@@ -2275,6 +2330,7 @@ function orderRow(o, lineNo) {
     '</div>' +
     '<div class="o-right"><span class="o-price">$' + o.price + '</span>' + flag + '</div>' +
     '<div class="o-detail" onclick="event.stopPropagation()">' +
+      customerDetailsHtml(o) +
       stripeReceiptHtml(o) +
       (signals.metaLine ? '<p class="o-meta">' + escapeHtml(signals.metaLine) + '</p>' : '') +
       '<div class="o-actions">' +
@@ -3288,7 +3344,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "128",
+        "X-Yolko-Build": "129",
       },
     });
   },
