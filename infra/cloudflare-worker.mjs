@@ -1639,10 +1639,10 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
 }
 a.sale-row:hover { background:rgba(246,83,47,.06); border-color:rgba(246,83,47,.18); transform:translateY(-1px); }
 .sale-ico {
-  width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
+  width:36px; height:36px; border-radius:11px; display:grid; place-items:center;
   background:#fff; border:1px solid rgba(23,23,20,.08); color:var(--ink);
 }
-.sale-ico svg { width:16px; height:16px; display:block; }
+.sale-ico svg { width:18px; height:18px; display:block; }
 .sale-copy { min-width:0; }
 .sale-k {
   display:block; font-size:10px; font-weight:800; letter-spacing:.08em;
@@ -1673,7 +1673,7 @@ a.sale-row:hover { background:rgba(246,83,47,.06); border-color:rgba(246,83,47,.
   box-shadow:0 8px 18px rgba(179,35,35,.22);
 }
 .icon-btn:disabled, .icon-btn[aria-disabled="true"] { opacity:.4; pointer-events:none; }
-.icon-btn svg { width:18px; height:18px; display:block; }
+.icon-btn svg { width:20px; height:20px; display:block; }
 .sale-status { display:flex; flex-wrap:wrap; gap:8px; margin-left:auto; }
 .sale-status button {
   min-height:40px; padding:8px 14px; font-size:12px; border-radius:12px; box-shadow:none;
@@ -2323,19 +2323,22 @@ function orderEmail(o) {
 }
 
 function iconSvg(kind) {
+  const base = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+  // Clearer commerce icons: zig-zag receipt, $ refund, envelope, handset, map pin.
   if (kind === "receipt") {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l3 3v17H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>';
+    return '<svg ' + base + '><path d="M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5 4 2z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>';
   }
   if (kind === "mail") {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>';
+    return '<svg ' + base + '><path d="M3.5 6.5h17a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18V8a1.5 1.5 0 0 1 1.5-1.5z"/><path d="m3 8.5 9 6 9-6"/></svg>';
   }
   if (kind === "phone") {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v2a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h2a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L7.1 9.9a16 16 0 0 0 6 6l1.5-1.1a2 2 0 0 1 2.1-.4c.8.3 1.7.5 2.6.6A2 2 0 0 1 22 16.9z"/></svg>';
+    return '<svg ' + base + '><path d="M8.2 3.8 10 7.2a1.2 1.2 0 0 1-.3 1.4L8.4 10a12.5 12.5 0 0 0 5.6 5.6l1.4-1.3a1.2 1.2 0 0 1 1.4-.3l3.4 1.8a1.2 1.2 0 0 1 .7 1.3l-.6 2.6a1.2 1.2 0 0 1-1.2 1C9.8 20.3 3.7 14.2 3.3 5.3a1.2 1.2 0 0 1 1-1.2l2.6-.6a1.2 1.2 0 0 1 1.3.7z"/></svg>';
   }
   if (kind === "pin") {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+    return '<svg ' + base + '><path d="M12 21s-7-5.8-7-11a7 7 0 1 1 14 0c0 5.2-7 11-7 11z"/><circle cx="12" cy="10" r="2.25"/></svg>';
   }
-  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>';
+  // refund — money back (arrow + dollar)
+  return '<svg ' + base + '><path d="M3.5 12a8.5 8.5 0 1 0 2.4-5.9"/><path d="M3.5 4.5v4h4"/><path d="M12 7.5v9"/><path d="M9.8 9.3c.4-.7 1.2-1.1 2.2-1.1 1.3 0 2.2.7 2.2 1.8s-.9 1.8-2.2 1.8h-.9c-1.3 0-2.2.7-2.2 1.8s.9 1.8 2.2 1.8c1 0 1.8-.4 2.2-1.1"/></svg>';
 }
 
 function contactRow(kind, label, value, href) {
@@ -3412,7 +3415,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "131",
+        "X-Yolko-Build": "132",
       },
     });
   },
