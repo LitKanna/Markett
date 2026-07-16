@@ -346,13 +346,17 @@ function stripeDetailsFromSession(session) {
 }
 
 const STRIPE_BRAND = "YOLKO";
+const STRIPE_SUPPORT_EMAIL = "getyolko@gmail.com";
+const STRIPE_SUPPORT_PHONE = "+61433975055";
 const STRIPE_BRAND_FLAG = "stripe:branded:yolko";
 
-/** Ensure Checkout shows YOLKO. Cached so Buy now is not blocked on Stripe account API. */
+/** Ensure Checkout / receipts show YOLKO — not the personal Stripe account email. */
 async function ensureStripeBranding(env) {
   if (!env.STRIPE_KEY) return { ok: false, error: "payments not configured" };
   const body = new URLSearchParams({
     "business_profile[name]": STRIPE_BRAND,
+    "business_profile[support_email]": STRIPE_SUPPORT_EMAIL,
+    "business_profile[support_phone]": STRIPE_SUPPORT_PHONE,
     "business_profile[support_url]": "https://getyolko.com",
     "business_profile[url]": "https://getyolko.com",
     "settings[payments][statement_descriptor]": STRIPE_BRAND,
@@ -372,6 +376,9 @@ async function ensureStripeBranding(env) {
     ok: true,
     name: account.business_profile?.name || null,
     statementDescriptor: account.settings?.payments?.statement_descriptor || null,
+    supportEmail: account.business_profile?.support_email || null,
+    supportPhone: account.business_profile?.support_phone || null,
+    supportUrl: account.business_profile?.support_url || null,
     email: account.email || null,
   };
 }
@@ -1175,8 +1182,11 @@ async function handleApi(request, env, url, ctx) {
         ok: true,
         name: account.business_profile?.name || null,
         statementDescriptor: account.settings?.payments?.statement_descriptor || null,
+        supportEmail: account.business_profile?.support_email || null,
+        supportPhone: account.business_profile?.support_phone || null,
         supportUrl: account.business_profile?.support_url || null,
         url: account.business_profile?.url || null,
+        accountEmail: account.email || null,
       });
     }
 
@@ -3371,7 +3381,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "137",
+        "X-Yolko-Build": "138",
       },
     });
   },
