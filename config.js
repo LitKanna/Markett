@@ -1,20 +1,23 @@
-// Fill these in to activate online payments and WhatsApp booking.
-// The site works without them: orders fall back to a copy-and-send message.
+// Fill these in to activate WhatsApp booking.
+// Online payments use dynamic Stripe Checkout from live admin prices
+// (Worker POST /api/checkout) — do NOT paste fixed Payment Links here.
+// Old buy.stripe.com links freeze prices ($12/$23/$66) and ignore delivery.
 
 const SITE_CONFIG = {
-  // Bump when site assets change — forces browsers to fetch fresh files.
-  assetVersion: "71",
+  // Bump when site assets change, to force browsers to fetch fresh files.
+  assetVersion: "81",
 
   // Your WhatsApp number in international format, digits only.
   // Example for an Australian mobile 0412 345 678: "61412345678"
   whatsappNumber: "61433975055",
 
-  // Stripe Payment Links (create at https://dashboard.stripe.com/payment-links)
-  // Paste the full link for each bundle. Leave empty to hide online payment.
+  // Deprecated: fixed Stripe Payment Links. Left empty on purpose.
+  // Buy now / Pay online always call /api/checkout with live tray/box prices
+  // (+ $5 delivery when the order is Saturday delivery).
   stripeLinks: {
-    tray1: "https://buy.stripe.com/bJe00l6Xwfphbw1fWk2wU03",
-    tray2: "https://buy.stripe.com/cNi3cx3Lk3GzdE9cK82wU04",
-    box: "https://buy.stripe.com/8x2eVf81A90TeIdeSg2wU05",
+    tray1: "",
+    tray2: "",
+    box: "",
   },
 
   // How many trays you have this week. Shown as a limited-stock note.

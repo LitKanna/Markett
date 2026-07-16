@@ -1,9 +1,9 @@
 # Ads Manager — copy-paste kit (2 minutes)
 
 Open this while creating the ad:
-https://adsmanager.facebook.com/adsmanager/manage/ads?act=1230148938407162&selected_adset_ids=120256182965760197
+https://adsmanager.facebook.com/adsmanager/manage/ads?act=1230148938407162&selected_adset_ids=120251266112450131
 
-Click **Create** → use **existing campaign** → **YOLKO — Flemington pickup** → ad set **Flemington 8km — Fri/Sat pickup**.
+Click **Create** → use **existing campaign** → **YOLKO — Flemington pickup** → ad set **Flemington 45km — Fri/Sat + delivery**.
 
 ---
 
@@ -17,7 +17,7 @@ Click **Create** → use **existing campaign** → **YOLKO — Flemington pickup
 | **Headline** | 30 Eggs $12 — Book Now, Pickup Fri/Sat |
 | **Description** | Paddy's Markets Flemington |
 | **Website URL** | https://getyolko.com/ |
-| **Call to action** | Learn more |
+| **Call to action** | Shop now |
 
 Click **Publish**.
 
@@ -26,7 +26,7 @@ Click **Publish**.
 ## After publishing
 
 1. Go to **Ad sets** tab
-2. Find **Flemington 8km — Fri/Sat pickup**
+2. Find **Flemington 45km — Fri/Sat + delivery**
 3. Flip the toggle **On** (left side)
 
 ---
@@ -60,10 +60,11 @@ Cafés, stalls, bakers: a full box of 180 fresh Pace Farm eggs for $66, ready ev
 
 ## Settings already done (don't change)
 
-- Budget: **$10/day**
-- Location: **Flemington + 8 km**
-- Age: **25–65**
+- Age: **18–65**
+- Location: **Flemington / Sydney Markets + 45 km** (same radius as website delivery)
 - Placements: **Facebook + Instagram** (feed, stories, reels)
+- CTA: **Shop now**
+- Auto-pause when website stock (`traysAvailable`) hits **0** (box = 6 trays)
 
 ---
 
