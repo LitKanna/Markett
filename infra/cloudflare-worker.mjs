@@ -1601,37 +1601,45 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
   flex-shrink:0; padding:2px 6px; background:var(--red-soft); color:var(--red); border:1px solid var(--red);
   font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
 }
-.badge-line {
-  flex-shrink:0; padding:2px 6px; background:var(--yellow); color:var(--ink); border:1px solid var(--ink);
-  font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;
-}
 
 .o-detail {
-  display:none; grid-column:1 / -1; gap:8px; padding:8px 0 4px;
+  display:none; grid-column:1 / -1; gap:10px; padding:10px 0 6px;
   border-top:1px dashed var(--line); margin-top:4px;
 }
 .order.open .o-detail { display:grid; }
-.o-meta { font-size:11px; color:var(--muted); word-break:break-all; margin:0; }
-.customer-box {
-  padding:10px 12px; border:1px solid var(--ink); background:var(--paper);
-  font-size:13px; line-height:1.45;
+
+.sale-card {
+  padding:12px 14px; border:1px solid var(--ink); background:var(--paper);
 }
-.customer-box b { font-family:var(--display); font-size:12px; letter-spacing:-.02em; text-transform:uppercase; }
-.customer-name { font-weight:800; font-size:15px; margin-top:4px; word-break:break-word; }
-.customer-line { margin-top:4px; word-break:break-word; }
-.customer-label { color:var(--muted); font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-top:8px; }
-.customer-addr { font-weight:700; white-space:pre-line; }
-.customer-muted { color:var(--muted); font-size:12px; margin-top:2px; }
-.stripe-box {
-  padding:10px 12px; border:1px solid var(--ink); background:var(--canvas);
-  font-size:12.5px; line-height:1.45;
+.sale-name { font-family:var(--display); font-weight:800; font-size:18px; letter-spacing:-.03em; line-height:1.15; }
+.sale-line {
+  display:block; margin-top:6px; font-size:13.5px; font-weight:600; color:var(--ink);
+  text-decoration:none; word-break:break-word;
 }
-.stripe-box b { font-family:var(--display); font-size:12px; letter-spacing:-.02em; text-transform:uppercase; }
-.stripe-box a { color:var(--orange); font-weight:800; text-decoration:none; }
-.stripe-box a:hover { text-decoration:underline; }
-.stripe-muted { color:var(--muted); font-size:11.5px; margin-top:4px; }
-.o-actions { display:flex; flex-wrap:wrap; gap:6px; }
-.o-actions a, .o-actions button { flex:0 1 auto; min-height:34px; padding:6px 10px; font-size:12px; }
+a.sale-line:hover { color:var(--orange); text-decoration:underline; }
+.sale-line.muted { color:var(--muted); font-weight:600; }
+.sale-addr {
+  margin-top:10px; padding-top:10px; border-top:1px solid var(--line);
+  font-size:13.5px; font-weight:700; line-height:1.4; white-space:pre-line; word-break:break-word;
+}
+.sale-tools {
+  display:flex; align-items:center; gap:8px; margin-top:12px; flex-wrap:wrap;
+}
+.icon-btn {
+  width:40px; height:40px; min-height:40px; padding:0; display:inline-grid; place-items:center;
+  border:1px solid var(--ink); background:var(--paper); color:var(--ink); cursor:pointer;
+  text-decoration:none; box-shadow:none;
+}
+.icon-btn:hover { background:var(--ink); color:var(--paper); }
+.icon-btn.danger { border-color:var(--red); color:var(--red); background:var(--red-soft); }
+.icon-btn.danger:hover { background:var(--red); color:#fff; }
+.icon-btn:disabled, .icon-btn[aria-disabled="true"] { opacity:.4; pointer-events:none; }
+.icon-btn svg { width:18px; height:18px; display:block; }
+.sale-status { display:flex; flex-wrap:wrap; gap:6px; margin-left:auto; }
+.sale-status button {
+  min-height:36px; padding:6px 10px; font-size:12px; box-shadow:none;
+}
+.o-actions { display:none; }
 .callbtn { background:var(--yellow); color:var(--ink); }
 
 .archive {
@@ -1876,7 +1884,6 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <h2>Orders</h2>
         <button class="ghost" onclick="loadOrders()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
       </div>
-      <p class="orders-hint">Paid customers go first and get trays held automatically. Tap a row for customer name, address, phone, and Stripe receipt.</p>
       <div id="orders"></div>
       <div id="orders-archive" class="archive"></div>
       <p class="empty" id="empty" style="display:none">No open orders.</p>
@@ -2265,36 +2272,54 @@ function formatDeliveryAddress(o) {
   return String(o.deliveryAddress || "").trim();
 }
 
-function customerDetailsHtml(o) {
-  const isDelivery = o.fulfillment === "delivery";
-  const when = o.pickupDate
-    ? ((o.pickupDay || "") + " " + o.pickupDate).trim()
-    : (o.pickupDay || "");
-  const email = (o.stripe && o.stripe.email) ? String(o.stripe.email) : "";
-  let locationBlock = "";
-  if (isDelivery) {
-    const addr = formatDeliveryAddress(o);
-    locationBlock =
-      '<div class="customer-label">Delivery address</div>' +
-      (addr
-        ? '<div class="customer-line customer-addr">' + escapeHtml(addr) + '</div>'
-        : '<div class="customer-muted">No address saved on this order</div>') +
-      (o.deliveryKm != null
-        ? '<div class="customer-muted">~' + o.deliveryKm + ' km from Flemington' + (o.deliveryFee ? ' · +$' + o.deliveryFee + ' delivery' : '') + '</div>'
-        : (o.deliveryFee ? '<div class="customer-muted">+$' + o.deliveryFee + ' delivery</div>' : '')) +
-      (when ? '<div class="customer-muted">Saturday delivery · ' + escapeHtml(when) + '</div>' : '');
-  } else {
-    locationBlock =
-      '<div class="customer-label">Pickup</div>' +
-      '<div class="customer-line customer-addr">Paddy\\'s Markets Flemington</div>' +
-      (when ? '<div class="customer-muted">' + escapeHtml(when) + '</div>' : '');
+function orderEmail(o) {
+  return (o.stripe && o.stripe.email) ? String(o.stripe.email) : "";
+}
+
+function iconSvg(kind) {
+  if (kind === "receipt") {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l3 3v17H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>';
   }
-  return '<div class="customer-box">' +
-    '<b>Customer</b>' +
-    '<div class="customer-name">' + escapeHtml(o.name || "—") + '</div>' +
-    '<div class="customer-line">' + escapeHtml(o.phone ? fmtPhone(o.phone) : "—") + '</div>' +
-    (email ? '<div class="customer-line">' + escapeHtml(email) + '</div>' : '') +
-    locationBlock +
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>';
+}
+
+function saleCardHtml(o) {
+  const email = orderEmail(o);
+  const phone = o.phone ? fmtPhone(o.phone) : "";
+  const isDelivery = o.fulfillment === "delivery";
+  const addr = isDelivery
+    ? formatDeliveryAddress(o)
+    : "Paddy\\'s Markets Flemington";
+  const canReceipt = !!(isPaid(o) || o.sessionId);
+  const canRefund = o.paymentStatus === "paid" && !isRefunded(o);
+  const receiptUrl = o.stripe && o.stripe.receiptUrl ? o.stripe.receiptUrl : "";
+
+  let receiptBtn = "";
+  if (canReceipt) {
+    if (receiptUrl) {
+      receiptBtn = '<a class="icon-btn" href="' + escapeHtml(receiptUrl) + '" target="_blank" rel="noopener" title="Receipt" aria-label="Receipt">' + iconSvg("receipt") + '</a>';
+    } else {
+      receiptBtn = '<button type="button" class="icon-btn" title="Receipt" aria-label="Receipt" onclick="openReceipt(\\'' + o.id + '\\')">' + iconSvg("receipt") + '</button>';
+    }
+  }
+  const refundBtn = canRefund
+    ? '<button type="button" class="icon-btn danger" title="Refund" aria-label="Refund" onclick="refundOrder(\\'' + o.id + '\\')">' + iconSvg("refund") + '</button>'
+    : "";
+
+  return '<div class="sale-card" data-sale-id="' + escapeHtml(o.id) + '">' +
+    '<div class="sale-name">' + escapeHtml(o.name || "—") + '</div>' +
+    (email
+      ? '<a class="sale-line" href="mailto:' + escapeHtml(email) + '">' + escapeHtml(email) + '</a>'
+      : '<div class="sale-line muted" data-email-slot>' + (canReceipt ? "…" : "—") + '</div>') +
+    (phone
+      ? '<a class="sale-line" href="tel:' + escapeHtml(o.phone) + '">' + escapeHtml(phone) + '</a>'
+      : '<div class="sale-line muted">—</div>') +
+    (addr ? '<div class="sale-addr">' + escapeHtml(addr) + '</div>' : '') +
+    '<div class="sale-tools">' +
+      receiptBtn +
+      refundBtn +
+      '<div class="sale-status">' + statusButtons(o) + '</div>' +
+    '</div>' +
   '</div>';
 }
 
@@ -2302,75 +2327,23 @@ function orderRow(o, lineNo) {
   const signals = orderSignals(o, ALL_ORDERS);
   const prio = isPaid(o);
   const open = OPEN_ORDER_ID === o.id;
-  let flag = "";
-  if (lineNo) flag = '<span class="o-flag">line ' + lineNo + '</span>';
-  else if (signals.suspicious) flag = '<span class="o-flag warn">check</span>';
-  else flag = '<span class="o-flag">' + fmtTime(o.createdAt).replace(/,.*/, "") + '</span>';
-
   const badges =
     (isRefunded(o) ? '<span class="badge-refunded">Refunded</span>' : '') +
-    (prio ? '<span class="badge-paid">Paid</span>' : '') +
-    (lineNo ? '<span class="badge-line">#' + lineNo + '</span>' : '');
-
-  const suburbHint = (o.fulfillment === "delivery" && (o.deliverySuburb || o.deliveryPostcode))
-    ? (" · " + escapeHtml([o.deliverySuburb, o.deliveryPostcode].filter(Boolean).join(" ")))
-    : "";
+    (prio ? '<span class="badge-paid">Paid</span>' : '');
+  const place = o.fulfillment === "delivery"
+    ? ([o.deliverySuburb, o.deliveryPostcode].filter(Boolean).join(" ") || "delivery")
+    : "pickup";
 
   return '<div class="order st-' + o.status + (prio ? ' prio' : '') + (signals.suspicious ? ' sus' : '') +
     (open ? ' open' : '') + '" data-id="' + escapeHtml(o.id) + '">' +
     '<div class="o-main">' +
       '<div class="o-name-row">' + badges + '<div class="o-name">' + escapeHtml(o.name) + '</div></div>' +
-      '<div class="o-sub">' + shortBundle(o) +
-        (o.fulfillment === "delivery" ? " · delivery" : " · pickup") +
-        suburbHint +
-        (o.deliveryFee ? " · +$" + o.deliveryFee + " del" : "") +
-        (o.stockTaken ? " · trays held" : "") +
-        (signals.tags[0] ? " · " + escapeHtml(signals.tags[0].text) : "") +
-      "</div>" +
+      '<div class="o-sub">' + shortBundle(o) + ' · ' + escapeHtml(place) + '</div>' +
     '</div>' +
-    '<div class="o-right"><span class="o-price">$' + o.price + '</span>' + flag + '</div>' +
+    '<div class="o-right"><span class="o-price">$' + o.price + '</span></div>' +
     '<div class="o-detail" onclick="event.stopPropagation()">' +
-      customerDetailsHtml(o) +
-      stripeReceiptHtml(o) +
-      (signals.metaLine ? '<p class="o-meta">' + escapeHtml(signals.metaLine) + '</p>' : '') +
-      '<div class="o-actions">' +
-        '<a class="callbtn" href="tel:' + o.phone + '">' + fmtPhone(o.phone) + '</a>' +
-        actionButtons(o) +
-      '</div>' +
+      saleCardHtml(o) +
     '</div>' +
-  '</div>';
-}
-
-function stripeReceiptHtml(o) {
-  if (!isPaid(o) && !isRefunded(o) && !o.sessionId) return "";
-  const s = o.stripe || {};
-  if (isRefunded(o)) {
-    const amt = s.refundAmount != null ? ("$" + s.refundAmount) : ("$" + o.price);
-    const when = s.refundedAt ? (" · " + fmtTime(s.refundedAt)) : "";
-    const email = s.email ? (" · " + escapeHtml(s.email)) : "";
-    return '<div class="stripe-box" data-stripe-id="' + escapeHtml(o.id) + '">' +
-      '<b>Stripe · Refunded</b>' +
-      '<div>Full refund ' + amt + email + when + '</div>' +
-      '<div class="stripe-muted">Money returned to the original card / payment method</div>' +
-    '</div>';
-  }
-  const hasAny = s.receiptUrl || s.amountTotal != null || s.email || s.cardLast4;
-  if (!hasAny) {
-    return '<div class="stripe-box" data-stripe-id="' + escapeHtml(o.id) + '"><b>Stripe</b><div class="stripe-muted">Loading receipt…</div></div>';
-  }
-  const amount = s.amountTotal != null ? ('$' + s.amountTotal + (s.currency ? ' ' + s.currency : '')) : ('$' + o.price);
-  const card = (s.cardBrand || s.cardLast4)
-    ? (' · ' + String(s.cardBrand || 'card') + (s.cardLast4 ? ' ••' + s.cardLast4 : ''))
-    : '';
-  const email = s.email ? (' · ' + escapeHtml(s.email)) : '';
-  const when = s.paidAt ? (' · ' + fmtTime(s.paidAt)) : '';
-  const link = s.receiptUrl
-    ? ('<div style="margin-top:6px"><a href="' + escapeHtml(s.receiptUrl) + '" target="_blank" rel="noopener">View Stripe receipt ↗</a></div>')
-    : (o.sessionId ? '<div class="stripe-muted" style="margin-top:6px">Fetching Stripe receipt…</div>' : '');
-  return '<div class="stripe-box" data-stripe-id="' + escapeHtml(o.id) + '">' +
-    '<b>Stripe · Paid</b>' +
-    '<div>' + amount + email + card + when + '</div>' +
-    link +
   '</div>';
 }
 
@@ -2451,24 +2424,50 @@ document.addEventListener("click", function(e) {
   }
 }, true);
 
-async function hydrateStripeReceipt(orderId) {
+async function fetchStripeDetails(orderId) {
   const order = ALL_ORDERS.find(function(o) { return o.id === orderId; });
-  if (!order || (!isPaid(order) && !order.sessionId)) return;
-  if (order.stripe && order.stripe.receiptUrl) return;
-  const box = document.querySelector('.stripe-box[data-stripe-id="' + CSS.escape(orderId) + '"]');
+  if (!order || (!isPaid(order) && !order.sessionId)) return null;
+  if (order.stripe && order.stripe.receiptUrl && order.stripe.email) return order.stripe;
   try {
     const res = await fetch("/api/stripe-receipt?id=" + encodeURIComponent(orderId), { headers: authHeaders() });
     const data = await res.json();
-    if (!res.ok || !data.stripe) {
-      if (box) box.innerHTML = '<b>Stripe</b><div class="stripe-muted">' + escapeHtml(data.error || "Could not load receipt") + '</div>';
-      return;
-    }
+    if (!res.ok || !data.stripe) return null;
     order.stripe = data.stripe;
     if (order.paymentStatus !== "paid" && data.stripe) order.paymentStatus = "paid";
-    if (box) box.outerHTML = stripeReceiptHtml(order);
+    return data.stripe;
   } catch (err) {
-    if (box) box.innerHTML = '<b>Stripe</b><div class="stripe-muted">Could not load receipt</div>';
+    return null;
   }
+}
+
+function refreshSaleCard(orderId) {
+  const order = ALL_ORDERS.find(function(o) { return o.id === orderId; });
+  const card = document.querySelector('.sale-card[data-sale-id="' + CSS.escape(orderId) + '"]');
+  if (!order || !card) return;
+  card.outerHTML = saleCardHtml(order);
+}
+
+async function hydrateStripeReceipt(orderId) {
+  const stripe = await fetchStripeDetails(orderId);
+  if (!stripe) return;
+  refreshSaleCard(orderId);
+}
+
+async function openReceipt(orderId) {
+  const order = ALL_ORDERS.find(function(o) { return o.id === orderId; });
+  if (!order) return;
+  let url = order.stripe && order.stripe.receiptUrl;
+  if (!url) {
+    toast("Opening receipt…");
+    const stripe = await fetchStripeDetails(orderId);
+    url = stripe && stripe.receiptUrl;
+    refreshSaleCard(orderId);
+  }
+  if (!url) {
+    toast("Receipt not ready yet");
+    return;
+  }
+  window.open(url, "_blank", "noopener");
 }
 
 const TEST_PHONES = { "0412345678": 1, "0498765432": 1 };
@@ -2604,15 +2603,12 @@ function renderBuyers(orders) {
   }).join("");
 }
 
-function actionButtons(o) {
+function statusButtons(o) {
   const btn = (status, label, cls) => '<button class="' + cls + '" onclick="setStatus(\\'' + o.id + '\\',\\'' + status + '\\')">' + label + '</button>';
-  const refundBtn = (o.paymentStatus === "paid" && !isRefunded(o))
-    ? '<button class="danger" onclick="refundOrder(\\'' + o.id + '\\')">Refund full</button>'
-    : "";
-  if (o.status === "new") return btn("confirmed", "Confirm", "") + btn("cancelled", "Cancel", "danger") + refundBtn;
-  if (o.status === "confirmed") return btn("done", "Picked up", "") + btn("new", "Unconfirm", "ghost") + btn("cancelled", "Cancel", "danger") + refundBtn;
-  if (o.status === "done") return btn("confirmed", "Undo pickup", "ghost") + btn("cancelled", "Cancel", "danger") + refundBtn;
-  return btn("new", "Reopen", "ghost") + refundBtn;
+  if (o.status === "new") return btn("confirmed", "Confirm", "") + btn("cancelled", "Cancel", "ghost");
+  if (o.status === "confirmed") return btn("done", "Done", "") + btn("cancelled", "Cancel", "ghost");
+  if (o.status === "done") return btn("confirmed", "Undo", "ghost");
+  return btn("new", "Reopen", "ghost");
 }
 
 async function refundOrder(id) {
@@ -2621,7 +2617,7 @@ async function refundOrder(id) {
   const who = order.name || "customer";
   const amt = order.stripe && order.stripe.amountTotal != null ? order.stripe.amountTotal : order.price;
   const email = (order.stripe && order.stripe.email) ? (" (" + order.stripe.email + ")") : "";
-  if (!confirm("Refund $" + amt + " to " + who + email + "?\\n\\nFull amount goes back to their original card. Order will be cancelled and trays released.")) return;
+  if (!confirm("Refund $" + amt + " to " + who + "?")) return;
   toast("Refunding via Stripe…");
   try {
     const res = await fetch("/api/refund", {
@@ -3344,7 +3340,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "129",
+        "X-Yolko-Build": "130",
       },
     });
   },
