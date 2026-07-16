@@ -1,7 +1,7 @@
 import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./delivery-zones.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "fad5578f461ff59edbcc276d8c4df0144dedac4e";
+const DEPLOY_SHA = "1a1e680699e2bf808af357524df7e634374da2e6";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
