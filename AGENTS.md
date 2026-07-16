@@ -119,6 +119,11 @@ a real failure. `.github/workflows/` handles GitHub Pages + Worker deploys only.
   expire). Admin backfill: `POST /api/meta-purchase-backfill` with `{ "id": "order:…" }`.
   Overview in Events Manager can lag hours; use Test events (`test_event_code`) for
   immediate proof. Do not place live test bookings against production.
+- **Live Sales ads:** campaign `YOLKO — Sales (Purchase)` on `act_1940573363326611`
+  ($14/day, Purchase). Cold ad set = Markets **50 km**; 3 ads (Price / Delivery / 2 trays).
+  Retarget ad set = site visitors 14d. Rebuild: `META_ACTIVATE=1 node infra/meta-sales-rebuild.mjs`.
+  Stock pause uses Worker secrets `META_ACCESS_TOKEN` + `META_ADSET_IDS`. See
+  `ads/facebook-instagram-ads.md`. Do **not** create per-suburb campaigns.
 
 ### Studio hero images (paused)
 Branded `studio-tray*` heroes (YOLKO on boxes + broken yellow tray) are **filtered out**
