@@ -71,8 +71,8 @@ const COLD_TARGETING = {
     ],
     location_types: ["home", "recent"],
   },
-  age_min: 25,
-  age_max: 55,
+  age_min: 18,
+  age_max: 65, // Meta max = 65+ (covers 75+)
   targeting_automation: { advantage_audience: 0 },
 };
 
