@@ -12,7 +12,7 @@ Click **Create** → use **existing campaign** → **YOLKO — Flemington pickup
 | Field | Paste this |
 |---|---|
 | **Page** | Yolko |
-| **Image** | https://getyolko.com/assets/pace-tray-175kg-1080.jpg |
+| **Image** | https://getyolko.com/assets/chalk-tray/13-square-560.jpg |
 | **Primary text** | 30 XL fresh eggs for $12. That's 40 cents an egg. Book your Pace Farm tray online now and pick it up at Paddy's Markets Flemington this coming Friday or Saturday. The website shows your exact pickup date when you book. Pay online for priority, or pay at pickup. |
 | **Headline** | 30 Eggs $12 — Book Now, Pickup Fri/Sat |
 | **Description** | Paddy's Markets Flemington |

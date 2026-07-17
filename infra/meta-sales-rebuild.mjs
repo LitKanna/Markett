@@ -31,7 +31,8 @@ const ACTIVATE = process.env.META_ACTIVATE === "1";
 
 const HUB = { latitude: -33.8667, longitude: 151.0694 };
 const IMAGE_CHALK = "c536706e7d6ea7b3cb8913c7f9c0283a";
-const IMAGE_TRAY = "c3dae4b9a4f94b0e9f36806c2b66b50c";
+// Do NOT reuse the deleted market-shelf pace-tray-175kg image (hash c3dae4b9…).
+const IMAGE_TRAY = IMAGE_CHALK;
 const IMAGE_EXISTING = "49a60c0db3f763fde3c25f30264e7fee";
 
 async function api(path, body = null, method = "GET") {
