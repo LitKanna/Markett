@@ -86,3 +86,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+# REMOVED: pace-tray-175kg market-shelf assets were deleted (do not regenerate).
+raise SystemExit("pace-tray-175kg market-shelf image was deleted — do not regenerate it")
+
