@@ -21,10 +21,8 @@ The storefront is **Saturday delivery only** (no market pickup). Form always sen
 `fulfillment=delivery`; Worker rejects `fulfillment=pickup`.
 `app.js` sets `API_BASE` to `https://getyolko.com` whenever the site is **not** served from a
 `getyolko.com` host (i.e. always in local dev). The `/api/*` calls (`settings`, `orders`,
-`checkout`) therefore hit production and fail silently in local dev. The booking flow
-(fill form → **Reserve** → confirmation receipt with WhatsApp link) degrades gracefully and
-works end-to-end locally **without** any backend for form UI, but checkout is **Buy now**
-only (Stripe). Do **not** place test bookings against production.
+`checkout`) therefore hit production and fail silently in local dev. Checkout is **Buy now**
+only (Stripe via `/api/buy-now`). Do **not** place test bookings against production.
 
 ### Dynamic Stripe Checkout (no fixed Payment Links)
 Buy now / Pay online call `POST /api/checkout`, which builds a Stripe Checkout Session from
