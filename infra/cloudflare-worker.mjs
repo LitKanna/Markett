@@ -886,7 +886,11 @@ async function handleApi(request, env, url, ctx) {
     const name = String(body?.name || "").trim().slice(0, 80);
     const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
     const bundle = BUNDLE_KEYS.includes(body?.bundle) ? body.bundle : null;
-    const fulfillment = body?.fulfillment === "delivery" ? "delivery" : "pickup";
+    // Storefront is delivery-only (Saturday). Reject legacy pickup payloads.
+    if (body?.fulfillment === "pickup") {
+      return json({ error: "Pickup is no longer available — Saturday delivery only", code: "delivery_only" }, 400);
+    }
+    const fulfillment = "delivery";
     let pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
     const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
     let pickupDate = String(body?.pickupDate || "").replace(/[^0-9A-Za-z ]/g, "").slice(0, 12);
@@ -1112,7 +1116,10 @@ async function handleApi(request, env, url, ctx) {
     const name = String(body?.name || "").trim().slice(0, 80);
     const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
     const bundle = BUNDLE_KEYS.includes(body?.bundle) ? body.bundle : null;
-    const fulfillment = body?.fulfillment === "delivery" ? "delivery" : "pickup";
+    if (body?.fulfillment === "pickup") {
+      return json({ error: "Pickup is no longer available — Saturday delivery only", code: "delivery_only" }, 400);
+    }
+    const fulfillment = "delivery";
     let pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
     const quantity = Math.min(20, Math.max(1, Math.floor(Number(body?.quantity)) || 1));
     let pickupDate = String(body?.pickupDate || "").replace(/[^0-9A-Za-z ]/g, "").slice(0, 12);
@@ -2069,7 +2076,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 
   <div class="card login" id="login-card">
     <h2>Sign in</h2>
-    <p class="login-lead">Paste your admin key to manage orders, stock, and pickup hours.</p>
+    <p class="login-lead">Paste your admin key to manage orders, stock, and delivery settings.</p>
     <label>Admin key</label>
     <input id="key" type="password" placeholder="Paste your admin key" style="margin-bottom:12px" autocomplete="current-password">
     <button type="button" id="signin-btn" onclick="saveKey()" style="width:100%">Sign in</button>

@@ -82,17 +82,17 @@ const ADS = [
     image: IMAGE_CHALK,
     message:
       "30 XL fresh eggs for $13 — that's about 43¢ an egg.\n\n" +
-      "Book online, pick up Friday 2–4pm or Saturday 5–8am at Paddy's Markets Flemington.\n" +
-      "Pay online to lock them in, or pay at pickup.",
-    headline: "30 Eggs $13 · Book pickup Fri/Sat",
-    description: "Paddy's Markets Flemington",
+      "Book online — Saturday delivery +$5 within 45 km of Sydney Markets.\n" +
+      "Pay online to lock them in.",
+    headline: "30 Eggs $13 · Sat delivery",
+    description: "Within 45 km of Sydney Markets",
   },
   {
     name: "Ad · Sat delivery +$5",
     // Clean tray product shot (delivery ad — not market chalk)
     image: IMAGE_TRAY,
     message:
-      "Can't make the market? We deliver Saturday for +$5 within 45 km of Sydney Markets.\n\n" +
+      "We deliver Saturday for +$5 within 45 km of Sydney Markets.\n\n" +
       "30 eggs $13 · 2 trays $25 · full box $72.\n" +
       "Book on getyolko.com — packed fresh for your suburb.",
     headline: "Sat delivery +$5 · Book online",
@@ -103,9 +103,9 @@ const ADS = [
     image: IMAGE_EXISTING,
     message:
       "Feeding the family? Grab 2 trays — 60 fresh Pace Farm eggs for $25.\n\n" +
-      "Book pickup Fri/Sat at Flemington, or Saturday delivery +$5.",
+      "Saturday delivery +$5 within 45 km of Sydney Markets.",
     headline: "60 eggs $25 · 2 trays",
-    description: "Flemington pickup or Sat delivery",
+    description: "Saturday delivery Sydney",
   },
 ];
 

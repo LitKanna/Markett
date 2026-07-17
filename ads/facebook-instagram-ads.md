@@ -36,14 +36,14 @@ https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=1940573363326611
 ### Ad · Price $13
 30 XL fresh eggs for $13 — that's about 43¢ an egg.
 
-Book online, pick up Friday 2–4pm or Saturday 5–8am at Paddy's Markets Flemington.
-Pay online to lock them in, or pay at pickup.
+Book online — Saturday delivery +$5 within 45 km of Sydney Markets.
+Pay online to lock them in.
 
-**Headline:** 30 Eggs $13 · Book pickup Fri/Sat  
-**Description:** Paddy's Markets Flemington
+**Headline:** 30 Eggs $13 · Sat delivery  
+**Description:** Within 45 km of Sydney Markets
 
 ### Ad · Sat delivery +$5
-Can't make the market? We deliver Saturday for +$5 within 45 km of Sydney Markets.
+We deliver Saturday for +$5 within 45 km of Sydney Markets.
 
 30 eggs $13 · 2 trays $25 · full box $72.
 Book on getyolko.com — packed fresh for your suburb.
@@ -54,10 +54,10 @@ Book on getyolko.com — packed fresh for your suburb.
 ### Ad · 2 trays $25
 Feeding the family? Grab 2 trays — 60 fresh Pace Farm eggs for $25.
 
-Book pickup Fri/Sat at Flemington, or Saturday delivery +$5.
+Saturday delivery +$5 within 45 km of Sydney Markets.
 
 **Headline:** 60 eggs $25 · 2 trays  
-**Description:** Flemington pickup or Sat delivery
+**Description:** Saturday delivery Sydney
 
 ## Weekly ops
 

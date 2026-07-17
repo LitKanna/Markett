@@ -381,8 +381,8 @@ applyChalkPriceImage(BUNDLES.tray1.price);
 const TICKER_ITEMS = [
   "Fresh eggs every week",
   "30 eggs for $13",
-  "Pickup Friday & Saturday",
-  "Paddy's Markets Flemington",
+  "Saturday delivery +$5",
+  "Within 45 km of Sydney Markets",
 ];
 
 function renderTicker() {
@@ -495,8 +495,8 @@ function currentBundle() {
 const DELIVERY_FEE = 5;
 
 function currentFulfillment() {
-  const checked = document.querySelector('input[name="fulfillment"]:checked');
-  return checked && checked.value === "delivery" ? "delivery" : "pickup";
+  // Storefront is delivery-only (no market pickup).
+  return "delivery";
 }
 
 function setBundle(key) {
@@ -579,7 +579,6 @@ function refreshSubmitPrice() {
 }
 
 function syncFulfillmentUI() {
-  const delivery = currentFulfillment() === "delivery";
   const whenLabel = document.getElementById("when-label");
   const daySeg = document.getElementById("day-seg");
   const addrField = document.getElementById("delivery-address-field");
@@ -588,27 +587,25 @@ function syncFulfillmentUI() {
   const postcodeInput = document.getElementById("delivery-postcode");
   const formNote = document.querySelector(".form-note");
 
-  if (whenLabel) whenLabel.textContent = delivery ? "Delivery day" : "Pickup day";
-  if (addrField) addrField.hidden = !delivery;
-  if (streetInput) streetInput.required = delivery;
-  if (suburbInput) suburbInput.required = delivery;
-  if (postcodeInput) postcodeInput.required = delivery;
+  if (whenLabel) whenLabel.textContent = "Delivery day";
+  if (addrField) addrField.hidden = false;
+  if (streetInput) streetInput.required = true;
+  if (suburbInput) suburbInput.required = true;
+  if (postcodeInput) postcodeInput.required = true;
 
-  if (delivery && daySeg) {
+  if (daySeg) {
     const satDate = nextPickupDate("Saturday");
+    // Display-only — hidden input name="pickupDay" stays the form value.
     daySeg.innerHTML = `<label class="seg-opt">
-      <input type="radio" name="pickupDay" value="Saturday" checked>
+      <input type="radio" name="pickupDayDisplay" value="Saturday" checked disabled>
       <span class="seg-day">Saturday ${satDate}</span>
       <span class="seg-hours">Delivery only · +$${DELIVERY_FEE}</span>
     </label>`;
-  } else if (!delivery && window.__YOLKO_PICKUP) {
-    applyPickupDaysOnly(window.__YOLKO_PICKUP);
   }
 
   if (formNote) {
-    formNote.textContent = delivery
-      ? "Reserve now, or buy now for priority. Delivery is Saturday only (+$5 within 45 km of Sydney Markets)."
-      : "Reserve and pay at pickup, or buy now for priority stock.";
+    formNote.textContent =
+      "Reserve now, or buy now for priority packing. Saturday delivery +$" + DELIVERY_FEE + " within 45 km.";
   }
   refreshSubmitPrice();
 }
@@ -618,8 +615,10 @@ document.querySelectorAll('input[name="bundle"]').forEach((radio) => {
 });
 
 // Day radios are re-rendered from settings, so listen on the container
-document.getElementById("day-seg").addEventListener("change", refreshSubmitPrice);
-document.getElementById("fulfillment-seg").addEventListener("change", syncFulfillmentUI);
+const daySegEl = document.getElementById("day-seg");
+if (daySegEl) daySegEl.addEventListener("change", refreshSubmitPrice);
+const fulfillmentSeg = document.getElementById("fulfillment-seg");
+if (fulfillmentSeg) fulfillmentSeg.addEventListener("change", syncFulfillmentUI);
 
 async function refreshDeliveryZoneHint() {
   const hint = document.getElementById("delivery-zone-hint");
@@ -648,7 +647,7 @@ async function refreshDeliveryZoneHint() {
       hint.textContent = `✓ ${d.matchedSuburb || suburb} · ~${d.roadKmEstimate} km · +$${d.fee || DELIVERY_FEE} Saturday delivery`;
       hint.style.color = "var(--green, #1a7a3c)";
     } else if (d.code === "out_of_range") {
-      hint.textContent = `✗ Outside 45 km (~${d.roadKmEstimate} km) — pickup at Flemington only`;
+      hint.textContent = `✗ Outside 45 km (~${d.roadKmEstimate} km) — we can't deliver there yet`;
       hint.style.color = "var(--red, #b00020)";
     } else {
       hint.textContent = d.error || "Enter suburb + postcode so we can check the 45 km zone.";
@@ -845,11 +844,11 @@ function setMetaContent(attr, key, value) {
 function applySeoMeta(settings) {
   const p1 = BUNDLES.tray1.price;
   const priceKey = chalkPriceKey(p1);
-  const title = `YOLKO | 30 Eggs for $${p1} at Flemington Markets`;
-  const description = `30 Pace Farm eggs for $${p1} at Paddy's Markets Flemington. Book online, pick up Friday 2–4pm or Saturday 5–8am. Saturday delivery +$5 within 45 km.`;
-  const ogDescription = `30 Pace Farm eggs for $${p1}. Book online, pick up Friday or Saturday at Flemington — or Saturday delivery +$5.`;
+  const title = `YOLKO | 30 Eggs for $${p1} · Saturday Delivery`;
+  const description = `30 Pace Farm eggs for $${p1}. Book online — Saturday delivery +$5 within 45 km of Sydney Markets.`;
+  const ogDescription = description;
   const image = `https://getyolko.com/assets/chalk-tray/${priceKey}-1536.jpg?v=${CHALK_ASSET_VER}`;
-  const imageAlt = `Fresh Pace Farm egg trays · $${p1}/tray at the YOLKO stall`;
+  const imageAlt = `Fresh Pace Farm egg trays · $${p1}/tray · Saturday delivery`;
 
   document.title = title;
   setMetaContent("name", "description", description);
@@ -876,24 +875,19 @@ function applySeoMeta(settings) {
 
   if (business) {
     business.image = [image];
-    business.description = `30 Pace Farm eggs for $${p1} at Paddy's Markets Flemington. Book online for Friday or Saturday pickup, or Saturday delivery.`;
+    business.description = `30 Pace Farm eggs for $${p1}. Book online for Saturday delivery within 45 km of Sydney Markets.`;
     business.priceRange = `$${p1}–$${BUNDLES.box.price}`;
-    const pickup = settings && settings.pickup;
-    if (pickup && typeof pickup === "object") {
-      business.openingHoursSpecification = Object.keys(pickup)
-        .filter((day) => pickup[day] && pickup[day].enabled)
-        .map((day) => ({
-          "@type": "OpeningHoursSpecification",
-          dayOfWeek: day,
-          opens: pickup[day].open,
-          closes: pickup[day].close,
-        }));
-    }
+    business.openingHoursSpecification = [{
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: "Saturday",
+      opens: "07:00",
+      closes: "12:00",
+    }];
   }
 
   if (product) {
     product.image = image;
-    product.description = `30 fresh Pace Farm eggs for $${p1}. Pickup at Paddy's Markets Flemington Friday or Saturday.`;
+    product.description = `30 fresh Pace Farm eggs for $${p1}. Saturday delivery within 45 km of Sydney Markets.`;
     if (!product.offers || typeof product.offers !== "object") product.offers = { "@type": "Offer" };
     product.offers.price = Number(p1).toFixed(2);
     product.offers.priceCurrency = "AUD";
@@ -1007,67 +1001,53 @@ function applyPickupDaysOnly(pickup) {
 
 function applyPickup(pickup) {
   window.__YOLKO_PICKUP = pickup;
-  const enabledDays = WEEK_DAYS.filter((d) => pickup[d]?.enabled);
 
-  // Day cards in the pickup section, with the actual next date
+  // Delivery-only storefront: keep Saturday delivery cards (do not render market pickup days).
   const cardsBox = document.querySelector(".day-cards");
   if (cardsBox) {
-    cardsBox.innerHTML = enabledDays.map((day) => {
-      const hours = `${formatTime(pickup[day].open)} to ${formatTime(pickup[day].close)}`;
-      return `<article class="day-card">
-        <p class="day-name">${day} ${nextPickupDate(day)}</p>
-        <p class="day-time">${hours}</p>
-        <p class="day-note">Book by ${DAY_BEFORE[day]} night</p>
+    const satDate = nextPickupDate("Saturday");
+    cardsBox.innerHTML = `
+      <article class="day-card">
+        <p class="day-name">Saturday ${satDate}</p>
+        <p class="day-time">Morning delivery</p>
+        <p class="day-note">Book by Friday night</p>
+      </article>
+      <article class="day-card">
+        <p class="day-name">+$${DELIVERY_FEE}</p>
+        <p class="day-time">Flat delivery fee</p>
+        <p class="day-note">Within 45 km of Sydney Markets</p>
       </article>`;
-    }).join("") || `<article class="day-card"><p class="day-name">Paused</p><p class="day-time">Back soon</p><p class="day-note">Check again Wednesday</p></article>`;
   }
-
-  if (currentFulfillment() !== "delivery") {
-    applyPickupDaysOnly(pickup);
-  }
-  syncFulfillmentUI();
-
-  // Texts that mention the days
-  const shortNames = enabledDays.map((d) => SHORT_DAY[d]);
-  const dayText =
-    enabledDays.length === 0 ? "Paused this week" :
-    enabledDays.length === 1 ? `${enabledDays[0]}s only` :
-    enabledDays.length === 2 ? `${shortNames[0]} & ${shortNames[1]}` :
-    `${enabledDays.length} days a week`;
 
   const pickupTitle = document.getElementById("pickup-title");
   if (pickupTitle) {
-    pickupTitle.textContent =
-      enabledDays.length === 0 ? "Pickup is paused this week" :
-      enabledDays.length === 1 ? `Come on ${enabledDays[0]}` :
-      enabledDays.length === 2 ? `Come ${enabledDays[0]} or ${enabledDays[1]}` :
-      `Open ${enabledDays.length} days a week`;
+    pickupTitle.innerHTML = "Saturday.<br>To your door.";
   }
 
   const stats = document.querySelectorAll(".hero-stats div");
   if (stats[2]) {
-    stats[2].querySelector("dt").textContent = enabledDays.length ? `${enabledDays.length} day${enabledDays.length > 1 ? "s" : ""}` : "Paused";
-    stats[2].querySelector("dd").textContent = dayText;
+    stats[2].querySelector("dt").textContent = `+$${DELIVERY_FEE}`;
+    stats[2].querySelector("dd").textContent = "Sat delivery";
   }
 
-  TICKER_ITEMS[2] = `Pickup ${dayText} · Sat delivery +$${DELIVERY_FEE}`;
+  TICKER_ITEMS[2] = `Saturday delivery +$${DELIVERY_FEE} · within 45 km`;
   renderTicker();
 
   const ctaSpan = document.querySelector(".mobile-cta-text span");
-  if (ctaSpan) ctaSpan.textContent = `Pickup ${dayText}`;
+  if (ctaSpan) ctaSpan.textContent = `Sat delivery +$${DELIVERY_FEE}`;
 
-  // No pickup days: block the form politely (delivery still needs Saturday)
-  const paused = !enabledDays.length && currentFulfillment() !== "delivery";
   const buyBtn = document.getElementById("buynow-btn");
-  submitBtn.disabled = paused;
-  if (buyBtn) buyBtn.disabled = paused;
-  submitBtn.querySelector("#submit-label").textContent = paused ? "Bookings paused" : "Reserve";
+  submitBtn.disabled = false;
+  if (buyBtn) buyBtn.disabled = false;
+  submitBtn.querySelector("#submit-label").textContent = "Reserve";
+  syncFulfillmentUI();
 }
 
+syncFulfillmentUI();
 fetch(`${API_BASE}/api/settings`)
   .then((r) => (r.ok ? r.json() : null))
   .then((s) => { if (s) applySettings(s); })
-  .catch(() => {});
+  .catch(() => { syncFulfillmentUI(); });
 
 /* ---------- Payment confirmation on return from Stripe ---------- */
 function cookieValue(name) {
@@ -1490,7 +1470,7 @@ form.addEventListener("submit", async (event) => {
     return;
   }
   if (orderResult?.error === "delivery_range") {
-    showToast(orderResult.message || "We only deliver within 45 km of Sydney Markets. Pickup at Flemington is still available.");
+    showToast(orderResult.message || "We only deliver within 45 km of Sydney Markets.");
     flagInvalid(document.getElementById("delivery-suburb"));
     flagInvalid(document.getElementById("delivery-postcode"));
     return;
