@@ -84,6 +84,9 @@ def tray_shadow(tray: Image.Image, blur: int, dy: int, opacity: int) -> Image.Im
 
 def compose_real_tray(width: int, height: int) -> Image.Image:
     """Variant A: authentic 30-egg retail tray on orange market wood."""
+# REMOVED: pace-tray-175kg market-shelf assets were deleted (do not regenerate).
+raise SystemExit("pace-tray-175kg market-shelf image was deleted — do not regenerate it")
+
     scene = orange_market_bg(width, height).convert("RGBA")
     tray = remove_white_bg(Image.open(TRAY_SRC))
     tray = ImageOps.contain(tray, (int(width * 0.76), int(height * 0.54)), Image.Resampling.LANCZOS)

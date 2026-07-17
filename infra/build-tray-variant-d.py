@@ -79,6 +79,9 @@ def patch_label_175kg(tray: Image.Image) -> Image.Image:
 
 def market_bg(width: int, height: int) -> Image.Image:
     """Warm orange market table — no ghost eggs from AI scene."""
+# REMOVED: pace-tray-175kg market-shelf assets were deleted (do not regenerate).
+raise SystemExit("pace-tray-175kg market-shelf image was deleted — do not regenerate it")
+
     src = Image.open(SCENE).convert("RGB")
     sw, sh = src.size
 

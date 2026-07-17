@@ -1,72 +1,53 @@
-# Ads Manager — copy-paste kit (2 minutes)
+# Ads Manager — copy-paste kit (delivery-only)
 
-Open this while creating the ad:
-https://adsmanager.facebook.com/adsmanager/manage/ads?act=1230148938407162&selected_adset_ids=120256182965760197
+Open this while creating the ad (Sales campaign account):
+https://adsmanager.facebook.com/adsmanager/manage/ads?act=1940573363326611
 
-Click **Create** → use **existing campaign** → **YOLKO — Flemington pickup** → ad set **Flemington 8km — Fri/Sat pickup**.
+Click **Create** → use **existing campaign** → **YOLKO — Sales (Purchase)** → ad set **Cold — Markets 50km · Purchase**.
 
 ---
 
-## Ad 1 (start with this one)
+## Ad · Price $13
 
 | Field | Paste this |
 |---|---|
 | **Page** | Yolko |
-| **Image** | https://getyolko.com/assets/pace-tray-175kg-1080.jpg |
-| **Primary text** | 30 XL fresh eggs for $12. That's 40 cents an egg. Book your Pace Farm tray online now and pick it up at Paddy's Markets Flemington this coming Friday or Saturday. The website shows your exact pickup date when you book. Pay online for priority, or pay at pickup. |
-| **Headline** | 30 Eggs $12 — Book Now, Pickup Fri/Sat |
-| **Description** | Paddy's Markets Flemington |
+| **Image** | https://getyolko.com/assets/chalk-tray/13-square-560.jpg |
+| **Primary text** | 30 XL fresh eggs for $13 — that's about 43¢ an egg. Book online — Saturday delivery +$5 within 45 km of Sydney Markets. Pay online to lock them in. |
+| **Headline** | 30 Eggs $13 · Sat delivery |
+| **Description** | Within 45 km of Sydney Markets |
 | **Website URL** | https://getyolko.com/ |
-| **Call to action** | Learn more |
+| **Call to action** | Shop now |
 
 Click **Publish**.
 
 ---
 
-## After publishing
-
-1. Go to **Ad sets** tab
-2. Find **Flemington 8km — Fri/Sat pickup**
-3. Flip the toggle **On** (left side)
-
----
-
-## Ad 2 (optional, add later)
+## Ad · Sat delivery +$5
 
 **Primary text:**
 ```
-Feeding a family? Grab 2 trays — 60 fresh eggs for $23.
-Skip the supermarket queue. Book online, pick up at Flemington Markets Friday or Saturday. Pay online for priority.
+We deliver Saturday for +$5 within 45 km of Sydney Markets.
+
+30 eggs $13 · 2 trays $25 · full box $72.
+Book on getyolko.com — packed fresh for your suburb.
 ```
 
-**Headline:** 60 Eggs for $23 — Book Ahead  
-**Description:** Pickup at Paddy's Markets Flemington  
+**Headline:** Sat delivery +$5 · Book online  
+**Description:** Within 45 km of Sydney Markets  
 **URL:** https://getyolko.com/
 
 ---
 
-## Ad 3 (optional, cafés)
+## Ad · 2 trays $25
 
 **Primary text:**
 ```
-Cafés, stalls, bakers: a full box of 180 fresh Pace Farm eggs for $66, ready every Friday and Saturday at Flemington Markets. Book a weekly box and your stock is put aside first.
+Feeding the family? Grab 2 trays — 60 fresh Pace Farm eggs for $25.
+
+Saturday delivery +$5 within 45 km of Sydney Markets.
 ```
 
-**Headline:** 180 Eggs — $66 — Weekly Supply  
-**Description:** For cafés and food businesses  
+**Headline:** 60 eggs $25 · 2 trays  
+**Description:** Saturday delivery Sydney  
 **URL:** https://getyolko.com/
-
----
-
-## Settings already done (don't change)
-
-- Budget: **$10/day**
-- Location: **Flemington + 8 km**
-- Age: **25–65**
-- Placements: **Facebook + Instagram** (feed, stories, reels)
-
----
-
-## If Create button is missing
-
-You're on the wrong tab. Click **Ads** (not Ad sets), then **Create**.
