@@ -1,72 +1,67 @@
-# Facebook + Instagram Ads — Ready to Launch
+# Facebook + Instagram Ads — live Sales structure
 
-Paste these into Meta Ads Manager (facebook.com/adsmanager). Both platforms run
-from the same campaign.
+Ad account: `act_1940573363326611` · Pixel: `2008953469766472` (YOLKO) · Page: YOLKO
 
-## Campaign settings
+Rebuild / refresh via API:
 
-| Setting | Value |
-|---|---|
-| Objective | Sales (or Traffic if starting out) |
-| Budget | $7–15 per day to start |
-| Location | Flemington NSW + 8 km radius |
-| Age | 25–65 |
-| Interests | Cooking, Baking, Farmers markets, Grocery shopping, Family |
-| Placements | Facebook Feed, Instagram Feed, Stories, Reels |
-| Destination | https://getyolko.com/ |
-| Image | assets/social-eggs-1080.jpg (or a real photo of your trays, real photos often win) |
+```bash
+META_ACCESS_TOKEN=... META_ACTIVATE=1 node infra/meta-sales-rebuild.mjs
+```
 
-## Ad 1 — Price lead (pre-order for next market day)
+Ads Manager:
+https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=1940573363326611&selected_campaign_ids=120251266112440131
 
-**Primary text:**
-30 XL fresh eggs for $12. That's 40 cents an egg.
-Book your Pace Farm tray online now and pick it up at Paddy's Markets
-Flemington this coming Friday or Saturday. The website shows your exact
-pickup date when you book. Pay online for priority, or pay at pickup.
+## Live structure (do not explode into suburb campaigns)
 
-**Headline:** 30 Eggs $12 — Book Now, Pickup Fri/Sat
+| Level | Name | Notes |
+|---|---|---|
+| Campaign | **YOLKO — Sales (Purchase)** | `OUTCOME_SALES` · Purchase · **$14/day** |
+| Ad set | **Cold — Markets 50km · Purchase** | Hub lat/lng Sydney Markets · **50 km** · age 25–55 |
+| Ads | **Ad · Price $13** · **Ad · Sat delivery +$5** · **Ad · 2 trays $25** | ACTIVE |
+| Ad set | **Retarget — Site visitors 14d** | Custom audience (YOLKO pixel, 14d) |
+| Ad | **Ad · Retarget Price $13** | ACTIVE |
+| Legacy | New Sales Ad | **PAUSED** |
+
+**Sold-out auto-pause:** Worker secret `META_ADSET_IDS` lists both ad sets; when `traysAvailable` hits 0 they pause (and resume only if we paused them).
+
+## Why this shape
+
+- One Purchase campaign beats Traffic + suburb spam.
+- Meta finds converters inside the 50 km circle (don’t make 80 suburb ad sets).
+- Retargeting spends on people who already saw getyolko.com.
+- Pixel + CAPI Purchase events feed optimisation (wired on the site/worker).
+
+## Creative copy (live)
+
+### Ad · Price $13
+30 XL fresh eggs for $13 — that's about 43¢ an egg.
+
+Book online, pick up Friday 2–4pm or Saturday 5–8am at Paddy's Markets Flemington.
+Pay online to lock them in, or pay at pickup.
+
+**Headline:** 30 Eggs $13 · Book pickup Fri/Sat  
 **Description:** Paddy's Markets Flemington
-**CTA button:** Book Now
 
-## Ad 2 — Family angle
+### Ad · Sat delivery +$5
+Can't make the market? We deliver Saturday for +$5 within 45 km of Sydney Markets.
 
-**Primary text:**
-Feeding a family? Grab 2 trays — 60 fresh eggs for $23.
-Skip the supermarket queue. Book online, pick up at Flemington Markets
-Friday or Saturday, pay on pickup.
+30 eggs $13 · 2 trays $25 · full box $72.
+Book on getyolko.com — packed fresh for your suburb.
 
-**Headline:** 60 Eggs for $23 — Book Ahead
-**Description:** Pickup at Paddy's Markets Flemington
-**CTA button:** Book Now
+**Headline:** Sat delivery +$5 · Book online  
+**Description:** Within 45 km of Sydney Markets
 
-## Ad 3 — Café / small business
+### Ad · 2 trays $25
+Feeding the family? Grab 2 trays — 60 fresh Pace Farm eggs for $25.
 
-**Primary text:**
-Cafés, stalls, bakers: a full box of 180 fresh Pace Farm eggs for $66,
-ready every Friday and Saturday at Flemington Markets.
-Book a weekly box and your stock is put aside first.
+Book pickup Fri/Sat at Flemington, or Saturday delivery +$5.
 
-**Headline:** 180 Eggs — $66 — Weekly Supply
-**Description:** For cafés and food businesses
-**CTA button:** Book Now
+**Headline:** 60 eggs $25 · 2 trays  
+**Description:** Flemington pickup or Sat delivery
 
-## Story / Reel script (15 seconds)
+## Weekly ops
 
-1. (0–3s) Close-up of full egg tray. Text: "30 eggs. $12."
-2. (3–7s) Pan across boxes. Text: "Fresher than the shelf."
-3. (7–11s) Market entrance. Text: "Pickup Fri & Sat — Flemington Markets"
-4. (11–15s) End card. Text: "Book now — link below" + site URL
-
-## Free (organic) posting plan
-
-- Wednesday: post Ad 1 text in local Facebook groups (Flemington, Homebush,
-  Strathfield, Lidcombe, Auburn, Wentworth Point, Rhodes)
-- Thursday: Instagram Reel using the script above
-- Friday 7 AM: Story — "Eggs available today, book for pickup"
-- Saturday 6 AM: Story — "Last pickup day this week"
-
-## Rules to follow
-
-- Post max 1–2 times per week per group, or admins will remove you
-- Always use a real photo when you have one
-- Reply to every comment fast — comments boost reach
+1. Check **cost per Purchase**, not impressions.
+2. Pause the weakest cold ad after enough spend; keep winners.
+3. Don’t add suburb campaigns.
+4. If Custom Audience TOS / app Live ever blocks API again, accept TOS in Ads Manager and keep the developer app **Published**.
