@@ -482,10 +482,8 @@ function updateMobileCta() {
 }
 
 /* ---------- Booking controls ---------- */
-const submitBtn = document.getElementById("submit-btn");
 const quantityInput = document.getElementById("quantity");
 const qtyValue = document.getElementById("qty-value");
-const orderSummary = document.getElementById("order-summary");
 
 function currentBundle() {
   const checked = document.querySelector('input[name="bundle"]:checked');
@@ -560,22 +558,7 @@ function describeOrder(bundleKey, qty) {
 }
 
 function refreshSubmitPrice() {
-  const bundleKey = currentBundle();
-  const bundle = BUNDLES[bundleKey] || BUNDLES.tray1;
-  const qty = currentQuantity();
-  const fulfillment = currentFulfillment();
-  const day = currentPickupDay();
-  const fee = fulfillment === "delivery" ? DELIVERY_FEE : 0;
-  const total = bundle.price * qty + fee;
-  const when =
-    fulfillment === "delivery"
-      ? `Delivery Saturday ${nextPickupDate("Saturday")} (+$${DELIVERY_FEE})`
-      : `Pickup ${day} ${nextPickupDate(day)}`;
-
-  orderSummary.innerHTML = `${describeOrder(bundleKey, qty)} &middot; ${when} &middot; $${total}`;
-  orderSummary.classList.remove("bump");
-  void orderSummary.offsetWidth;
-  orderSummary.classList.add("bump");
+  // Order summary strip removed — Buy now is the only CTA.
 }
 
 function syncFulfillmentUI() {
@@ -604,8 +587,7 @@ function syncFulfillmentUI() {
   }
 
   if (formNote) {
-    formNote.textContent =
-      "Reserve now, or buy now for priority packing. Saturday delivery +$" + DELIVERY_FEE + " within 45 km.";
+    formNote.textContent = "Pay online for priority packing.";
   }
   refreshSubmitPrice();
 }
@@ -627,7 +609,8 @@ async function refreshDeliveryZoneHint() {
   const city = String(document.getElementById("delivery-city")?.value || "Sydney").trim();
   const postcode = String(document.getElementById("delivery-postcode")?.value || "").replace(/\D/g, "").slice(0, 4);
   if (!suburb && !postcode) {
-    hint.textContent = "Saturday delivery only · +$5 · within 45 km of Sydney Markets Flemington";
+    hint.hidden = true;
+    hint.textContent = "";
     hint.style.color = "";
     return;
   }
@@ -644,17 +627,21 @@ async function refreshDeliveryZoneHint() {
     });
     const d = await res.json().catch(() => ({}));
     if (d.deliver) {
-      hint.textContent = `✓ ${d.matchedSuburb || suburb} · ~${d.roadKmEstimate} km · +$${d.fee || DELIVERY_FEE} Saturday delivery`;
+      hint.hidden = false;
+      hint.textContent = `✓ ${d.matchedSuburb || suburb} · ~${d.roadKmEstimate} km`;
       hint.style.color = "var(--green, #1a7a3c)";
     } else if (d.code === "out_of_range") {
+      hint.hidden = false;
       hint.textContent = `✗ Outside 45 km (~${d.roadKmEstimate} km). We can't deliver there yet`;
       hint.style.color = "var(--red, #b00020)";
     } else {
+      hint.hidden = false;
       hint.textContent = d.error || "Enter suburb + postcode so we can check the 45 km zone.";
       hint.style.color = "var(--red, #b00020)";
     }
   } catch {
-    hint.textContent = "Saturday delivery only · +$5 · within 45 km of Sydney Markets Flemington";
+    hint.hidden = true;
+    hint.textContent = "";
     hint.style.color = "";
   }
 }
@@ -1033,9 +1020,7 @@ function applyPickup(pickup) {
   if (ctaSpan) ctaSpan.textContent = `Sat delivery +$${DELIVERY_FEE}`;
 
   const buyBtn = document.getElementById("buynow-btn");
-  submitBtn.disabled = false;
   if (buyBtn) buyBtn.disabled = false;
-  submitBtn.querySelector("#submit-label").textContent = "Reserve";
   syncFulfillmentUI();
 }
 
@@ -1435,74 +1420,26 @@ function showConfirmation(b) {
   doneSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 }
 
-// Reserve: book now, pay at pickup. Keep the progress state visible long
-// enough to acknowledge the action before transitioning to the receipt.
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const booking = collectBooking();
-  if (!booking) return;
-
-  lastOrderId = null;
-  submitBtn.disabled = true;
-  submitBtn.setAttribute("aria-busy", "true");
-  document.getElementById("submit-label").textContent = "Reserving…";
-  const [orderResult] = await Promise.all([
-    createOrder(booking),
-    new Promise((resolve) => setTimeout(resolve, 850)),
-  ]);
-  submitBtn.disabled = false;
-  submitBtn.removeAttribute("aria-busy");
-  document.getElementById("submit-label").textContent = "Reserve";
-  if (orderResult?.error === "rate") {
-    showToast("Too many bookings from this phone or connection. Try again later.");
-    return;
-  }
-  if (orderResult?.error === "geo") {
-    showToast("Bookings are for the Sydney area only.");
-    return;
-  }
-  if (orderResult?.error === "delivery_day") {
-    showToast("Delivery is Saturday only.");
-    return;
-  }
-  if (orderResult?.error === "delivery_range") {
-    showToast(orderResult.message || "We only deliver within 45 km of Sydney Markets.");
-    flagInvalid(document.getElementById("delivery-suburb"));
-    flagInvalid(document.getElementById("delivery-postcode"));
-    return;
-  }
-  if (orderResult?.error === "delivery_address") {
-    showToast(orderResult.message || "Check your delivery street, suburb, and postcode.");
-    return;
-  }
-  if (orderResult?.error === "blocked") {
-    showToast("Couldn’t place that booking. Refresh and try again.");
-    return;
-  }
-  lastOrderId = orderResult?.id || null;
-  if (lastOrderId) saveOpenCheckout(lastOrderId, booking);
-  showConfirmation(booking);
-});
-
-// Buy now: book and go straight to payment
+// Buy now: only CTA — create/reuse order + Stripe session.
 const buynowBtn = document.getElementById("buynow-btn");
 const buynowLabel = document.getElementById("buynow-label");
 
-buynowBtn.addEventListener("click", async () => {
+async function startBuyNow() {
   const booking = collectBooking();
   if (!booking) return;
 
   buynowBtn.disabled = true;
+  buynowBtn.setAttribute("aria-busy", "true");
   buynowLabel.textContent = "Opening…";
 
   const failBuy = (msg) => {
     buynowBtn.disabled = false;
+    buynowBtn.removeAttribute("aria-busy");
     buynowLabel.textContent = "Buy now";
     showToast(msg || "Couldn’t open payment. Try again.");
   };
 
   try {
-    // Single round-trip: create/reuse order + Stripe session together.
     const result = await buyNowCheckout(booking);
     if (result?.ok) return;
     if (result?.error === "rate") {
@@ -1529,6 +1466,11 @@ buynowBtn.addEventListener("click", async () => {
   } catch {
     failBuy("Couldn’t open payment. Check your connection and try again.");
   }
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await startBuyNow();
 });
 
 copyButton.addEventListener("click", async () => {

@@ -1360,17 +1360,8 @@ h3 {
 
 .cta-row {
   display: grid;
-  grid-template-columns: 0.8fr 1.2fr;
+  grid-template-columns: 1fr;
   gap: 10px;
-}
-
-.btn-reserve {
-  border-color: var(--ink);
-}
-
-.btn-reserve:hover {
-  color: var(--white);
-  background: var(--ink);
 }
 
 .form-note {

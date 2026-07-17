@@ -36,7 +36,7 @@
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/3y9K6as8bTXq_nANBjzKo3IeZx8z6up5BeSl9D4dj_x9PpZBMlGIInE.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2" crossorigin>
   <link rel="stylesheet" href="assets/fonts.css?v=72">
-  <link rel="stylesheet" href="styles-modern.css?v=125">
+  <link rel="stylesheet" href="styles-modern.css?v=126">
 
   <script id="yolko-jsonld" type="application/ld+json">
   {
@@ -409,7 +409,7 @@
           <ol class="steps">
             <li><span>1</span>Choose your bundle</li>
             <li><span>2</span>Enter your Saturday delivery address</li>
-            <li><span>3</span>Reserve or prepay online</li>
+            <li><span>3</span>Pay online</li>
             <li><span>4</span>We deliver Saturday morning</li>
           </ol>
         </div>
@@ -563,7 +563,7 @@
                 <input id="delivery-postcode" name="deliveryPostcode" type="text" inputmode="numeric" maxlength="4" placeholder="2135" autocomplete="postal-code" required>
               </div>
             </div>
-            <p class="field-hint" id="delivery-zone-hint">Saturday delivery only · +$5 · within 45 km of Sydney Markets</p>
+            <p class="field-hint" id="delivery-zone-hint" hidden></p>
           </div>
 
           <div class="field">
@@ -584,18 +584,13 @@
             <p class="field-error" id="phone-error" hidden>Enter a valid Australian mobile, e.g. 0412 345 678</p>
           </div>
 
-          <p class="order-summary" id="order-summary">2 trays (60 eggs) · Saturday · $25</p>
-
           <div class="cta-row">
-            <button type="submit" class="btn btn-reserve" id="submit-btn">
-              <span id="submit-label">Reserve</span>
-            </button>
-            <button type="button" class="btn btn-solid" id="buynow-btn">
+            <button type="submit" class="btn btn-solid" id="buynow-btn">
               <span id="buynow-label">Buy now</span>
               <span class="btn-arrow" aria-hidden="true">↗</span>
             </button>
           </div>
-          <p class="form-note">Reserve now, or buy now for priority packing. Saturday delivery +$5 within 45 km.</p>
+          <p class="form-note">Pay online for priority packing.</p>
         </form>
       </div>
     </section>
@@ -717,6 +712,6 @@
   </footer>
 
   <script src="config.js?v=86"></script>
-  <script src="app.js?v=133"></script>
+  <script src="app.js?v=134"></script>
 </body>
 </html>
