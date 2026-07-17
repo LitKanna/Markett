@@ -58,7 +58,7 @@ body {
   padding-right: env(safe-area-inset-right, 0);
 }
 
-/* Kill double-tap zoom on mobile (not inherited — must cover all nodes).
+/* Kill double-tap zoom on mobile (not inherited: must cover all nodes).
    Pinch-to-zoom still works. */
 *,
 *::before,
@@ -311,7 +311,7 @@ h3 {
   transform: translateX(4px);
 }
 
-/* Hero — fills available viewport on any resolution */
+/* Hero: fills available viewport on any resolution */
 .hero {
   min-height: calc(100svh - var(--topbar-h));
   min-height: calc(100dvh - var(--topbar-h));
@@ -323,7 +323,7 @@ h3 {
   min-height: calc(100svh - var(--topbar-h) - clamp(40px, 8svh, 88px));
   min-height: calc(100dvh - var(--topbar-h) - clamp(40px, 8svh, 88px));
   display: grid;
-  /* Always two columns on desktop/tablet landscape — image sits beside copy */
+  /* Always two columns on desktop/tablet landscape: image sits beside copy */
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: clamp(16px, 2.5vw, 32px);
   align-items: stretch;
@@ -491,7 +491,7 @@ h3 {
   transition: transform 700ms var(--ease);
 }
 
-/* Soft hold-frame while chalk price image swaps — never flash the dark card bg */
+/* Soft hold-frame while chalk price image swaps: never flash the dark card bg */
 .showcase-photo > img.chalk-hold,
 .order-tray-photo > img.chalk-hold {
   position: absolute;
@@ -1300,7 +1300,7 @@ h3 {
   border-radius: 7px;
   color: var(--ink);
   background: var(--paper);
-  /* 16px minimum — iOS Safari zooms the page when focused inputs are <16px */
+  /* 16px minimum: iOS Safari zooms the page when focused inputs are <16px */
   font-size: 16px;
   font-weight: 600;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
@@ -1805,7 +1805,7 @@ h3 {
   to { transform: rotate(360deg); }
 }
 
-/* Responsive — fluid first; breakpoints only change layout structure */
+/* Responsive: fluid first; breakpoints only change layout structure */
 /* Stack hero only on narrower screens so image stays beside copy on desktop */
 @media (max-width: 900px) {
   .hero {

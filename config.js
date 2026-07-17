@@ -1,6 +1,6 @@
 // Fill these in to activate WhatsApp booking.
 // Online payments use dynamic Stripe Checkout from live admin prices
-// (Worker POST /api/checkout) — do NOT paste fixed Payment Links here.
+// (Worker POST /api/checkout); do NOT paste fixed Payment Links here.
 // Old buy.stripe.com links freeze prices ($12/$23/$66) and ignore delivery.
 
 const SITE_CONFIG = {

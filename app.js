@@ -146,7 +146,7 @@ function initImageRotators() {
 
 initImageRotators();
 
-/* Chalkboard hero swaps to match live tray1 price ($1–$30); dozens unchanged */
+/* Chalkboard hero swaps to match live tray1 price ($1-$30); dozens unchanged */
 const CHALK_PRICES = Array.from({ length: 30 }, (_, i) => i + 1);
 const CHALK_ASSET_VER = "111";
 const TRAY1_PRICE_CACHE_KEY = "yolko.tray1Price";
@@ -318,7 +318,7 @@ function buildHeroPicture(item, index) {
   const idAttr = index === 0 ? ' id="hero-tray-img"' : "";
   const loading = index === 0 ? ' fetchpriority="high"' : ' loading="lazy"';
   if (isChalk) {
-    // Always use live tray1 price — asset chalkPrice is only the registry id (e.g. chalk-tray/12).
+    // Always use live tray1 price; asset chalkPrice is only the registry id (e.g. chalk-tray/12).
     const p = chalkPriceKey(BUNDLES.tray1.price);
     return `<picture class="showcase-photo${active}"${chalkAttr}>
       <source type="image/webp" srcset="assets/chalk-tray/${p}-640.webp?v=${CHALK_ASSET_VER} 640w, assets/chalk-tray/${p}-928.webp?v=${CHALK_ASSET_VER} 928w, assets/chalk-tray/${p}-1536.webp?v=${CHALK_ASSET_VER} 1536w, assets/chalk-tray/${p}-2048.webp?v=${CHALK_ASSET_VER} 2048w" sizes="${HERO_SIZES}">
@@ -595,7 +595,7 @@ function syncFulfillmentUI() {
 
   if (daySeg) {
     const satDate = nextPickupDate("Saturday");
-    // Display-only — hidden input name="pickupDay" stays the form value.
+    // Display-only; hidden input name="pickupDay" stays the form value.
     daySeg.innerHTML = `<label class="seg-opt">
       <input type="radio" name="pickupDayDisplay" value="Saturday" checked disabled>
       <span class="seg-day">Saturday ${satDate}</span>
@@ -647,7 +647,7 @@ async function refreshDeliveryZoneHint() {
       hint.textContent = `✓ ${d.matchedSuburb || suburb} · ~${d.roadKmEstimate} km · +$${d.fee || DELIVERY_FEE} Saturday delivery`;
       hint.style.color = "var(--green, #1a7a3c)";
     } else if (d.code === "out_of_range") {
-      hint.textContent = `✗ Outside 45 km (~${d.roadKmEstimate} km) — we can't deliver there yet`;
+      hint.textContent = `✗ Outside 45 km (~${d.roadKmEstimate} km). We can't deliver there yet`;
       hint.style.color = "var(--red, #b00020)";
     } else {
       hint.textContent = d.error || "Enter suburb + postcode so we can check the 45 km zone.";
@@ -779,7 +779,7 @@ function applySettings(settings) {
   const ctaStrong = document.querySelector(".mobile-cta-text strong");
   if (ctaStrong) ctaStrong.textContent = `30 eggs · $${p1}`;
 
-  // Price cards — trays only (dozen cards use #price-* ids)
+  // Price cards: trays only (dozen cards use #price-* ids)
   const trayCards = document.querySelectorAll(".price-grid:not(.dozen-grid) .price-big");
   const trayPers = document.querySelectorAll(".price-grid:not(.dozen-grid) .price-per");
   if (trayCards[0]) trayCards[0].textContent = `$${BUNDLES.tray1.price}`;
@@ -845,7 +845,7 @@ function applySeoMeta(settings) {
   const p1 = BUNDLES.tray1.price;
   const priceKey = chalkPriceKey(p1);
   const title = `YOLKO | 30 Eggs for $${p1} · Saturday Delivery`;
-  const description = `30 Pace Farm eggs for $${p1}. Book online — Saturday delivery +$5 within 45 km of Sydney Markets.`;
+  const description = `30 Pace Farm eggs for $${p1}. Book online for Saturday delivery +$5 within 45 km of Sydney Markets.`;
   const ogDescription = description;
   const image = `https://getyolko.com/assets/chalk-tray/${priceKey}-1536.jpg?v=${CHALK_ASSET_VER}`;
   const imageAlt = `Fresh Pace Farm egg trays · $${p1}/tray · Saturday delivery`;
@@ -876,7 +876,7 @@ function applySeoMeta(settings) {
   if (business) {
     business.image = [image];
     business.description = `30 Pace Farm eggs for $${p1}. Book online for Saturday delivery within 45 km of Sydney Markets.`;
-    business.priceRange = `$${p1}–$${BUNDLES.box.price}`;
+    business.priceRange = `$${p1}-$${BUNDLES.box.price}`;
     business.openingHoursSpecification = [{
       "@type": "OpeningHoursSpecification",
       dayOfWeek: "Saturday",
@@ -935,7 +935,7 @@ function applyProductType(key) {
   const faqEggs = document.getElementById("faq-eggs");
   if (faqEggs) faqEggs.textContent = product.faq;
   const heroImg = document.getElementById("hero-tray-img");
-  if (heroImg) heroImg.alt = `${product.alt} — fresh Pace Farm tray`;
+  if (heroImg) heroImg.alt = `${product.alt}, fresh Pace Farm tray`;
   const orderImg = document.getElementById("order-tray-img");
   if (orderImg) orderImg.alt = product.alt;
 }
@@ -1290,7 +1290,7 @@ function goToCheckout(url) {
   } catch {
     window.location.href = url;
   }
-  // iOS sometimes ignores async redirects — force via tap-equivalent <a>.
+  // iOS sometimes ignores async redirects; force via tap-equivalent <a>.
   setTimeout(() => {
     if (document.visibilityState === "visible") {
       const a = document.createElement("a");

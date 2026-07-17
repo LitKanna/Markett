@@ -52,7 +52,7 @@ const DEFAULT_SETTINGS = {
   dozensAvailable: 0, // 0 = hide dozen packs on the public website
   trayWeight: "1.75",
   boxCost: 55,
-  // Wholesale case cost (15 dozen packs) per product — each SKU is independent
+  // Wholesale case cost (15 dozen packs) per product. each SKU is independent
   dozenCosts: {
     cage600: 75, cage700: 75, cage800: 75,
     fr600: 90, fr700: 90, fr800: 90,
@@ -106,7 +106,7 @@ async function pushOrderIndex(env, orderId) {
   }
 }
 
-/** Latest unpaid order for a phone — reused when customer cancels Stripe and retries. */
+/** Latest unpaid order for a phone. reused when customer cancels Stripe and retries. */
 function openOrderKey(phone) {
   return `openorder:${String(phone || "").replace(/\D/g, "")}`;
 }
@@ -232,7 +232,7 @@ function resolveLiveAssets(lib) {
     if (!it || it.deleted) continue;
     // Hide studio heroes until logos/artifacts are remade (no YOLKO on boxes).
     if (id === "studio-tray" || String(id).startsWith("studio-tray-")) continue;
-    // Only one chalk slide — price swap handles $12–$20
+    // Only one chalk slide. price swap handles $12–$20
     if (it.kind === "chalk") {
       if (seenChalk.hero) continue;
       seenChalk.hero = true;
@@ -282,7 +282,7 @@ async function consumeOrderToken(env, token) {
   if (!data || !data.issuedAt) return { ok: false, reason: "invalid" };
   await env.DATA.delete(key);
   const age = Date.now() - Number(data.issuedAt);
-  // No minimum age — Buy now must work immediately on every tap.
+  // No minimum age. Buy now must work immediately on every tap.
   if (age > 10 * 60 * 1000) return { ok: false, reason: "expired" };
   return { ok: true, age };
 }
@@ -350,7 +350,7 @@ const STRIPE_SUPPORT_EMAIL = "getyolkonow@gmail.com";
 const STRIPE_SUPPORT_PHONE = "+61433975055";
 const STRIPE_BRAND_FLAG = "stripe:branded:yolko";
 
-/** Ensure Checkout / receipts show YOLKO — not the personal Stripe account email. */
+/** Ensure Checkout / receipts show YOLKO. not the personal Stripe account email. */
 async function ensureStripeBranding(env) {
   if (!env.STRIPE_KEY) return { ok: false, error: "payments not configured" };
   const body = new URLSearchParams({
@@ -540,7 +540,7 @@ async function syncStock(env, order, newStatus) {
 }
 
 /** Default Flemington ad set from Ads Manager paste kit / meta-browser.mjs */
-const DEFAULT_META_ADSET_IDS = ["120251266112450131"]; // New Sales Ad Set — Sydney Markets 45 km
+const DEFAULT_META_ADSET_IDS = ["120251266112450131"]; // New Sales Ad Set. Sydney Markets 45 km
 const META_GRAPH = "https://graph.facebook.com/v21.0";
 const META_STOCK_FLAG = "meta:ads:pausedByStock";
 
@@ -888,7 +888,7 @@ async function handleApi(request, env, url, ctx) {
     const bundle = BUNDLE_KEYS.includes(body?.bundle) ? body.bundle : null;
     // Storefront is delivery-only (Saturday). Reject legacy pickup payloads.
     if (body?.fulfillment === "pickup") {
-      return json({ error: "Pickup is no longer available — Saturday delivery only", code: "delivery_only" }, 400);
+      return json({ error: "Pickup is no longer available. Saturday delivery only", code: "delivery_only" }, 400);
     }
     const fulfillment = "delivery";
     let pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
@@ -901,7 +901,7 @@ async function handleApi(request, env, url, ctx) {
     const legacyAddress = String(body?.deliveryAddress || "").trim().slice(0, 200);
     let deliveryAddress = "";
     let deliveryZone = null;
-    // Honeypot: bots fill hidden field — pretend success, save nothing.
+    // Honeypot: bots fill hidden field. pretend success, save nothing.
     // Accept legacy "company" too. Never return a fake order id (that breaks Buy now → checkout).
     const honeypot = String(body?.yolko_hp || body?.company || "").trim();
     if (honeypot) {
@@ -1019,7 +1019,7 @@ async function handleApi(request, env, url, ctx) {
       });
     }
 
-    // No IP/phone rate limits — Buy now / cancel / retry must always work.
+    // No IP/phone rate limits. Buy now / cancel / retry must always work.
     const subtotal = settings.prices[bundle] * quantity;
     const deliveryFee = fulfillment === "delivery" ? SITE_DELIVERY_FEE : 0;
     const now = new Date();
@@ -1063,13 +1063,13 @@ async function handleApi(request, env, url, ctx) {
     });
   }
 
-  // Admin: auth check only (no KV list — free tier list() has a daily cap)
+  // Admin: auth check only (no KV list. free tier list() has a daily cap)
   if (url.pathname === "/api/admin/ping" && request.method === "GET") {
     if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
     return json({ ok: true });
   }
 
-  // Admin: list orders, newest first (uses orders:index — avoids KV list())
+  // Admin: list orders, newest first (uses orders:index. avoids KV list())
   if (url.pathname === "/api/orders" && request.method === "GET") {
     if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
     try {
@@ -1096,7 +1096,7 @@ async function handleApi(request, env, url, ctx) {
     if (!order) return json({ error: "order not found" }, 404);
     if (order.paymentStatus === "paid") return json({ error: "already paid" }, 400);
 
-    // Don't block checkout on branding — refresh in background if needed.
+    // Don't block checkout on branding. refresh in background if needed.
     maybeEnsureStripeBranding(env, ctx);
 
     const settings = await getSettings(env);
@@ -1105,7 +1105,7 @@ async function handleApi(request, env, url, ctx) {
     return json(result);
   }
 
-  // Public: ONE-SHOT Buy now — create/reuse order + Stripe session in a single request.
+  // Public: ONE-SHOT Buy now. create/reuse order + Stripe session in a single request.
   if (url.pathname === "/api/buy-now" && request.method === "POST") {
     if (!env.STRIPE_KEY) return json({ error: "payments not configured" }, 503);
     if (!isAllowedOrigin(request)) {
@@ -1117,7 +1117,7 @@ async function handleApi(request, env, url, ctx) {
     const phone = String(body?.phone || "").replace(/\D/g, "").slice(0, 12);
     const bundle = BUNDLE_KEYS.includes(body?.bundle) ? body.bundle : null;
     if (body?.fulfillment === "pickup") {
-      return json({ error: "Pickup is no longer available — Saturday delivery only", code: "delivery_only" }, 400);
+      return json({ error: "Pickup is no longer available. Saturday delivery only", code: "delivery_only" }, 400);
     }
     const fulfillment = "delivery";
     let pickupDay = WEEK_DAYS.includes(body?.pickupDay) ? body.pickupDay : null;
@@ -1138,7 +1138,7 @@ async function handleApi(request, env, url, ctx) {
     if (body?.token) {
       const tokenCheck = await consumeOrderToken(env, body.token);
       if (!tokenCheck.ok && tokenCheck.reason !== "missing") {
-        // Ignore expired/invalid — Buy now must stay fast; other checks remain.
+        // Ignore expired/invalid. Buy now must stay fast; other checks remain.
       }
     }
 
@@ -1192,7 +1192,7 @@ async function handleApi(request, env, url, ctx) {
     }
 
     const meta = clientMeta(request);
-    // AU mobile is required already — do not hard-block on CF country
+    // AU mobile is required already. do not hard-block on CF country
     // (Private Relay / VPN falsely flags Sydney customers).
 
     maybeEnsureStripeBranding(env, ctx);
@@ -1468,7 +1468,7 @@ async function handleApi(request, env, url, ctx) {
     });
     const refund = await refundResp.json();
     if (refund.error) {
-      // Already fully refunded in Stripe — sync local state
+      // Already fully refunded in Stripe. sync local state
       const msg = String(refund.error.message || "");
       if (/already been refunded|has already been refunded/i.test(msg)) {
         order.paymentStatus = "refunded";
@@ -2354,7 +2354,7 @@ async function saveKey() {
   try {
     res = await fetch("/api/admin/ping", { headers: authHeaders() });
   } catch (e) {
-    $("login-msg").textContent = "Network error — try again";
+    $("login-msg").textContent = "Network error. Try again";
     return;
   }
   if (res.ok) {
@@ -2492,19 +2492,19 @@ function orderEmail(o) {
 }
 
 function iconSvg(kind) {
-  // Hard width/height on the <svg> — CSS alone was letting icons explode to full lane size.
+  // Hard width/height on the <svg>. CSS alone was letting icons explode to full lane size.
   const base = 'xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:18px;height:18px;display:block"';
   if (kind === "receipt") {
     return '<svg ' + base + '><path d="M7 3.5h10v17l-1.8-1.1-1.7 1.1-1.7-1.1-1.7 1.1-1.7-1.1-1.7 1.1-1.7-1.1V3.5z"/><path d="M10 8h6M10 12h6M10 16h3.5"/></svg>';
   }
-  // refund — clean return arrow (reads clearly at 18px)
+  // refund. clean return arrow (reads clearly at 18px)
   return '<svg ' + base + '><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>';
 }
 
 function contactRow(label, value, href) {
   const val = value
     ? '<div class="sale-v">' + escapeHtml(value) + '</div>'
-    : '<div class="sale-v muted">—</div>';
+    : '<div class="sale-v muted">-</div>';
   const inner = '<div class="sale-k">' + escapeHtml(label) + '</div>' + val;
   if (href && value) {
     return '<a class="sale-row" href="' + escapeHtml(href) + '">' + inner + '</a>';
@@ -2539,7 +2539,7 @@ function saleCardHtml(o) {
     : "";
 
   return '<div class="sale-card" data-sale-id="' + escapeHtml(o.id) + '">' +
-    '<h4 class="sale-name">' + escapeHtml(o.name || "—") + chip + '</h4>' +
+    '<h4 class="sale-name">' + escapeHtml(o.name || "-") + chip + '</h4>' +
     '<div class="sale-contacts">' +
       contactRow("Email", email || (canReceipt ? "…" : ""), email ? ("mailto:" + email) : "") +
       contactRow("Phone", phone, o.phone ? ("tel:" + o.phone) : "") +
@@ -2806,11 +2806,11 @@ function renderBuyers(orders) {
       const spanDays = (newest - b.history[0].t) / 86400000;
       const gap = Math.max(1, Math.round(spanDays / (b.orders - 1)));
       const ratio = daysSince / gap;
-      if (ratio >= 1.4) { insight = "Overdue " + (daysSince - gap) + "d — worth a WhatsApp"; insightClass = "warn"; }
-      else if (ratio >= 0.75) { insight = "Due about now — every ~" + gap + " days"; insightClass = "due"; }
+      if (ratio >= 1.4) { insight = "Overdue " + (daysSince - gap) + "d. Worth a WhatsApp"; insightClass = "warn"; }
+      else if (ratio >= 0.75) { insight = "Due about now, every ~" + gap + " days"; insightClass = "due"; }
       else { const next = Math.max(1, gap - daysSince); insight = "Next likely in ~" + next + (next === 1 ? " day" : " days"); insightClass = "good"; }
-    } else if (daysSince <= 10) { insight = "New — follow up to keep them"; insightClass = "due"; }
-    else { insight = "Quiet " + daysSince + "d — send a comeback"; insightClass = "soft"; }
+    } else if (daysSince <= 10) { insight = "New. Follow up to keep them"; insightClass = "due"; }
+    else { insight = "Quiet " + daysSince + "d. Send a comeback"; insightClass = "soft"; }
 
     return '<div class="buyer-card">' +
       '<div class="bc-top">' +
@@ -3259,11 +3259,11 @@ function renderAssets() {
 
   const dirty = ASSET_LIB.dirty || (JSON.stringify(ASSET_LIB.draft) !== JSON.stringify(ASSET_LIB.published));
   $("publish-status").textContent = dirty
-    ? "Draft differs from live — publish to update the website"
+    ? "Draft differs from live. Publish to update the website"
     : "Live site matches this draft";
   $("publish-meta").textContent = ASSET_LIB.publishedAt
     ? ("Last published " + new Date(ASSET_LIB.publishedAt).toLocaleString())
-    : "Not published yet — using defaults until you publish";
+    : "Not published yet. Using defaults until you publish";
   $("publish-btn").disabled = !ASSET_LIB.draft.length;
 
   const row = $("draft-row");
@@ -3485,11 +3485,11 @@ async function publishAssets() {
 async function boot() {
   const res = await fetch("/api/admin/ping", { headers: authHeaders() });
   if (!res.ok) {
-    // Stale / wrong cached key — force a clean sign-in.
+    // Stale / wrong cached key. force a clean sign-in.
     localStorage.removeItem("yolko_admin_key");
     KEY = "";
     const msg = $("login-msg");
-    if (msg) msg.textContent = "Session expired — sign in again";
+    if (msg) msg.textContent = "Session expired. Sign in again";
     return;
   }
   $("login-card").style.display = "none";
