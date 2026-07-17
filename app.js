@@ -381,8 +381,8 @@ applyChalkPriceImage(BUNDLES.tray1.price);
 const TICKER_ITEMS = [
   "Fresh eggs every week",
   "30 eggs for $13",
-  "Saturday delivery +$5",
-  "Within 45 km of Sydney Markets",
+  "Pace Farm trays",
+  "Book online",
 ];
 
 function renderTicker() {
@@ -582,7 +582,7 @@ function syncFulfillmentUI() {
     daySeg.innerHTML = `<label class="seg-opt">
       <input type="radio" name="pickupDayDisplay" value="Saturday" checked disabled>
       <span class="seg-day">Saturday ${satDate}</span>
-      <span class="seg-hours">Delivery only · +$${DELIVERY_FEE}</span>
+      <span class="seg-hours">Morning</span>
     </label>`;
   }
 
@@ -636,7 +636,7 @@ async function refreshDeliveryZoneHint() {
       hint.style.color = "var(--red, #b00020)";
     } else {
       hint.hidden = false;
-      hint.textContent = d.error || "Enter suburb + postcode so we can check the 45 km zone.";
+      hint.textContent = d.error || "Enter suburb + postcode to check delivery.";
       hint.style.color = "var(--red, #b00020)";
     }
   } catch {
@@ -832,11 +832,11 @@ function setMetaContent(attr, key, value) {
 function applySeoMeta(settings) {
   const p1 = BUNDLES.tray1.price;
   const priceKey = chalkPriceKey(p1);
-  const title = `YOLKO | 30 Eggs for $${p1} · Saturday Delivery`;
-  const description = `30 Pace Farm eggs for $${p1}. Book online for Saturday delivery +$5 within 45 km of Sydney Markets.`;
+  const title = `YOLKO | 30 Eggs for $${p1} · Sydney`;
+  const description = `30 Pace Farm eggs for $${p1}. Fresh trays, delivered in Sydney.`;
   const ogDescription = description;
   const image = `https://getyolko.com/assets/chalk-tray/${priceKey}-1536.jpg?v=${CHALK_ASSET_VER}`;
-  const imageAlt = `Fresh Pace Farm egg trays · $${p1}/tray · Saturday delivery`;
+  const imageAlt = `Fresh Pace Farm egg trays · $${p1}/tray`;
 
   document.title = title;
   setMetaContent("name", "description", description);
@@ -863,7 +863,7 @@ function applySeoMeta(settings) {
 
   if (business) {
     business.image = [image];
-    business.description = `30 Pace Farm eggs for $${p1}. Book online for Saturday delivery within 45 km of Sydney Markets.`;
+    business.description = `30 Pace Farm eggs for $${p1}. Fresh trays, delivered in Sydney.`;
     business.priceRange = `$${p1}-$${BUNDLES.box.price}`;
     business.openingHoursSpecification = [{
       "@type": "OpeningHoursSpecification",
@@ -875,7 +875,7 @@ function applySeoMeta(settings) {
 
   if (product) {
     product.image = image;
-    product.description = `30 fresh Pace Farm eggs for $${p1}. Saturday delivery within 45 km of Sydney Markets.`;
+    product.description = `30 fresh Pace Farm eggs for $${p1}. Delivered in Sydney.`;
     if (!product.offers || typeof product.offers !== "object") product.offers = { "@type": "Offer" };
     product.offers.price = Number(p1).toFixed(2);
     product.offers.priceCurrency = "AUD";
@@ -985,20 +985,20 @@ function applyPickupDaysOnly(pickup) {
 function applyPickup(pickup) {
   window.__YOLKO_PICKUP = pickup;
 
-  // Delivery-only storefront: keep Saturday delivery cards (do not render market pickup days).
+  // Delivery section cards — keep policy details here only.
   const cardsBox = document.querySelector(".day-cards");
   if (cardsBox) {
     const satDate = nextPickupDate("Saturday");
     cardsBox.innerHTML = `
       <article class="day-card">
         <p class="day-name">Saturday ${satDate}</p>
-        <p class="day-time">Morning delivery</p>
+        <p class="day-time">Morning drop-off</p>
         <p class="day-note">Book by Friday night</p>
       </article>
       <article class="day-card">
         <p class="day-name">+$${DELIVERY_FEE}</p>
-        <p class="day-time">Flat delivery fee</p>
-        <p class="day-note">Within 45 km of Sydney Markets</p>
+        <p class="day-time">Flat fee</p>
+        <p class="day-note">Checked at checkout</p>
       </article>`;
   }
 
@@ -1009,15 +1009,15 @@ function applyPickup(pickup) {
 
   const stats = document.querySelectorAll(".hero-stats div");
   if (stats[2]) {
-    stats[2].querySelector("dt").textContent = `+$${DELIVERY_FEE}`;
-    stats[2].querySelector("dd").textContent = "Sat delivery";
+    stats[2].querySelector("dt").textContent = "Weekly";
+    stats[2].querySelector("dd").textContent = "fresh drop";
   }
 
-  TICKER_ITEMS[2] = `Saturday delivery +$${DELIVERY_FEE} · within 45 km`;
+  TICKER_ITEMS[2] = "Pace Farm trays";
   renderTicker();
 
   const ctaSpan = document.querySelector(".mobile-cta-text span");
-  if (ctaSpan) ctaSpan.textContent = `Sat delivery +$${DELIVERY_FEE}`;
+  if (ctaSpan) ctaSpan.textContent = "Order online";
 
   const buyBtn = document.getElementById("buynow-btn");
   if (buyBtn) buyBtn.disabled = false;
@@ -1121,12 +1121,12 @@ function collectBooking() {
   if (fulfillment === "delivery") {
     if (deliveryStreet.length < 3) {
       flagInvalid(document.getElementById("delivery-street"));
-      showToast("Add a street address for Saturday delivery.");
+      showToast("Add a street address for delivery.");
       return null;
     }
     if (!deliverySuburb) {
       flagInvalid(document.getElementById("delivery-suburb"));
-      showToast("Add your suburb for Saturday delivery.");
+      showToast("Add your suburb for delivery.");
       return null;
     }
     if (!/^2\d{3}$/.test(deliveryPostcode)) {
@@ -1202,7 +1202,7 @@ function createOrder(b) {
         if (d.code === "delivery_range") {
           return {
             error: "delivery_range",
-            message: d.error || "Outside 45 km of Sydney Markets.",
+            message: d.error || "Outside our 45 km delivery area.",
             roadKmEstimate: d.roadKmEstimate,
           };
         }
@@ -1363,8 +1363,8 @@ function showConfirmation(b) {
   const isDelivery = b.fulfillment === "delivery";
   const message = [
     isDelivery
-      ? "Hi! I'd like to book eggs for Saturday delivery."
-      : "Hi! I'd like to book eggs for pickup at Flemington.",
+      ? "Hi! I'd like to book eggs for delivery."
+      : "Hi! I'd like to book eggs.",
     `Name: ${b.name}`,
     `Phone: ${b.phone}`,
     `Order: ${b.orderLabel}`,
@@ -1378,7 +1378,7 @@ function showConfirmation(b) {
   lastOrderMessage = message;
 
   doneSummary.textContent = isDelivery
-    ? `Thanks ${b.name.split(" ")[0]}! Here are your Saturday delivery details.`
+    ? `Thanks ${b.name.split(" ")[0]}! Here are your order details.`
     : `Thanks ${b.name.split(" ")[0]}! Here are your pickup details.`;
   receipt.name.textContent = b.name;
   receipt.phone.textContent = b.phone;
@@ -1389,7 +1389,7 @@ function showConfirmation(b) {
   receipt.total.textContent = `$${b.total}`;
 
   const hint = document.querySelector(".done-hint");
-  if (hint) hint.textContent = isDelivery ? "Keep this screen for your Saturday delivery." : "Keep this screen for pickup.";
+  if (hint) hint.textContent = "Keep this screen for your records.";
 
   const number = String(config.whatsappNumber || "").replace(/\D/g, "");
   if (number) {
@@ -1455,7 +1455,7 @@ async function startBuyNow() {
       return;
     }
     if (result?.error === "delivery_range") {
-      failBuy(result.message || "We only deliver within 45 km of Sydney Markets.");
+      failBuy(result.message || "We only deliver within 45 km of our hub.");
       return;
     }
     if (result?.error === "delivery_address") {

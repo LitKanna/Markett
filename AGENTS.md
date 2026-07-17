@@ -57,8 +57,8 @@ FAQ, and image alts on the next page load — no HTML edit needed.
 
 Orders store `ip`, `country`, `asnOrg`, and `ua` (from Cloudflare). Admin flags non-AU IPs,
 datacenter ASNs, known test phones, and repeat IPs. Rate limits: 5 orders / IP / 24h and
-3 / phone / 24h. Do **not** place test bookings against production — local Reserve hits
-`https://getyolko.com/api/orders`.
+3 / phone / 24h. Do **not** place test bookings against production — Buy now hits
+`https://getyolko.com/api/buy-now`.
 
 ### Admin login
 `/admin` is an HTML page embedded in `infra/cloudflare-worker.mjs` (`ADMIN_HTML`).
