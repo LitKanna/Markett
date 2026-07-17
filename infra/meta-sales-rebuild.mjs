@@ -88,7 +88,8 @@ const ADS = [
   },
   {
     name: "Ad · Sat delivery +$5",
-    image: IMAGE_TRAY,
+    // Chalk $13 hero (updated live Jul 2026 — clearer than plain tray shot)
+    image: IMAGE_CHALK,
     message:
       "Can't make the market? We deliver Saturday for +$5 within 45 km of Sydney Markets.\n\n" +
       "30 eggs $13 · 2 trays $25 · full box $72.\n" +
