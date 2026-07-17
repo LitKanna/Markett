@@ -1,1 +1,4 @@
 node_modules/
+.wrangler/
+.tmp-chalk/
+.tmp-chalk4k/

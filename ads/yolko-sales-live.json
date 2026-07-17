@@ -1,0 +1,70 @@
+{
+  "campaign": {
+    "id": "120251266112440131",
+    "name": "YOLKO \u2014 Sales (Purchase)",
+    "status": "ACTIVE",
+    "objective": "OUTCOME_SALES",
+    "daily_budget": "1400",
+    "bid_strategy": "COST_CAP"
+  },
+  "adsets": [
+    {
+      "id": "120251374621860131",
+      "name": "Retarget \u2014 Site visitors 14d",
+      "status": "ACTIVE",
+      "effective_status": "ACTIVE",
+      "campaign_id": "120251266112440131",
+      "bid_amount": 100
+    },
+    {
+      "id": "120251266112450131",
+      "name": "Cold \u2014 Markets 50km \u00b7 Purchase",
+      "status": "ACTIVE",
+      "effective_status": "ACTIVE",
+      "campaign_id": "120251266112440131",
+      "bid_amount": 100
+    }
+  ],
+  "ads": [
+    {
+      "id": "120251374622590131",
+      "name": "Ad \u00b7 Retarget Price $13",
+      "status": "ACTIVE",
+      "effective_status": "ACTIVE",
+      "adset_id": "120251374621860131"
+    },
+    {
+      "id": "120251374496650131",
+      "name": "Ad \u00b7 Sat delivery +$5",
+      "status": "ACTIVE",
+      "effective_status": "ACTIVE",
+      "adset_id": "120251266112450131"
+    },
+    {
+      "id": "120251374495710131",
+      "name": "Ad \u00b7 Price $13",
+      "status": "ACTIVE",
+      "effective_status": "ACTIVE",
+      "adset_id": "120251266112450131"
+    },
+    {
+      "id": "120251374497830131",
+      "name": "Ad \u00b7 2 trays $25",
+      "status": "ACTIVE",
+      "effective_status": "ACTIVE",
+      "adset_id": "120251266112450131"
+    },
+    {
+      "id": "120251266112460131",
+      "name": "New Sales Ad",
+      "status": "PAUSED",
+      "effective_status": "PAUSED",
+      "adset_id": "120251266112450131"
+    }
+  ],
+  "audienceId": "120251374615320131",
+  "pixelId": "2008953469766472",
+  "pageId": "1208970268967183",
+  "act": "act_1940573363326611",
+  "adsManager": "https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=1940573363326611&selected_campaign_ids=120251266112440131"
+}

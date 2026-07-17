@@ -7,7 +7,7 @@ import { chromium } from "playwright";
 import { existsSync, writeFileSync, unlinkSync } from "fs";
 
 const ADS_URL =
-  "https://adsmanager.facebook.com/adsmanager/manage/ads?act=1230148938407162&selected_adset_ids=120256182965760197";
+  "https://adsmanager.facebook.com/adsmanager/manage/ads?act=1230148938407162&selected_adset_ids=120251266112450131";
 const GO_SIGNAL = "/tmp/yolko-meta-ready";
 const DONE_SIGNAL = "/tmp/yolko-meta-done";
 
