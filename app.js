@@ -752,7 +752,6 @@ function applySettings(settings) {
 
   const p1 = BUNDLES.tray1.price;
   const perEgg = Math.round((p1 / 30) * 100);
-  const saving = Math.round(p1 * 2 - BUNDLES.tray2.price);
 
   cacheTray1Price(p1);
   applyChalkPriceImage(p1);
@@ -785,9 +784,11 @@ function applySettings(settings) {
   if (trayCards[0]) trayCards[0].textContent = `$${BUNDLES.tray1.price}`;
   if (trayCards[1]) trayCards[1].textContent = `$${BUNDLES.tray2.price}`;
   if (trayCards[2]) trayCards[2].textContent = `$${BUNDLES.box.price}`;
+  const perEgg2 = Math.round((BUNDLES.tray2.price / 60) * 100);
+  const perEggBox = Math.round((BUNDLES.box.price / 180) * 100);
   if (trayPers[0]) trayPers[0].innerHTML = `30 eggs · ${perEgg}&cent; each`;
-  if (trayPers[1]) trayPers[1].textContent = saving > 0 ? `60 eggs · save $${saving}` : "60 eggs";
-  if (trayPers[2]) trayPers[2].textContent = "6 trays · 180 eggs";
+  if (trayPers[1]) trayPers[1].innerHTML = `60 eggs · ${perEgg2}&cent; each`;
+  if (trayPers[2]) trayPers[2].innerHTML = `180 eggs · ${perEggBox}&cent; each`;
 
   // Form options and submit chip
   const bpTray1 = document.getElementById("bp-tray1");
@@ -902,25 +903,21 @@ function applySeoMeta(settings) {
 const PRODUCT_TYPES = {
   "1.75": {
     shortSpec: "Cage · Extra large · 1.75kg",
-    packLine: "Cage eggs · 1.75kg tray",
     faq: "Pace Farm cage eggs, 30 to a tray (1.75kg). The same brand you'll find in the big supermarkets, for less.",
     alt: "Cage eggs · 1.75kg tray",
   },
   "1.5": {
     shortSpec: "Cage · Large · 1.5kg",
-    packLine: "Cage eggs · 1.5kg tray",
     faq: "Pace Farm cage eggs, 30 to a tray (1.5kg). The same brand you'll find in the big supermarkets, for less.",
     alt: "Cage eggs · 1.5kg tray",
   },
   "fr-700": {
     shortSpec: "Free range · 700g",
-    packLine: "Free range · 700g",
     faq: "Pace Farm free range eggs, 700g pack. The same brand you'll find in the big supermarkets, for less.",
     alt: "Free range · 700g Pace Farm eggs",
   },
   "fr-600": {
     shortSpec: "Free range · 600g",
-    packLine: "Free range · 600g",
     faq: "Pace Farm free range eggs, 600g pack. The same brand you'll find in the big supermarkets, for less.",
     alt: "Free range · 600g Pace Farm eggs",
   },
@@ -930,8 +927,7 @@ function applyProductType(key) {
   const product = PRODUCT_TYPES[key] || PRODUCT_TYPES["1.75"];
   const traySpec = document.getElementById("tray-spec");
   if (traySpec) traySpec.textContent = product.shortSpec;
-  const packLine = document.getElementById("pack-eggs-line");
-  if (packLine) packLine.textContent = product.packLine;
+  // Price cards use quantity/audience copy (not product-weight lines).
   const faqEggs = document.getElementById("faq-eggs");
   if (faqEggs) faqEggs.textContent = product.faq;
   const heroImg = document.getElementById("hero-tray-img");
