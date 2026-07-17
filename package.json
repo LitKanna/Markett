@@ -1,7 +1,7 @@
 {
   "name": "workspace",
   "version": "1.0.0",
-  "description": "One-page marketing site for selling fresh egg trays with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.",
+  "description": "One-page marketing site for selling fresh egg trays with Saturday delivery across Sydney (within 45 km of Sydney Markets).",
   "main": "app.js",
   "scripts": {
     "deploy": "wrangler deploy",
