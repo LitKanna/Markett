@@ -66,6 +66,9 @@ def white_to_alpha(img: Image.Image, cutoff: int = 228) -> Image.Image:
 
 def build_tray_grid() -> Image.Image:
     """Reassemble wholesale photo as an exact 6×5 grid (6 cols, 5 rows)."""
+# REMOVED: pace-tray-175kg market-shelf assets were deleted (do not regenerate).
+raise SystemExit("pace-tray-175kg market-shelf image was deleted — do not regenerate it")
+
     src = Image.open(REF).convert("RGBA").crop(TRAY_CROP)
     w, h = src.size
     cw, rh = w / COLS, h / ROWS

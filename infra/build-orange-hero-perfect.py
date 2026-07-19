@@ -67,6 +67,9 @@ def ref_grid() -> np.ndarray:
 
 def egg_patch(row: int, col: int) -> tuple[np.ndarray, np.ndarray]:
     """Extract brown egg dome + soft alpha (no clear plastic rails)."""
+# REMOVED: pace-tray-175kg market-shelf assets were deleted (do not regenerate).
+raise SystemExit("pace-tray-175kg market-shelf image was deleted — do not regenerate it")
+
     src = ref_grid()
     h, w = src.shape[:2]
     cw, rh = w / COLS, h / ROWS
