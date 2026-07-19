@@ -328,20 +328,23 @@ function stripeDetailsFromSession(session) {
     null;
   const amount =
     Number.isFinite(Number(session?.amount_total)) ? Number(session.amount_total) / 100 : null;
-  const paidAtSec =
-    (charge && typeof charge === "object" && charge.created) ||
-    session?.created ||
-    null;
+  const actuallyPaid = session?.payment_status === "paid";
+  // Only stamp paidAt from a real charge (or paid session). Never use session.created —
+  // that made unpaid checkouts look paid in admin after hydrate.
+  const paidAtSec = actuallyPaid
+    ? ((charge && typeof charge === "object" && charge.created) || null)
+    : null;
   return {
     sessionId: session?.id || null,
     paymentIntentId: typeof pi === "string" ? pi : pi?.id || null,
+    paymentStatus: String(session?.payment_status || "unpaid"),
     receiptUrl,
     amountTotal: amount,
     currency: String(session?.currency || "aud").toUpperCase(),
     email: session?.customer_details?.email || session?.customer_email || null,
     cardBrand: charge?.payment_method_details?.card?.brand || null,
     cardLast4: charge?.payment_method_details?.card?.last4 || null,
-    paidAt: paidAtSec ? new Date(paidAtSec * 1000).toISOString() : new Date().toISOString(),
+    paidAt: paidAtSec ? new Date(paidAtSec * 1000).toISOString() : null,
   };
 }
 
@@ -1394,8 +1397,14 @@ async function handleApi(request, env, url, ctx) {
     if (!order) return json({ error: "not found" }, 404);
     if (!order.sessionId) return json({ error: "no stripe session" }, 404);
 
-    if (order.stripe?.receiptUrl && order.stripe?.amountTotal != null) {
-      return json({ ok: true, stripe: order.stripe, cached: true });
+    if (order.stripe?.receiptUrl && order.stripe?.amountTotal != null && order.paymentStatus === "paid") {
+      return json({
+        ok: true,
+        paid: true,
+        paymentStatus: "paid",
+        stripe: order.stripe,
+        cached: true,
+      });
     }
 
     const resp = await fetch(
@@ -1406,9 +1415,18 @@ async function handleApi(request, env, url, ctx) {
     if (session.error) return json({ error: session.error.message || "stripe error" }, 502);
 
     order.stripe = stripeDetailsFromSession(session);
-    if (session.payment_status === "paid") order.paymentStatus = "paid";
+    if (session.payment_status === "paid") {
+      order.paymentStatus = "paid";
+      if (order.status === "new") order.status = "confirmed";
+    }
     await env.DATA.put(id, JSON.stringify(order));
-    return json({ ok: true, stripe: order.stripe, cached: false });
+    return json({
+      ok: true,
+      paid: session.payment_status === "paid",
+      paymentStatus: order.paymentStatus || "pending",
+      stripe: order.stripe,
+      cached: false,
+    });
   }
 
   // Admin: full refund of a paid Stripe order (money back to original payer)
@@ -2519,20 +2537,24 @@ function saleCardHtml(o) {
   const addr = isDelivery
     ? formatDeliveryAddress(o)
     : "Paddy\\'s Markets Flemington";
-  const canReceipt = !!(isPaid(o) || o.sessionId);
   const canRefund = o.paymentStatus === "paid" && !isRefunded(o);
   const receiptUrl = o.stripe && o.stripe.receiptUrl ? o.stripe.receiptUrl : "";
   const chip = isRefunded(o)
     ? '<span class="sale-chip refunded">Refunded</span>'
-    : (isPaid(o) ? '<span class="sale-chip">Paid</span>' : '');
+    : (isPaid(o)
+      ? '<span class="sale-chip">Paid</span>'
+      : (o.sessionId ? '<span class="sale-chip" style="background:#eee;color:var(--muted)">Checkout open</span>' : ''));
 
   let receiptBtn = "";
-  if (canReceipt) {
+  // Receipt only when Stripe has actually charged (paid + receipt URL or paid status).
+  if (isPaid(o)) {
     if (receiptUrl) {
       receiptBtn = '<a class="icon-btn" href="' + escapeHtml(receiptUrl) + '" target="_blank" rel="noopener" title="Receipt" aria-label="Receipt">' + iconSvg("receipt") + '</a>';
     } else {
-      receiptBtn = '<button type="button" class="icon-btn" title="Receipt" aria-label="Receipt" onclick="openReceipt(\\'' + o.id + '\\')">' + iconSvg("receipt") + '</button>';
+      receiptBtn = '<button type="button" class="icon-btn" title="Check Stripe" aria-label="Check Stripe" onclick="openReceipt(\\'' + o.id + '\\')">' + iconSvg("receipt") + '</button>';
     }
+  } else if (o.sessionId) {
+    receiptBtn = '<button type="button" class="icon-btn" title="Refresh payment status" aria-label="Refresh payment" onclick="hydrateStripeReceipt(\\'' + o.id + '\\')">' + iconSvg("receipt") + '</button>';
   }
   const refundBtn = canRefund
     ? '<button type="button" class="icon-btn danger" title="Refund" aria-label="Refund" onclick="refundOrder(\\'' + o.id + '\\')">' + iconSvg("refund") + '</button>'
@@ -2657,13 +2679,19 @@ document.addEventListener("click", function(e) {
 async function fetchStripeDetails(orderId) {
   const order = ALL_ORDERS.find(function(o) { return o.id === orderId; });
   if (!order || (!isPaid(order) && !order.sessionId)) return null;
-  if (order.stripe && order.stripe.receiptUrl && order.stripe.email) return order.stripe;
+  if (order.stripe && order.stripe.receiptUrl && order.stripe.email && isPaid(order)) return order.stripe;
   try {
     const res = await fetch("/api/stripe-receipt?id=" + encodeURIComponent(orderId), { headers: authHeaders() });
     const data = await res.json();
     if (!res.ok || !data.stripe) return null;
     order.stripe = data.stripe;
-    if (order.paymentStatus !== "paid" && data.stripe) order.paymentStatus = "paid";
+    // Trust Stripe payment_status from the API — never mark paid just because stripe{} exists.
+    if (data.paid === true || data.paymentStatus === "paid") {
+      order.paymentStatus = "paid";
+      if (order.status === "new") order.status = "confirmed";
+    } else if (data.paymentStatus) {
+      order.paymentStatus = data.paymentStatus;
+    }
     return data.stripe;
   } catch (err) {
     return null;
@@ -2678,9 +2706,19 @@ function refreshSaleCard(orderId) {
 }
 
 async function hydrateStripeReceipt(orderId) {
+  const beforePaid = (() => {
+    const o = ALL_ORDERS.find((x) => x.id === orderId);
+    return o ? isPaid(o) : false;
+  })();
   const stripe = await fetchStripeDetails(orderId);
   if (!stripe) return;
   refreshSaleCard(orderId);
+  const afterPaid = (() => {
+    const o = ALL_ORDERS.find((x) => x.id === orderId);
+    return o ? isPaid(o) : false;
+  })();
+  // Re-draw board when payment badge should change.
+  if (beforePaid !== afterPaid) renderOrderBoardPreservingScroll();
 }
 
 async function openReceipt(orderId) {
