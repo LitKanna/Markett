@@ -2538,6 +2538,7 @@ function saleCardHtml(o) {
     ? formatDeliveryAddress(o)
     : "Paddy\\'s Markets Flemington";
   const canRefund = o.paymentStatus === "paid" && !isRefunded(o);
+  const canReceipt = isPaid(o) || Boolean(o.sessionId);
   const receiptUrl = o.stripe && o.stripe.receiptUrl ? o.stripe.receiptUrl : "";
   const chip = isRefunded(o)
     ? '<span class="sale-chip refunded">Refunded</span>'
