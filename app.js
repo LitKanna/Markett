@@ -83,7 +83,7 @@ window.addEventListener("scroll", () => {
 
 /* ---------- Scroll reveal ---------- */
 const revealTargets = document.querySelectorAll(
-  ".section-head, .price-card, .day-card, .steps, .trust-row p, .order-copy, .order-form, .faq details, .stock-note"
+  ".section-head, .price-card, .day-card, .steps, .trust-row p, .truth-inner, .guide-list, .order-copy, .order-form, .faq details, .stock-note"
 );
 
 revealTargets.forEach((el, i) => {
@@ -491,6 +491,8 @@ function collectBooking() {
     return null;
   }
 
+  const weekly = Boolean(data.get("weekly"));
+
   return {
     name,
     phoneDigits,
@@ -501,6 +503,7 @@ function collectBooking() {
     quantity,
     total: bundle.price * quantity,
     orderLabel: describeOrder(bundleKey, quantity),
+    weekly,
   };
 }
 
@@ -508,7 +511,15 @@ function createOrder(b) {
   return fetch(`${API_BASE}/api/orders`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: b.name, phone: b.phoneDigits, bundle: b.bundleKey, pickupDay: b.pickupDay, pickupDate: b.pickupDate, quantity: b.quantity }),
+    body: JSON.stringify({
+      name: b.name,
+      phone: b.phoneDigits,
+      bundle: b.bundleKey,
+      pickupDay: b.pickupDay,
+      pickupDate: b.pickupDate,
+      quantity: b.quantity,
+      weekly: Boolean(b.weekly),
+    }),
   })
     .then((r) => (r.ok ? r.json() : null))
     .then((d) => (d && d.id ? d.id : null))
@@ -544,7 +555,8 @@ function showConfirmation(b) {
     `Order: ${b.orderLabel}`,
     `Pickup: ${b.pickupDay} ${b.pickupDate}`,
     `Total: $${b.total}`,
-  ].join("\n");
+    b.weekly ? "Weekly: yes — please save this for me every week" : null,
+  ].filter(Boolean).join("\n");
   lastOrderMessage = message;
 
   doneSummary.textContent = `Thanks ${b.name.split(" ")[0]}! Here are your pickup details.`;
@@ -553,6 +565,9 @@ function showConfirmation(b) {
   receipt.order.textContent = b.orderLabel;
   receipt.pickup.textContent = `${b.pickupDay} ${b.pickupDate} at Paddy's Markets Flemington`;
   receipt.total.textContent = `$${b.total}`;
+
+  const weeklyNote = document.getElementById("done-weekly");
+  if (weeklyNote) weeklyNote.hidden = !b.weekly;
 
   const number = String(config.whatsappNumber || "").replace(/\D/g, "");
   if (number) {

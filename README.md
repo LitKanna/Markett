@@ -19,6 +19,9 @@ One-page marketing site for selling fresh egg trays with **Friday** and **Saturd
 See `ads/setup-guide.md` for step-by-step setup, and `ads/` for
 ready-to-paste Facebook, Instagram, and Google ad campaigns.
 
+Growth system (free guide, weekly standing orders, partner peel, truth copy,
+split-test order): see `growth-playbook.md` and `LAUNCH.md`.
+
 ## Preview locally (on your computer only)
 
 ```bash

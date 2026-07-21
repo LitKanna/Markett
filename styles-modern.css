@@ -653,6 +653,77 @@ h3 {
   font-weight: 800;
 }
 
+/* Truth */
+.truth {
+  padding: 88px 0 40px;
+  background:
+    linear-gradient(180deg, rgba(255, 211, 42, 0.18), transparent 55%),
+    var(--canvas);
+}
+
+.truth-inner {
+  max-width: 720px;
+}
+
+.truth h2 {
+  margin: 0 0 18px;
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.truth-copy {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+/* Free guide */
+.guide {
+  padding: 116px 0;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(255, 211, 42, 0.35), transparent 42%),
+    radial-gradient(circle at 88% 80%, rgba(21, 115, 76, 0.12), transparent 40%),
+    var(--paper);
+}
+
+.guide .section-head {
+  margin-bottom: 36px;
+}
+
+.guide-list {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.guide-list li {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 1.05rem;
+}
+
+.guide-list strong {
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.guide-note {
+  margin: 0 0 28px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 /* Pickup */
 .pickup {
   padding: 116px 0;
@@ -1139,6 +1210,29 @@ h3 {
   text-align: center;
 }
 
+.check-opt {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 4px 0 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--yellow-soft);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.check-opt input {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ink);
+  flex-shrink: 0;
+}
+
 /* Confirmation */
 .done {
   padding: 80px 0;
@@ -1158,6 +1252,53 @@ h3 {
   background: var(--paper);
   box-shadow: 14px 14px 0 var(--green);
   animation: done-in 450ms var(--ease) both;
+}
+
+.done-weekly {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--green);
+  background: var(--green-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.done-next {
+  margin: 0 0 16px;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.done-next-title {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.done-next-title + .done-next-title {
+  margin-top: 14px;
+}
+
+.done-next-link {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.done-next-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.done-next-copy a {
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .done-side {
@@ -1635,9 +1776,23 @@ h3 {
     font-size: clamp(45px, 14vw, 72px);
   }
 
+  .truth {
+    padding: 64px 0 24px;
+  }
+
+  .truth h2 {
+    font-size: clamp(2.1rem, 11vw, 3.2rem);
+  }
+
+  .guide-list li {
+    grid-template-columns: 3.5rem 1fr;
+    font-size: 0.98rem;
+  }
+
   .prices,
   .pickup,
   .order,
+  .guide,
   .faq {
     padding-block: 86px;
   }
