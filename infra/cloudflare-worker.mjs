@@ -183,7 +183,7 @@ async function handleApi(request, env, url) {
     if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
     const list = await env.DATA.list({ prefix: "order:", limit: 500 });
     const orders = await Promise.all(list.keys.map((k) => env.DATA.get(k.name, "json")));
-    const valid = orders.filter(Boolean).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    const valid = orders.filter(Boolean).sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
     return json({ orders: valid });
   }
 
@@ -568,7 +568,9 @@ async function saveKey() {
 function logout() { localStorage.removeItem("yolko_admin_key"); location.reload(); }
 
 function fmtTime(iso) {
-  return new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Sydney", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleString("en-AU", { timeZone: "Australia/Sydney", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 }
 
 function fmtPhone(p) { return p.replace(/(\\d{4})(\\d{3})(\\d{3})/, "$1 $2 $3"); }
@@ -580,7 +582,7 @@ async function loadOrders() {
 
   orders.sort((a, b) => {
     const rank = (o) => o.status === "cancelled" ? 2 : (o.paymentStatus === "paid" ? 0 : 1);
-    return rank(a) - rank(b) || b.createdAt.localeCompare(a.createdAt);
+    return rank(a) - rank(b) || String(b.createdAt || "").localeCompare(String(a.createdAt || ""));
   });
 
   const active = orders.filter(o => o.status !== "cancelled");
@@ -671,7 +673,7 @@ function renderBuyers(orders) {
     b.history.sort(function(x, y) { return x.t - y.t; });
     const maxOrderV = Math.max.apply(null, b.history.map(function(p) { return p.v; })) || 1;
     const newest = b.history[b.history.length - 1].t;
-    const daysSince = Math.max(0, Math.floor((Date.now() - newest) / 86400000));
+    const daysSince = newest ? Math.max(0, Math.floor((Date.now() - newest) / 86400000)) : 0;
 
     const favBundle = Object.keys(b.bundles).sort(function(x, y) { return b.bundles[y] - b.bundles[x]; })[0];
     const favDay = Object.keys(b.days).sort(function(x, y) { return b.days[y] - b.days[x]; })[0];
