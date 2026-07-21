@@ -93,3 +93,31 @@ Bio link: https://getyolko.com/
 - Reply to messages within the hour; speed wins repeat buyers
 - Collect every buyer's number with permission - the WhatsApp list is the business
 - Do not spam groups; twice a week per group maximum
+- You write every ad hook (founder = marketing until sell-outs are routine)
+- Tell the truth: small stock, pickup only — that scarcity is an asset
+- Optimize for weekly repeat buyers (LTV), not forever-cheaper Meta leads
+
+## Growth system (from the transcript playbook)
+
+Full map: `growth-playbook.md`. Short version:
+
+1. **One need-to-believe** — book a $12 Pace Farm tray, pick up Fri/Sat at Flemington
+2. **Free lead magnet** — “7 breakfasts from one tray” on the site after booking
+3. **LTV** — tick “every week” on the form; Saturday night ask every buyer to renew
+4. **Partner peel** — cafés/groceries sell a 3-tray pack and keep 100% of that sale
+5. **Pre > post** — lock the hook from `ads/facebook-instagram-ads.md` before you shoot
+6. **Split tests** — offer → headline → image → Reserve vs Buy now; lock winners
+
+### Partner pitch (copy-paste)
+
+> Sell a 3-tray starter pack to your customers for at least $36. You keep every
+> dollar. We hold the trays for Friday/Saturday pickup at Flemington. No 20%
+> referral fee — you keep 100% of that pack. Message us via getyolko.com.
+
+Pitch 2 nearby food businesses a month before chasing influencers.
+
+### #1 question (use monthly)
+
+What would it take for YOLKO to be the default Flemington egg booking for
+Homebush / Strathfield / Lidcombe / Auburn? Put resources only into the 1–2
+answers (usually: WhatsApp regulars + partner nodes + true sell-out scarcity).
