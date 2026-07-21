@@ -1,7 +1,7 @@
 import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./delivery-zones.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "7838ddb633b5ab8200abf422b5af19359af7b623";
+const DEPLOY_SHA = "f68c53e72753b81cdd8b2320eca1c4b980985749";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
@@ -611,7 +611,7 @@ async function syncMetaAdsForStock(env, traysAvailable) {
 }
 
 /** Public Meta Pixel ID (Events Manager → YOLKO). Override with env.META_PIXEL_ID. */
-const DEFAULT_META_PIXEL_ID = "2008953469766472";
+const DEFAULT_META_PIXEL_ID = "797937266678792";
 
 function metaPixelId(env) {
   return String(env.META_PIXEL_ID || DEFAULT_META_PIXEL_ID).trim();
@@ -2538,6 +2538,7 @@ function saleCardHtml(o) {
     ? formatDeliveryAddress(o)
     : "Paddy\\'s Markets Flemington";
   const canRefund = o.paymentStatus === "paid" && !isRefunded(o);
+  const canReceipt = isPaid(o) || Boolean(o.sessionId);
   const receiptUrl = o.stripe && o.stripe.receiptUrl ? o.stripe.receiptUrl : "";
   const chip = isRefunded(o)
     ? '<span class="sale-chip refunded">Refunded</span>'
@@ -3608,7 +3609,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "148",
+        "X-Yolko-Build": "150",
       },
     });
   },
