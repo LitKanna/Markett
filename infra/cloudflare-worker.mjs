@@ -1,7 +1,7 @@
 import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./delivery-zones.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "f68c53e72753b81cdd8b2320eca1c4b980985749";
+const DEPLOY_SHA = "a3ed99fd5ada4726987e8db34ccc2cb810f515e9";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
@@ -303,6 +303,63 @@ function clientMeta(request) {
     asnOrg: String(cf.asOrganization || "").slice(0, 80) || null,
     colo: String(cf.colo || "").slice(0, 8) || null,
     ua: ua || null,
+  };
+}
+
+
+function parseUa(ua) {
+  const s = String(ua || "");
+  let os = "Unknown";
+  if (/Windows/i.test(s)) os = "Windows";
+  else if (/Android/i.test(s)) os = "Android";
+  else if (/iPhone|iPad|iPod/i.test(s)) os = "iOS";
+  else if (/Mac OS X|Macintosh/i.test(s)) os = "macOS";
+  else if (/Linux/i.test(s)) os = "Linux";
+
+  let browser = "Unknown";
+  if (/Edg\//i.test(s)) browser = "Edge";
+  else if (/OPR\/|Opera/i.test(s)) browser = "Opera";
+  else if (/Chrome\//i.test(s) && !/Edg\//i.test(s)) browser = "Chrome";
+  else if (/Safari\//i.test(s) && !/Chrome\//i.test(s)) browser = "Safari";
+  else if (/Firefox\//i.test(s)) browser = "Firefox";
+
+  let deviceType = "desktop";
+  if (/iPad|Tablet/i.test(s)) deviceType = "tablet";
+  else if (/Mobi|Android|iPhone|iPod/i.test(s)) deviceType = "mobile";
+
+  return { os, browser, deviceType };
+}
+
+function cleanVisitId(v) {
+  const s = String(v || "").trim();
+  if (!/^[a-zA-Z0-9_-]{8,64}$/.test(s)) return null;
+  return s;
+}
+
+async function getVisitIndex(env) {
+  const raw = await env.DATA.get("visits:index", "json");
+  return Array.isArray(raw) ? raw : [];
+}
+
+async function pushVisitIndex(env, visitId) {
+  const ids = await getVisitIndex(env);
+  const next = [visitId, ...ids.filter((x) => x !== visitId)].slice(0, 800);
+  await env.DATA.put("visits:index", JSON.stringify(next));
+}
+
+function enrichCfGeo(request) {
+  const cf = request.cf || {};
+  return {
+    country: String(cf.country || request.headers.get("CF-IPCountry") || "").toUpperCase() || null,
+    city: String(cf.city || "").slice(0, 80) || null,
+    region: String(cf.region || cf.regionCode || "").slice(0, 80) || null,
+    postalCode: String(cf.postalCode || "").slice(0, 16) || null,
+    continent: String(cf.continent || "").slice(0, 8) || null,
+    timezone: String(cf.timezone || "").slice(0, 64) || null,
+    latitude: cf.latitude != null ? String(cf.latitude).slice(0, 16) : null,
+    longitude: cf.longitude != null ? String(cf.longitude).slice(0, 16) : null,
+    asnOrg: String(cf.asOrganization || "").slice(0, 80) || null,
+    colo: String(cf.colo || "").slice(0, 8) || null,
   };
 }
 
@@ -1052,6 +1109,7 @@ async function handleApi(request, env, url, ctx) {
       asnOrg: meta.asnOrg,
       colo: meta.colo,
       ua: meta.ua,
+      visitorId: cleanVisitId(body?.visitorId),
     };
     await env.DATA.put(id, JSON.stringify(order));
     await pushOrderIndex(env, id);
@@ -1207,6 +1265,7 @@ async function handleApi(request, env, url, ctx) {
       order.name = name;
       order.bundle = bundle;
       order.quantity = quantity;
+      order.visitorId = cleanVisitId(body?.visitorId) || order.visitorId || null;
       order.fulfillment = fulfillment;
       order.deliveryAddress = fulfillment === "delivery" ? deliveryAddress : "";
       order.deliveryStreet = fulfillment === "delivery" ? (deliveryZone?.street || deliveryStreet) : "";
@@ -1249,6 +1308,7 @@ async function handleApi(request, env, url, ctx) {
         asnOrg: meta.asnOrg,
         colo: meta.colo,
         ua: meta.ua,
+        visitorId: cleanVisitId(body?.visitorId),
       };
       if (ctx && typeof ctx.waitUntil === "function") {
         ctx.waitUntil(pushOrderIndex(env, id));
@@ -1674,6 +1734,120 @@ async function handleApi(request, env, url, ctx) {
     });
   }
 
+
+  // Public: flyer / QR / campaign pageview tracking
+  if (url.pathname === "/api/visit" && request.method === "POST") {
+    if (!isAllowedOrigin(request)) return json({ error: "forbidden", code: "origin" }, 403);
+    const ip = clientIp(request);
+    const rlOk = await allowRate(env, `visit:${ip || "na"}`, 40, 600);
+    if (!rlOk) return json({ ok: true, throttled: true });
+
+    const body = await request.json().catch(() => ({}));
+    const ua = String(request.headers.get("User-Agent") || body?.ua || "").slice(0, 300);
+    const parsed = parseUa(ua);
+    const geo = enrichCfGeo(request);
+    const visitorId = cleanVisitId(body?.visitorId) || ("anon_" + Math.random().toString(36).slice(2, 12));
+    const sessionId = cleanVisitId(body?.sessionId);
+    const src = String(body?.src || body?.utm_source || "").trim().slice(0, 40) || "direct";
+    const now = new Date();
+    const id = `visit:${now.toISOString()}:${Math.random().toString(36).slice(2, 8)}`;
+
+    const visit = {
+      id,
+      createdAt: now.toISOString(),
+      visitorId,
+      sessionId,
+      src,
+      utm: {
+        source: String(body?.utm_source || "").slice(0, 40) || null,
+        medium: String(body?.utm_medium || "").slice(0, 40) || null,
+        campaign: String(body?.utm_campaign || "").slice(0, 60) || null,
+        content: String(body?.utm_content || "").slice(0, 60) || null,
+        term: String(body?.utm_term || "").slice(0, 60) || null,
+      },
+      path: String(body?.path || "/").slice(0, 200),
+      referrer: String(body?.referrer || request.headers.get("Referer") || "").slice(0, 300) || null,
+      landing: String(body?.landing || "").slice(0, 300) || null,
+      ip: ip || null,
+      ...geo,
+      ua: ua || null,
+      os: parsed.os,
+      browser: parsed.browser,
+      deviceType: parsed.deviceType,
+      language: String(body?.language || "").slice(0, 32) || null,
+      languages: Array.isArray(body?.languages) ? body.languages.map((x) => String(x).slice(0, 24)).slice(0, 8) : null,
+      tz: String(body?.tz || "").slice(0, 64) || null,
+      screen: {
+        w: Number(body?.screenW) || null,
+        h: Number(body?.screenH) || null,
+        dpr: Number(body?.dpr) || null,
+      },
+      viewport: {
+        w: Number(body?.viewportW) || null,
+        h: Number(body?.viewportH) || null,
+      },
+      platform: String(body?.platform || "").slice(0, 64) || null,
+      touch: Boolean(body?.touch),
+      connection: String(body?.connection || "").slice(0, 32) || null,
+      colorScheme: String(body?.colorScheme || "").slice(0, 16) || null,
+      deviceMemory: Number(body?.deviceMemory) || null,
+      cores: Number(body?.cores) || null,
+      gender: null,
+      name: null,
+      hardwareDeviceId: null,
+    };
+
+    await env.DATA.put(id, JSON.stringify(visit), { expirationTtl: 90 * 24 * 3600 });
+    await pushVisitIndex(env, id);
+    return json({ ok: true, id, visitorId });
+  }
+
+  // Admin: list tracked visits (flyer / QR / ads)
+  if (url.pathname === "/api/visits" && request.method === "GET") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const srcFilter = String(url.searchParams.get("src") || "").trim().toLowerCase();
+    const ids = await getVisitIndex(env);
+    const rows = await Promise.all(ids.slice(0, 400).map((id) => env.DATA.get(id, "json")));
+    let visits = rows.filter(Boolean);
+    if (srcFilter) {
+      visits = visits.filter((v) => {
+        const s = String(v.src || "").toLowerCase();
+        const us = String(v.utm?.source || "").toLowerCase();
+        const med = String(v.utm?.medium || "").toLowerCase();
+        if (srcFilter === "flyer") {
+          return s === "flyer" || us === "flyer" || med === "qr" || s === "qr";
+        }
+        return s === srcFilter || us === srcFilter;
+      });
+    }
+    visits.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+
+    const unique = new Set(visits.map((v) => v.visitorId).filter(Boolean));
+    const byDevice = {};
+    const byCity = {};
+    const bySrc = {};
+    for (const v of visits) {
+      const d = v.deviceType || "unknown";
+      byDevice[d] = (byDevice[d] || 0) + 1;
+      const city = [v.city, v.region, v.country].filter(Boolean).join(", ") || "Unknown";
+      byCity[city] = (byCity[city] || 0) + 1;
+      const s = v.src || "direct";
+      bySrc[s] = (bySrc[s] || 0) + 1;
+    }
+
+    return json({
+      visits,
+      summary: {
+        total: visits.length,
+        uniqueVisitors: unique.size,
+        byDevice,
+        byCity,
+        bySrc,
+      },
+      note: "Browsers never send gender, real name, or hardware device IDs (IMEI). Name appears when the same visitor places an order.",
+    });
+  }
+
   return json({ error: "not found" }, 404);
 }
 
@@ -1994,6 +2168,19 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 .login h2 { margin-bottom:8px; }
 .login-lead { margin:0 0 16px; color:var(--muted); font-size:14px; }
 
+
+.visit-card { border:1px solid var(--line); padding:12px; margin:0 0 10px; background:var(--canvas); }
+.visit-card .v-top { display:flex; justify-content:space-between; gap:8px; align-items:baseline; margin-bottom:6px; }
+.visit-card .v-src { font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--orange); }
+.visit-card .v-time { font-size:12px; color:var(--muted); font-weight:700; }
+.visit-card .v-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; font-size:12.5px; }
+.visit-card .v-grid b { display:block; font-size:11px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+.visit-note { font-size:12.5px; color:var(--muted); margin:0 0 12px; line-height:1.4; }
+.v-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+.v-stats .stat { padding:10px; border:1px solid var(--line); background:var(--paper); }
+.v-stats .stat b { display:block; font-family:var(--display); font-size:22px; }
+.v-stats .stat span { font-size:11px; font-weight:800; text-transform:uppercase; color:var(--muted); }
+
 .admin-tabs { display:flex; gap:8px; margin:0 0 16px; flex-wrap:wrap; }
 .admin-tabs button {
   min-height:40px; padding:0 16px; border:1px solid var(--ink); background:var(--paper); color:var(--ink);
@@ -2104,6 +2291,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
   <div id="panel" style="display:none">
     <div class="admin-tabs" role="tablist">
       <button type="button" class="on" id="tab-shop" onclick="showAdminView('shop')">Orders &amp; stock</button>
+      <button type="button" id="tab-visits" onclick="showAdminView('visits')">QR / Flyer</button>
       <button type="button" id="tab-assets" onclick="showAdminView('assets')">Assets</button>
     </div>
 
@@ -2191,6 +2379,23 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
       <p class="note">Saved changes show on the website within seconds.</p>
     </div>
     </div>
+    </div>
+
+    <div id="view-visits" class="view" hidden>
+      <div class="card">
+        <div class="topline">
+          <h2>QR / Flyer visits</h2>
+          <button class="ghost" onclick="loadVisits()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
+        </div>
+        <p class="visit-note" id="visit-note">Tracks scans that land via <code>/f</code> or <code>?src=flyer</code>. Browsers cannot send gender, real name, or hardware device IDs — those stay blank until someone orders.</p>
+        <div class="v-stats" id="visit-stats"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button type="button" class="ghost" id="visit-filter-flyer" onclick="loadVisits('flyer')">Flyer / QR only</button>
+          <button type="button" class="ghost" id="visit-filter-all" onclick="loadVisits('')">All sources</button>
+        </div>
+        <div id="visits"></div>
+        <p class="empty" id="visits-empty" style="display:none">No tracked visits yet. Scan the flyer QR (must open getyolko.com/f).</p>
+      </div>
     </div>
 
     <div id="view-assets" class="view" hidden>
@@ -3189,14 +3394,65 @@ let ASSET_SELECTED = {};
 let ASSET_VISIBLE_IDS = [];
 
 function showAdminView(name) {
-  const shop = name !== "assets";
-  $("view-shop").hidden = !shop;
-  $("view-assets").hidden = shop;
-  $("tab-shop").classList.toggle("on", shop);
-  $("tab-assets").classList.toggle("on", !shop);
-  if (!shop) loadAssets();
-  try { history.replaceState(null, "", shop ? "/admin" : "/admin#assets"); } catch (e) {}
+  const view = name === "assets" ? "assets" : (name === "visits" ? "visits" : "shop");
+  $("view-shop").hidden = view !== "shop";
+  $("view-assets").hidden = view !== "assets";
+  $("view-visits").hidden = view !== "visits";
+  $("tab-shop").classList.toggle("on", view === "shop");
+  $("tab-assets").classList.toggle("on", view === "assets");
+  $("tab-visits").classList.toggle("on", view === "visits");
+  if (view === "assets") loadAssets();
+  if (view === "visits") loadVisits(window.VISIT_FILTER || "flyer");
+  try {
+    history.replaceState(null, "", view === "shop" ? "/admin" : (view === "assets" ? "/admin#assets" : "/admin#visits"));
+  } catch (e) {}
 }
+
+async function loadVisits(filter) {
+  if (typeof filter === "string") window.VISIT_FILTER = filter;
+  const src = window.VISIT_FILTER || "flyer";
+  const qs = src ? ("?src=" + encodeURIComponent(src)) : "";
+  const res = await fetch("/api/visits" + qs, { headers: authHeaders() });
+  if (!res.ok) {
+    $("visits").innerHTML = '<p class="empty">Could not load visits</p>';
+    return;
+  }
+  const data = await res.json();
+  const s = data.summary || {};
+  $("visit-stats").innerHTML =
+    '<div class="stat"><b>' + (s.total || 0) + '</b><span>scans</span></div>' +
+    '<div class="stat"><b>' + (s.uniqueVisitors || 0) + '</b><span>unique</span></div>' +
+    '<div class="stat"><b>' + Object.keys(s.byCity || {}).length + '</b><span>cities</span></div>';
+  if (data.note) $("visit-note").textContent = data.note;
+
+  const visits = data.visits || [];
+  $("visits-empty").style.display = visits.length ? "none" : "block";
+  $("visits").innerHTML = visits.map(function(v) {
+    const loc = [v.city, v.region, v.country].filter(Boolean).join(", ") || "—";
+    const screen = (v.screen && v.screen.w) ? (v.screen.w + "×" + v.screen.h + (v.screen.dpr ? " @" + v.screen.dpr + "x" : "")) : "—";
+    const utm = v.utm ? [v.utm.source, v.utm.medium, v.utm.campaign].filter(Boolean).join(" / ") : "—";
+    return '<div class="visit-card">' +
+      '<div class="v-top"><span class="v-src">' + escapeHtml(v.src || "direct") + '</span><span class="v-time">' + fmtTime(v.createdAt) + '</span></div>' +
+      '<div class="v-grid">' +
+        '<div><b>Location</b>' + escapeHtml(loc) + '</div>' +
+        '<div><b>IP</b>' + escapeHtml(v.ip || "—") + '</div>' +
+        '<div><b>Device</b>' + escapeHtml((v.deviceType || "?") + " · " + (v.os || "?") + " · " + (v.browser || "?")) + '</div>' +
+        '<div><b>Visitor id</b><span style="word-break:break-all">' + escapeHtml(v.visitorId || "—") + '</span></div>' +
+        '<div><b>Language</b>' + escapeHtml(v.language || "—") + '</div>' +
+        '<div><b>Timezone</b>' + escapeHtml(v.tz || v.timezone || "—") + '</div>' +
+        '<div><b>Screen</b>' + escapeHtml(screen) + '</div>' +
+        '<div><b>Network</b>' + escapeHtml(v.connection || v.asnOrg || "—") + '</div>' +
+        '<div><b>UTM</b>' + escapeHtml(utm) + '</div>' +
+        '<div><b>Path</b>' + escapeHtml(v.path || "/") + '</div>' +
+        '<div><b>Gender</b>not available from browser</div>' +
+        '<div><b>Name</b>only after they order</div>' +
+        '<div><b>Hardware device id</b>not available from browser</div>' +
+        '<div><b>Platform</b>' + escapeHtml(v.platform || "—") + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
 
 async function loadAssets() {
   const res = await fetch("/api/admin/assets", { headers: authHeaders() });
@@ -3538,6 +3794,7 @@ async function boot() {
   loadOrders();
   setInterval(loadOrders, 30000);
   if (location.hash === "#assets") showAdminView("assets");
+  if (location.hash === "#visits") showAdminView("visits");
 }
 
 $("key") && $("key").addEventListener("keydown", function(e) {
@@ -3568,13 +3825,23 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
 
+    // Flyer QR short link → tracked landing
+    if (url.pathname === "/f" || url.pathname === "/flyer" || url.pathname === "/f/" || url.pathname === "/flyer/") {
+      const dest = new URL(url.origin + "/");
+      dest.searchParams.set("src", "flyer");
+      dest.searchParams.set("utm_source", "flyer");
+      dest.searchParams.set("utm_medium", "qr");
+      dest.searchParams.set("utm_campaign", url.searchParams.get("c") || "letterbox");
+      return Response.redirect(dest.toString(), 302);
+    }
+
     if (url.pathname === "/admin" || url.pathname === "/admin/") {
       return new Response(ADMIN_HTML, {
         headers: {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "111",
+          "X-Yolko-Admin": "112",
         },
       });
     }
@@ -3609,7 +3876,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "150",
+        "X-Yolko-Build": "151",
       },
     });
   },
