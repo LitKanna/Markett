@@ -706,6 +706,93 @@ if (Number.isFinite(traysLeft) && traysLeft > 0) {
 const API_BASE = location.hostname.endsWith("getyolko.com") ? "" : "https://getyolko.com";
 applyPublishedAssets(API_BASE);
 
+/* ---------- Flyer / QR / campaign visit tracking ---------- */
+(function trackYolkoVisit() {
+  try {
+    const params = new URLSearchParams(location.search);
+    const KEY_VID = "yolko_vid";
+    const KEY_SID = "yolko_sid";
+    const KEY_ATTR = "yolko_attr";
+
+    function rid() {
+      if (crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g, "");
+      return "v" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    }
+
+    let visitorId = localStorage.getItem(KEY_VID);
+    if (!visitorId || visitorId.length < 8) {
+      visitorId = rid();
+      localStorage.setItem(KEY_VID, visitorId);
+    }
+    window.YOLKO_VISITOR_ID = visitorId;
+
+    let sessionId = sessionStorage.getItem(KEY_SID);
+    if (!sessionId) {
+      sessionId = rid().slice(0, 24);
+      sessionStorage.setItem(KEY_SID, sessionId);
+    }
+
+    const incoming = {
+      src: params.get("src") || params.get("utm_source") || "",
+      utm_source: params.get("utm_source") || "",
+      utm_medium: params.get("utm_medium") || "",
+      utm_campaign: params.get("utm_campaign") || "",
+      utm_content: params.get("utm_content") || "",
+      utm_term: params.get("utm_term") || "",
+      landing: location.href.slice(0, 300),
+    };
+    let attr = null;
+    try { attr = JSON.parse(sessionStorage.getItem(KEY_ATTR) || "null"); } catch (_) {}
+    if (incoming.src || incoming.utm_source) {
+      attr = incoming;
+      sessionStorage.setItem(KEY_ATTR, JSON.stringify(attr));
+    }
+    attr = attr || incoming;
+
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const payload = {
+      visitorId,
+      sessionId,
+      src: attr.src || "direct",
+      utm_source: attr.utm_source || "",
+      utm_medium: attr.utm_medium || "",
+      utm_campaign: attr.utm_campaign || "",
+      utm_content: attr.utm_content || "",
+      utm_term: attr.utm_term || "",
+      path: location.pathname + location.search,
+      landing: attr.landing || location.href.slice(0, 300),
+      referrer: document.referrer || "",
+      language: navigator.language || "",
+      languages: Array.isArray(navigator.languages) ? navigator.languages.slice(0, 8) : [],
+      tz: (Intl.DateTimeFormat().resolvedOptions().timeZone) || "",
+      screenW: screen.width || null,
+      screenH: screen.height || null,
+      dpr: window.devicePixelRatio || null,
+      viewportW: window.innerWidth || null,
+      viewportH: window.innerHeight || null,
+      platform: navigator.platform || "",
+      touch: navigator.maxTouchPoints > 0 || "ontouchstart" in window,
+      connection: conn ? (conn.effectiveType || conn.type || "") : "",
+      colorScheme: window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+      deviceMemory: navigator.deviceMemory || null,
+      cores: navigator.hardwareConcurrency || null,
+      ua: navigator.userAgent || "",
+    };
+
+    const body = JSON.stringify(payload);
+    const url = `${API_BASE}/api/visit`;
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+      credentials: "omit",
+    }).catch(() => {});
+  } catch (_) {}
+})();
+
+
+
 const DOZEN_PUBLIC_KEYS = ["cage600", "cage700", "cage800", "fr600", "fr700", "fr800"];
 
 /** Dozen packs stay off the public site until admin sets stock > 0. */
@@ -1184,6 +1271,7 @@ function createOrder(b) {
           yolko_hp: b.company || "",
           company: b.company || "",
           token: token || "",
+          visitorId: window.YOLKO_VISITOR_ID || "",
         }),
       })
     )
@@ -1320,6 +1408,7 @@ async function buyNowCheckout(b) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+          visitorId: window.YOLKO_VISITOR_ID || "",
       name: b.name,
       phone: b.phoneDigits,
       bundle: b.bundleKey,
