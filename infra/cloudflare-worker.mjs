@@ -668,7 +668,7 @@ async function syncMetaAdsForStock(env, traysAvailable) {
 }
 
 /** Public Meta Pixel ID (Events Manager → YOLKO). Override with env.META_PIXEL_ID. */
-const DEFAULT_META_PIXEL_ID = "797937266678792";
+const DEFAULT_META_PIXEL_ID = "797932266678792";
 
 function metaPixelId(env) {
   return String(env.META_PIXEL_ID || DEFAULT_META_PIXEL_ID).trim();
@@ -3876,7 +3876,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "151",
+        "X-Yolko-Build": "152",
       },
     });
   },
