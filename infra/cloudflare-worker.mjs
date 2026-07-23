@@ -1,7 +1,7 @@
 import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./delivery-zones.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "a3ed99fd5ada4726987e8db34ccc2cb810f515e9";
+const DEPLOY_SHA = "a4a19e753c213c2ab545dddd36333188e971a311";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 
@@ -668,7 +668,7 @@ async function syncMetaAdsForStock(env, traysAvailable) {
 }
 
 /** Public Meta Pixel ID (Events Manager → YOLKO). Override with env.META_PIXEL_ID. */
-const DEFAULT_META_PIXEL_ID = "797937266678792";
+const DEFAULT_META_PIXEL_ID = "797932266678792";
 
 function metaPixelId(env) {
   return String(env.META_PIXEL_ID || DEFAULT_META_PIXEL_ID).trim();
@@ -3876,7 +3876,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "151",
+        "X-Yolko-Build": "152",
       },
     });
   },
