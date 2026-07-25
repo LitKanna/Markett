@@ -1,24 +1,27 @@
 {
-  "name": "workspace",
-  "version": "1.0.0",
-  "description": "One-page marketing site for selling fresh egg trays with **Friday** and **Saturday** pickup at Paddy's Markets Flemington.",
-  "main": "app.js",
-  "scripts": {
-    "seo:ping": "node infra/seo-indexnow.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LitKanna/Markett.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/LitKanna/Markett/issues"
-  },
-  "homepage": "https://github.com/LitKanna/Markett#readme",
-  "dependencies": {
-    "playwright": "^1.61.1"
-  }
+    "name":  "workspace",
+    "version":  "1.0.0",
+    "description":  "One-page marketing site for selling fresh egg trays with **Friday** and **Saturday** pickup at Paddy\u0027s Markets Flemington.",
+    "main":  "app.js",
+    "scripts":  {
+                    "seo:ping":  "node infra/seo-indexnow.mjs",
+                    "test":  "echo \"Error: no test specified\" \u0026\u0026 exit 1",
+                    "deploy":  "npx wrangler deploy"
+                },
+    "repository":  {
+                       "type":  "git",
+                       "url":  "git+https://github.com/LitKanna/Markett.git"
+                   },
+    "keywords":  [
+
+                 ],
+    "author":  "",
+    "license":  "ISC",
+    "bugs":  {
+                 "url":  "https://github.com/LitKanna/Markett/issues"
+             },
+    "homepage":  "https://github.com/LitKanna/Markett#readme",
+    "dependencies":  {
+                         "playwright":  "^1.61.1"
+                     }
 }
