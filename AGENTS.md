@@ -31,6 +31,15 @@ needs a KV namespace bound as `DATA` (wrangler dev provides a local simulation) 
 `ADMIN_KEY` and `STRIPE_KEY` secrets; Stripe endpoints return 503 when `STRIPE_KEY` is unset.
 `wrangler` is intentionally not a declared dependency — invoke via `npx`.
 
+Non-obvious local-testing gotcha: the Worker's first `fetch` step force-redirects any
+`http:` (or `www.`) request to `https:` with a 301. Plain `npx wrangler dev` serves **http**,
+so every `/api/*` and `/admin` request 301s and the response body is empty — making the admin
+look broken even when it isn't. Run it over https instead, e.g.
+`npx -y wrangler dev --local-protocol https --var ADMIN_KEY:testkey --port 8787`, then hit
+`https://localhost:8787` (use `curl -k` / accept the self-signed cert). Sign into `/admin`
+with whatever `ADMIN_KEY` you passed. Seed/inspect local orders with
+`npx wrangler kv key put --local --namespace-id <id> "order:..." '{...}'`.
+
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
 that intentionally fails (`echo "Error: no test specified" && exit 1`) — do not treat that as
