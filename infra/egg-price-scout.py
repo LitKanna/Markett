@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import ssl
 import sys
@@ -698,6 +699,14 @@ def main() -> int:
         help="Merge manually verified offers JSON (default: infra/egg-price-manual-notes.json)",
     )
     ap.add_argument("--no-manual", action="store_true", help="Skip manual notes file")
+    ap.add_argument(
+        "--push",
+        metavar="API_BASE",
+        nargs="?",
+        const="https://getyolko.com",
+        help="POST snapshot to /api/price-watch/ingest (needs YOLKO_ADMIN_KEY env)",
+    )
+    ap.add_argument("--quiet", action="store_true", help="Less console output")
     args = ap.parse_args()
 
     print(f"YOLKO egg price scout — {TODAY}")
@@ -762,6 +771,48 @@ def main() -> int:
     out_path = args.json or Path("/tmp/yolko-egg-price-scout.json")
     out_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(f"\nWrote JSON report → {out_path}")
+
+    if args.push:
+        admin_key = (os.environ.get("YOLKO_ADMIN_KEY") or os.environ.get("ADMIN_KEY") or "").strip()
+        if not admin_key:
+            print("ERROR: set YOLKO_ADMIN_KEY to push to the reactive API", file=sys.stderr)
+            return 2
+        api_base = str(args.push).rstrip("/")
+        payload = {
+            "source": "egg-price-scout",
+            "as_of_local_date": report.get("as_of_local_date"),
+            "fetched_at": report.get("fetched_at"),
+            "offers_caged_700g": report.get("offers_caged_700g") or [],
+            "offers_caged_30pack": report.get("offers_caged_30pack") or [],
+            "summary": report.get("summary"),
+        }
+        body = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            f"{api_base}/api/price-watch/ingest",
+            data=body,
+            method="POST",
+            headers={
+                "User-Agent": UA,
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {admin_key}",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, context=CTX, timeout=45) as resp:
+                pushed = json.loads(resp.read().decode("utf-8"))
+            print(
+                f"Pushed to {api_base}/api/price-watch/ingest — "
+                f"changes={pushed.get('changeCount')} webhook={pushed.get('webhook')}"
+            )
+            if pushed.get("changes"):
+                for ch in pushed["changes"][:12]:
+                    print(
+                        f"  • {ch.get('type')}: {ch.get('retailer')} "
+                        f"{ch.get('from')} → {ch.get('to')}"
+                    )
+        except Exception as e:
+            print(f"ERROR pushing snapshot: {e}", file=sys.stderr)
+            return 3
     return 0
 
 

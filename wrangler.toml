@@ -6,3 +6,8 @@ account_id = "3af91e3294583af96a50ed10fef9c3b3"
 [[kv_namespaces]]
 binding = "DATA"
 id = "98fb94415ceb4012b3de2e5adcf253a5"
+
+# Poll open retailer sources + Meta stock sync. Near-real-time price watch
+# (retailers have no push webhooks — this is the reactive loop).
+[triggers]
+crons = ["*/15 * * * *"]

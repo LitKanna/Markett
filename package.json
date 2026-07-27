@@ -7,6 +7,7 @@
                     "seo:ping":  "node infra/seo-indexnow.mjs",
                     "prices:scout":  "python3 infra/egg-price-scout.py --include-yolko",
                     "prices:scout:browser":  "python3 infra/egg-price-scout.py --include-yolko --with-browser",
+                    "prices:push":  "python3 infra/egg-price-scout.py --include-yolko --push https://getyolko.com",
                     "test":  "echo \"Error: no test specified\" \u0026\u0026 exit 1",
                     "deploy":  "npx wrangler deploy"
                 },

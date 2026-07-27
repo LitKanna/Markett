@@ -1,4 +1,5 @@
 import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./delivery-zones.mjs";
+import { ingestSnapshot, getLatest, getEvents, runScheduledPoll } from "./price-watch.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
 const DEPLOY_SHA = "ff8db82067f9c5655ae6f7d375064666305ba0fc";
@@ -1846,6 +1847,51 @@ async function handleApi(request, env, url, ctx) {
       },
       note: "Browsers never send gender, real name, or hardware device IDs (IMEI). Name appears when the same visitor places an order.",
     });
+  }
+
+  // Public: latest competitor egg prices (reactive watch snapshot)
+  if (url.pathname === "/api/price-watch" && request.method === "GET") {
+    const latest = await getLatest(env);
+    if (!latest) {
+      return json({
+        ok: true,
+        updatedAt: null,
+        offers: [],
+        summary: null,
+        note: "No snapshot yet — wait for cron poll or POST /api/price-watch/ingest",
+      });
+    }
+    return json({
+      ok: true,
+      updatedAt: latest.updatedAt,
+      source: latest.source,
+      summary: latest.summary,
+      offers: latest.offers,
+      last_changes: latest.last_changes || [],
+    });
+  }
+
+  // Admin: change event stream (price/stock flips)
+  if (url.pathname === "/api/price-watch/events" && request.method === "GET") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("limit")) || 50));
+    const events = (await getEvents(env)).slice(0, limit);
+    return json({ ok: true, count: events.length, events });
+  }
+
+  // Admin: ingest a full scout snapshot (GitHub Action / local scout --push)
+  if (url.pathname === "/api/price-watch/ingest" && request.method === "POST") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const body = await request.json().catch(() => ({}));
+    const result = await ingestSnapshot(env, body, { source: body?.source || "ingest" });
+    return json(result);
+  }
+
+  // Admin: force an immediate open-source poll (Umall + Gourmet Grocer)
+  if (url.pathname === "/api/price-watch/poll" && request.method === "POST") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const result = await runScheduledPoll(env);
+    return json(result);
   }
 
   return json({ error: "not found" }, 404);
@@ -3807,10 +3853,15 @@ if (KEY) boot();
 </html>`;
 
 export default {
-  // Safety net every 15m: pause ads if stock hit 0, resume if we paused and stock returned.
+  // Every cron tick: Meta stock sync + competitor price poll (diff → events/webhook).
   async scheduled(_event, env, ctx) {
     const settings = await getSettings(env);
     ctx.waitUntil(syncMetaAdsForStock(env, settings.traysAvailable));
+    ctx.waitUntil(
+      runScheduledPoll(env).catch((err) => {
+        console.log("price-watch poll failed", String(err?.message || err));
+      })
+    );
   },
 
   async fetch(request, env, ctx) {
