@@ -1,7 +1,7 @@
 import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./delivery-zones.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "5d8dbfb2f9b4d66557d09594d4fd561cd7c91189";
+const DEPLOY_SHA = "6557acff7f213858535860241e87a5c41c70044a";
 // Chalk-tray heroes live in a commit that predates the current storefront pin on main.
 // Keep a dedicated pin so /assets/chalk-tray/* never 404 when DEPLOY_SHA drifts.
 const CHALK_ASSETS_SHA = "677ede9d579baaa94621d300d04b389de5e00cc6";
