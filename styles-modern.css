@@ -318,33 +318,31 @@ h3 {
   transform: translateX(4px);
 }
 
-/* Hero: fills the measured browser window (not just CSS svh/dvh).
-   Height-driven clamps keep kicker → CTAs inside the first screen. */
+/* Hero: one composition — copy + square chalk tray, vertically centered
+   in the measured browser frame (Chrome / Safari / iOS chrome). */
 .hero {
+  display: flex;
+  align-items: center;
   min-height: calc(var(--frame-h) - var(--topbar-h));
-  max-height: calc(var(--frame-h) - var(--topbar-h));
-  padding: clamp(8px, 1.8 * var(--vvh), 28px) 0 clamp(12px, 3 * var(--vvh), 40px);
+  padding: clamp(12px, 2.2 * var(--vvh), 28px) 0;
   border-bottom: 1px solid var(--line);
-  overflow: hidden;
 }
 
 .hero-grid {
-  min-height: calc(var(--frame-h) - var(--topbar-h) - clamp(24px, 5 * var(--vvh), 68px));
-  max-height: calc(var(--frame-h) - var(--topbar-h) - clamp(24px, 5 * var(--vvh), 68px));
+  width: 100%;
   display: grid;
-  /* Always two columns on desktop/tablet landscape: image sits beside copy */
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: clamp(16px, 2.5vw, 32px);
-  align-items: stretch;
+  /* Copy | square image — equal visual weight, not a tall stretched crop */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: center;
 }
 
 .hero-copy {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(8px, 2.2 * var(--vvh), 36px) clamp(0px, 1.2vw, 18px) clamp(8px, 1.8 * var(--vvh), 24px) 0;
+  padding: 0 clamp(0px, 1.2vw, 12px) 0 0;
   min-height: 0;
-  overflow: hidden;
 }
 
 .hero-kicker,
@@ -369,14 +367,12 @@ h3 {
 }
 
 .hero h1 {
-  /* Wide enough for "FRESH EGGS," / "TO YOUR DOOR." (HTML <br> sets the break).
-     6.2ch was stacking every word on its own line. */
+  /* Wide enough for "FRESH EGGS," / "TO YOUR DOOR." (HTML <br> sets the break). */
   max-width: 14ch;
-  margin-bottom: clamp(8px, 1.6 * var(--vvh), 24px);
-  /* Prefer height so short laptop windows shrink the display type */
-  font-size: clamp(36px, 7.5 * var(--vvh) + 1.2vw, 112px);
+  margin-bottom: clamp(10px, 1.8 * var(--vvh), 22px);
+  font-size: clamp(40px, 6.8 * var(--vvh) + 1.4vw, 96px);
   font-weight: 800;
-  line-height: 0.82;
+  line-height: 0.86;
   text-transform: uppercase;
 }
 
@@ -404,12 +400,12 @@ h3 {
 }
 
 .hero-stats {
-  max-width: 580px;
+  max-width: 420px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  margin: auto 0 0;
-  padding-top: clamp(12px, 2.2 * var(--vvh), 28px);
+  margin: clamp(16px, 2.4 * var(--vvh), 28px) 0 0;
+  padding-top: clamp(12px, 2 * var(--vvh), 22px);
   border-top: 1px solid var(--line);
   flex-shrink: 0;
 }
@@ -449,38 +445,22 @@ h3 {
   position: relative;
   min-width: 0;
   width: 100%;
-  align-self: stretch;
   display: flex;
-  /* Cap to the hero frame so the image never forces CTAs below the fold */
-  min-height: 0;
-  max-height: 100%;
+  align-items: center;
+  justify-content: center;
 }
 
 .showcase-card {
   position: relative;
-  width: 100%;
-  flex: 1 1 auto;
-  /* Chalk heroes are 1:1 — keep square crop on fluid layouts */
+  /* Chalk heroes are 1:1 — never stretch into a tall portrait crop */
+  width: min(100%, 68 * var(--vvh), 560px);
   aspect-ratio: 1 / 1;
-  max-height: min(78 * var(--vvh), 860px);
-  min-height: clamp(240px, 42 * var(--vvh), 520px);
+  max-height: min(68 * var(--vvh), 560px);
+  margin-inline: auto;
   overflow: hidden;
   border-radius: var(--radius);
   background: #1a1a18;
   box-shadow: 0 clamp(16px, 3vw, 32px) clamp(32px, 6vw, 80px) rgba(23, 23, 20, 0.15);
-}
-
-/* Desktop/tablet landscape: fill the hero column beside the copy */
-@media (min-width: 901px) {
-  .showcase-card {
-    position: absolute;
-    inset: 0;
-    aspect-ratio: auto;
-    height: 100%;
-    max-height: none;
-    min-height: 0;
-    flex: none;
-  }
 }
 
 .showcase-rotator {
@@ -1856,21 +1836,15 @@ h3 {
   }
 
   .hero-showcase {
-    min-height: 0;
-    max-height: none;
     width: 100%;
     display: block;
   }
 
   .showcase-card {
-    position: relative;
-    inset: auto;
     width: 100%;
-    height: auto;
-    /* Square chalk tray — was wrongly 3/4 after 1:1 assets shipped */
+    max-width: none;
     aspect-ratio: 1 / 1;
     max-height: min(52 * var(--vvh), 520px);
-    min-height: clamp(200px, 36 * var(--vvh), 420px);
   }
 
   .price-card {
@@ -2162,39 +2136,29 @@ h3 {
   }
 }
 
-/* Laptop / short desktop: keep CTAs fully visible in the first screen */
+/* Laptop / short desktop: shrink type + square so CTAs stay on-screen */
 @media (max-height: 900px) and (min-width: 901px) {
   .hero {
-    padding-block: clamp(6px, 1.2 * var(--vvh), 16px);
-  }
-
-  .hero-grid {
-    min-height: calc(var(--frame-h) - var(--topbar-h) - 20px);
-    max-height: calc(var(--frame-h) - var(--topbar-h) - 20px);
-  }
-
-  .hero-copy {
-    padding-block: 8px;
-    justify-content: flex-start;
-    gap: 0;
-  }
-
-  .hero-kicker {
-    margin-bottom: clamp(6px, 1.2 * var(--vvh), 12px);
+    padding-block: clamp(8px, 1.4 * var(--vvh), 16px);
   }
 
   .hero h1 {
-    font-size: clamp(34px, 6.2 * var(--vvh) + 1vw, 78px);
-    margin-bottom: clamp(6px, 1.2 * var(--vvh), 12px);
+    font-size: clamp(36px, 6 * var(--vvh) + 1vw, 72px);
+    margin-bottom: clamp(8px, 1.2 * var(--vvh), 14px);
   }
 
   .hero-sub {
     margin-bottom: clamp(10px, 1.6 * var(--vvh), 16px);
-    font-size: clamp(14px, 1.4 * var(--vvh) + 0.2vw, 17px);
+  }
+
+  .showcase-card {
+    width: min(100%, 58 * var(--vvh), 480px);
+    max-height: min(58 * var(--vvh), 480px);
   }
 
   .hero-stats {
-    padding-top: clamp(8px, 1.4 * var(--vvh), 14px);
+    margin-top: clamp(12px, 1.8 * var(--vvh), 18px);
+    padding-top: clamp(8px, 1.2 * var(--vvh), 14px);
   }
 
   .hero-stats dt {
@@ -2204,16 +2168,17 @@ h3 {
 
 @media (max-height: 760px) and (min-width: 901px) {
   .hero h1 {
-    font-size: clamp(32px, 5.6 * var(--vvh) + 0.8vw, 64px);
+    font-size: clamp(34px, 5.4 * var(--vvh) + 0.8vw, 60px);
+  }
+
+  .showcase-card {
+    width: min(100%, 52 * var(--vvh), 420px);
+    max-height: min(52 * var(--vvh), 420px);
   }
 
   /* Drop secondary stats so kicker → CTAs always clear the fold */
   .hero-stats {
     display: none;
-  }
-
-  .hero-copy {
-    justify-content: center;
   }
 }
 
