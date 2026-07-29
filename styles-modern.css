@@ -369,7 +369,9 @@ h3 {
 }
 
 .hero h1 {
-  max-width: 6.2ch;
+  /* Wide enough for "FRESH EGGS," / "TO YOUR DOOR." (HTML <br> sets the break).
+     6.2ch was stacking every word on its own line. */
+  max-width: 14ch;
   margin-bottom: clamp(8px, 1.6 * var(--vvh), 24px);
   /* Prefer height so short laptop windows shrink the display type */
   font-size: clamp(36px, 7.5 * var(--vvh) + 1.2vw, 112px);
@@ -1850,7 +1852,7 @@ h3 {
   }
 
   .hero h1 {
-    max-width: 7ch;
+    max-width: 14ch;
   }
 
   .hero-showcase {
