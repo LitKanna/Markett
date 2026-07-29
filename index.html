@@ -4,6 +4,49 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="format-detection" content="telephone=no">
+  <!-- Live browser chrome size (iOS Safari URL bar, Chrome mobile, desktop). Runs before CSS paint. -->
+  <script>
+  (function () {
+    var raf = 0;
+    function yolkoFitViewport() {
+      var vv = window.visualViewport;
+      /* Prefer visualViewport: real visible area after Chrome/Safari/iOS chrome */
+      var h = (vv && vv.height) || window.innerHeight || document.documentElement.clientHeight || 0;
+      var w = (vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 0;
+      if (!h || !w) return;
+      var root = document.documentElement;
+      root.style.setProperty("--vvh", (h * 0.01) + "px");
+      root.style.setProperty("--vvw", (w * 0.01) + "px");
+      root.style.setProperty("--app-height", h + "px");
+      root.style.setProperty("--app-width", w + "px");
+      /* iPhone notch / home indicator — CSS env() reads these; expose for layout math */
+      root.dataset.vvh = String(Math.round(h));
+      root.dataset.vvw = String(Math.round(w));
+    }
+    function scheduleFit() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(function () {
+        raf = 0;
+        yolkoFitViewport();
+      });
+    }
+    yolkoFitViewport();
+    window.__yolkoFitViewport = yolkoFitViewport;
+    window.addEventListener("resize", scheduleFit, { passive: true });
+    window.addEventListener("orientationchange", function () {
+      scheduleFit();
+      setTimeout(yolkoFitViewport, 50);
+      setTimeout(yolkoFitViewport, 250);
+      setTimeout(yolkoFitViewport, 500);
+    }, { passive: true });
+    /* iOS bfcache restore / tab switch can change chrome height */
+    window.addEventListener("pageshow", scheduleFit, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", scheduleFit, { passive: true });
+      window.visualViewport.addEventListener("scroll", scheduleFit, { passive: true });
+    }
+  })();
+  </script>
   <title>YOLKO | 30 Eggs for $13 · Sydney</title>
   <meta name="description" content="30 Pace Farm eggs for $13. Fresh trays, delivered in Sydney.">
   <meta name="theme-color" content="#ffd32a">
@@ -36,7 +79,7 @@
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/3y9K6as8bTXq_nANBjzKo3IeZx8z6up5BeSl9D4dj_x9PpZBMlGIInE.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2" crossorigin>
   <link rel="stylesheet" href="assets/fonts.css?v=72">
-  <link rel="stylesheet" href="styles-modern.css?v=126">
+  <link rel="stylesheet" href="styles-modern.css?v=128">
 
   <script id="yolko-jsonld" type="application/ld+json">
   {
