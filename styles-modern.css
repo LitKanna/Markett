@@ -318,15 +318,19 @@ h3 {
   transform: translateX(4px);
 }
 
-/* Hero: fills the measured browser window (not just CSS svh/dvh) */
+/* Hero: fills the measured browser window (not just CSS svh/dvh).
+   Height-driven clamps keep kicker → CTAs inside the first screen. */
 .hero {
   min-height: calc(var(--frame-h) - var(--topbar-h));
-  padding: clamp(12px, 2.5 * var(--vvh), 32px) 0 clamp(28px, 5 * var(--vvh), 56px);
+  max-height: calc(var(--frame-h) - var(--topbar-h));
+  padding: clamp(8px, 1.8 * var(--vvh), 28px) 0 clamp(12px, 3 * var(--vvh), 40px);
   border-bottom: 1px solid var(--line);
+  overflow: hidden;
 }
 
 .hero-grid {
-  min-height: calc(var(--frame-h) - var(--topbar-h) - clamp(40px, 8 * var(--vvh), 88px));
+  min-height: calc(var(--frame-h) - var(--topbar-h) - clamp(24px, 5 * var(--vvh), 68px));
+  max-height: calc(var(--frame-h) - var(--topbar-h) - clamp(24px, 5 * var(--vvh), 68px));
   display: grid;
   /* Always two columns on desktop/tablet landscape: image sits beside copy */
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -338,8 +342,9 @@ h3 {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(16px, 4 * var(--vvh), 42px) clamp(0px, 1.2vw, 18px) clamp(12px, 2.5 * var(--vvh), 28px) 0;
+  padding: clamp(8px, 2.2 * var(--vvh), 36px) clamp(0px, 1.2vw, 18px) clamp(8px, 1.8 * var(--vvh), 24px) 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 .hero-kicker,
@@ -347,7 +352,7 @@ h3 {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: clamp(12px, 2.5svh, 24px);
+  margin-bottom: clamp(8px, 1.8 * var(--vvh), 24px);
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
@@ -365,8 +370,9 @@ h3 {
 
 .hero h1 {
   max-width: 6.2ch;
-  margin-bottom: clamp(14px, 2.8svh, 30px);
-  font-size: clamp(42px, 7.2vw + 1.2vh, 128px);
+  margin-bottom: clamp(8px, 1.6 * var(--vvh), 24px);
+  /* Prefer height so short laptop windows shrink the display type */
+  font-size: clamp(36px, 7.5 * var(--vvh) + 1.2vw, 112px);
   font-weight: 800;
   line-height: 0.82;
   text-transform: uppercase;
@@ -378,9 +384,9 @@ h3 {
 
 .hero-sub {
   max-width: 42ch;
-  margin-bottom: 28px;
+  margin-bottom: clamp(12px, 2.2 * var(--vvh), 24px);
   color: var(--muted);
-  font-size: clamp(16px, 1.5vw, 19px);
+  font-size: clamp(14px, 1.2 * var(--vvh) + 0.4vw, 19px);
 }
 
 .hero-sub strong {
@@ -391,6 +397,7 @@ h3 {
 .hero-cta {
   display: flex;
   flex-wrap: wrap;
+  flex-shrink: 0;
   gap: 10px;
 }
 
@@ -400,8 +407,9 @@ h3 {
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
   margin: auto 0 0;
-  padding-top: 28px;
+  padding-top: clamp(12px, 2.2 * var(--vvh), 28px);
   border-top: 1px solid var(--line);
+  flex-shrink: 0;
 }
 
 .hero-stats div {
@@ -441,9 +449,9 @@ h3 {
   width: 100%;
   align-self: stretch;
   display: flex;
-  /* Fit inside the measured frame height (Chrome / Safari / iPhone chrome) */
-  min-height: clamp(280px, 58 * var(--vvh), 720px);
-  max-height: calc(var(--frame-h) - var(--topbar-h) - clamp(24px, 6 * var(--vvh), 64px));
+  /* Cap to the hero frame so the image never forces CTAs below the fold */
+  min-height: 0;
+  max-height: 100%;
 }
 
 .showcase-card {
@@ -1826,15 +1834,19 @@ h3 {
 @media (max-width: 900px) {
   .hero {
     min-height: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .hero-grid {
     min-height: auto;
+    max-height: none;
     grid-template-columns: 1fr;
   }
 
   .hero-copy {
     min-height: 0;
+    overflow: visible;
   }
 
   .hero h1 {
@@ -2148,23 +2160,58 @@ h3 {
   }
 }
 
-@media (max-height: 700px) and (min-width: 901px) {
-  .hero-grid {
-    min-height: calc(var(--frame-h) - var(--topbar-h) - 24px);
+/* Laptop / short desktop: keep CTAs fully visible in the first screen */
+@media (max-height: 900px) and (min-width: 901px) {
+  .hero {
+    padding-block: clamp(6px, 1.2 * var(--vvh), 16px);
   }
 
-  .hero-showcase {
-    min-height: calc(var(--frame-h) - var(--topbar-h) - 48px);
-    max-height: calc(var(--frame-h) - var(--topbar-h) - 24px);
+  .hero-grid {
+    min-height: calc(var(--frame-h) - var(--topbar-h) - 20px);
+    max-height: calc(var(--frame-h) - var(--topbar-h) - 20px);
   }
 
   .hero-copy {
-    padding-block: 12px;
+    padding-block: 8px;
+    justify-content: flex-start;
+    gap: 0;
+  }
+
+  .hero-kicker {
+    margin-bottom: clamp(6px, 1.2 * var(--vvh), 12px);
   }
 
   .hero h1 {
-    font-size: clamp(40px, 6.5 * var(--vvh) + 2vw, 96px);
-    margin-bottom: 12px;
+    font-size: clamp(34px, 6.2 * var(--vvh) + 1vw, 78px);
+    margin-bottom: clamp(6px, 1.2 * var(--vvh), 12px);
+  }
+
+  .hero-sub {
+    margin-bottom: clamp(10px, 1.6 * var(--vvh), 16px);
+    font-size: clamp(14px, 1.4 * var(--vvh) + 0.2vw, 17px);
+  }
+
+  .hero-stats {
+    padding-top: clamp(8px, 1.4 * var(--vvh), 14px);
+  }
+
+  .hero-stats dt {
+    font-size: clamp(16px, 2.2 * var(--vvh), 22px);
+  }
+}
+
+@media (max-height: 760px) and (min-width: 901px) {
+  .hero h1 {
+    font-size: clamp(32px, 5.6 * var(--vvh) + 0.8vw, 64px);
+  }
+
+  /* Drop secondary stats so kicker → CTAs always clear the fold */
+  .hero-stats {
+    display: none;
+  }
+
+  .hero-copy {
+    justify-content: center;
   }
 }
 
