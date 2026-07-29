@@ -16,6 +16,13 @@ python3 -m http.server 8080
 
 Then open http://localhost:8080. No install is required just to view/use the site.
 
+### Viewport fit (non-obvious)
+`index.html` measures `visualViewport` (Chrome / Safari / iOS browser chrome) into
+`--vvh` / `--app-height` before paint. Hero/showcase CSS uses `--frame-h` from that,
+not raw `svh`/`dvh` alone. Chalk-tray heroes are **1:1** — keep `aspect-ratio: 1 / 1`
+on `.showcase-card` (do not revert to `3/4`). After Worker deploys, bump
+`X-Yolko-Build` and keep `CHALK_ASSETS_SHA` so the hero does not 404 black.
+
 ### Ordering flow works fully client-side (non-obvious)
 `app.js` sets `API_BASE` to `https://getyolko.com` whenever the site is **not** served from a
 `getyolko.com` host (i.e. always in local dev). The `/api/*` calls (`settings`, `orders`,
