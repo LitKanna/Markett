@@ -1,9 +1,14 @@
 import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./delivery-zones.mjs";
+import { ingestSnapshot, getLatest, getEvents, runScheduledPoll } from "./price-watch.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "ff8db82067f9c5655ae6f7d375064666305ba0fc";
+const DEPLOY_SHA = "7905ba5db7f3219139da27d911b6701c1ac8f3bf";
+// Chalk-tray heroes must not 404 when the storefront pin drifts (this caused the
+// black hero / “broken ratios” look after a later Worker deploy from main).
+const CHALK_ASSETS_SHA = "677ede9d579baaa94621d300d04b389de5e00cc6";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
+const UPSTREAM_CHALK = `https://raw.githubusercontent.com/LitKanna/Markett/${CHALK_ASSETS_SHA}`;
 
 const MIME = {
   html: "text/html; charset=utf-8",
@@ -1848,6 +1853,51 @@ async function handleApi(request, env, url, ctx) {
     });
   }
 
+  // Public: latest competitor egg prices (reactive watch snapshot)
+  if (url.pathname === "/api/price-watch" && request.method === "GET") {
+    const latest = await getLatest(env);
+    if (!latest) {
+      return json({
+        ok: true,
+        updatedAt: null,
+        offers: [],
+        summary: null,
+        note: "No snapshot yet — wait for cron poll or POST /api/price-watch/ingest",
+      });
+    }
+    return json({
+      ok: true,
+      updatedAt: latest.updatedAt,
+      source: latest.source,
+      summary: latest.summary,
+      offers: latest.offers,
+      last_changes: latest.last_changes || [],
+    });
+  }
+
+  // Admin: change event stream (price/stock flips)
+  if (url.pathname === "/api/price-watch/events" && request.method === "GET") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("limit")) || 50));
+    const events = (await getEvents(env)).slice(0, limit);
+    return json({ ok: true, count: events.length, events });
+  }
+
+  // Admin: ingest a full scout snapshot (GitHub Action / local scout --push)
+  if (url.pathname === "/api/price-watch/ingest" && request.method === "POST") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const body = await request.json().catch(() => ({}));
+    const result = await ingestSnapshot(env, body, { source: body?.source || "ingest" });
+    return json(result);
+  }
+
+  // Admin: force an immediate open-source poll (Umall + Gourmet Grocer)
+  if (url.pathname === "/api/price-watch/poll" && request.method === "POST") {
+    if (!isAdmin(request, env)) return json({ error: "unauthorised" }, 401);
+    const result = await runScheduledPoll(env);
+    return json(result);
+  }
+
   return json({ error: "not found" }, 404);
 }
 
@@ -2181,6 +2231,18 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 .v-stats .stat b { display:block; font-family:var(--display); font-size:22px; }
 .v-stats .stat span { font-size:11px; font-weight:800; text-transform:uppercase; color:var(--muted); }
 
+.pw-table { width:100%; border-collapse:collapse; font-size:13px; margin:0 0 16px; }
+.pw-table th, .pw-table td { border-bottom:1px solid var(--line); padding:8px 6px; text-align:left; vertical-align:top; }
+.pw-table th { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:800; }
+.pw-table td.num { font-family:var(--display); font-weight:800; white-space:nowrap; }
+.pw-table a { color:var(--blue); font-weight:700; word-break:break-all; }
+.pw-pill { display:inline-block; padding:2px 7px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; border:1px solid var(--line); }
+.pw-pill.in_stock, .pw-pill.sell { background:var(--green-soft); color:var(--green); border-color:transparent; }
+.pw-pill.out_of_stock { background:var(--red-soft); color:var(--red); border-color:transparent; }
+.pw-event { border:1px solid var(--line); padding:10px 12px; margin:0 0 8px; background:var(--canvas); font-size:13px; }
+.pw-event b { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--orange); }
+.pw-actions { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 12px; }
+
 .admin-tabs { display:flex; gap:8px; margin:0 0 16px; flex-wrap:wrap; }
 .admin-tabs button {
   min-height:40px; padding:0 16px; border:1px solid var(--ink); background:var(--paper); color:var(--ink);
@@ -2291,6 +2353,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
   <div id="panel" style="display:none">
     <div class="admin-tabs" role="tablist">
       <button type="button" class="on" id="tab-shop" onclick="showAdminView('shop')">Orders &amp; stock</button>
+      <button type="button" id="tab-prices" onclick="showAdminView('prices')">Competitor prices</button>
       <button type="button" id="tab-visits" onclick="showAdminView('visits')">QR / Flyer</button>
       <button type="button" id="tab-assets" onclick="showAdminView('assets')">Assets</button>
     </div>
@@ -2379,6 +2442,32 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
       <p class="note">Saved changes show on the website within seconds.</p>
     </div>
     </div>
+    </div>
+
+    <div id="view-prices" class="view" hidden>
+      <div class="card">
+        <div class="topline">
+          <h2>Competitor prices</h2>
+          <button class="ghost" onclick="loadPriceWatch()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
+        </div>
+        <p class="visit-note">Live caged egg watch (700g dozens + 30-packs). Worker polls every 15 minutes and records changes. Your own sell prices stay under <b>Orders &amp; stock</b>.</p>
+        <div class="pw-actions">
+          <button type="button" class="ghost" onclick="pollPriceWatchNow()">Check prices now</button>
+          <span class="msg" id="pw-msg"></span>
+        </div>
+        <div class="v-stats" id="pw-stats"></div>
+        <p class="muted" id="pw-meta" style="margin:0 0 14px;font-size:12.5px;color:var(--muted);font-weight:700"></p>
+
+        <h3 class="ps-title">Caged 700g (dozen)</h3>
+        <div id="pw-700"></div>
+
+        <h3 class="ps-title">Caged 30-packs <span style="font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">(not 700g — usually 1.5–1.75kg)</span></h3>
+        <div id="pw-30"></div>
+
+        <h3 class="ps-title">Recent changes</h3>
+        <div id="pw-events"></div>
+        <p class="empty" id="pw-empty" style="display:none">No price snapshots yet. Tap <b>Check prices now</b>.</p>
+      </div>
     </div>
 
     <div id="view-visits" class="view" hidden>
@@ -3394,18 +3483,143 @@ let ASSET_SELECTED = {};
 let ASSET_VISIBLE_IDS = [];
 
 function showAdminView(name) {
-  const view = name === "assets" ? "assets" : (name === "visits" ? "visits" : "shop");
+  const view = name === "assets" ? "assets"
+    : name === "visits" ? "visits"
+    : name === "prices" ? "prices"
+    : "shop";
   $("view-shop").hidden = view !== "shop";
   $("view-assets").hidden = view !== "assets";
   $("view-visits").hidden = view !== "visits";
+  $("view-prices").hidden = view !== "prices";
   $("tab-shop").classList.toggle("on", view === "shop");
   $("tab-assets").classList.toggle("on", view === "assets");
   $("tab-visits").classList.toggle("on", view === "visits");
+  $("tab-prices").classList.toggle("on", view === "prices");
   if (view === "assets") loadAssets();
   if (view === "visits") loadVisits(window.VISIT_FILTER || "flyer");
+  if (view === "prices") loadPriceWatch();
   try {
-    history.replaceState(null, "", view === "shop" ? "/admin" : (view === "assets" ? "/admin#assets" : "/admin#visits"));
+    const hash = view === "shop" ? "/admin"
+      : view === "assets" ? "/admin#assets"
+      : view === "visits" ? "/admin#visits"
+      : "/admin#prices";
+    history.replaceState(null, "", hash);
   } catch (e) {}
+}
+
+function pwMoney(n) {
+  if (n == null || n === "" || !Number.isFinite(Number(n))) return "—";
+  return "$" + Number(n).toFixed(2);
+}
+function pwPerEgg(n) {
+  if (n == null || n === "" || !Number.isFinite(Number(n))) return "—";
+  return (Number(n) * 100).toFixed(1) + "¢";
+}
+function pwStockPill(stock) {
+  const s = String(stock || "unknown");
+  return '<span class="pw-pill ' + escapeHtml(s) + '">' + escapeHtml(s.replace(/_/g, " ")) + '</span>';
+}
+function renderPriceTable(rows) {
+  if (!rows.length) return '<p class="empty" style="display:block;padding:12px 0">None found in latest snapshot.</p>';
+  const sorted = rows.slice().sort(function(a, b) {
+    const ap = a.per_egg_aud == null ? 999 : a.per_egg_aud;
+    const bp = b.per_egg_aud == null ? 999 : b.per_egg_aud;
+    return ap - bp;
+  });
+  return '<table class="pw-table"><thead><tr>' +
+    '<th>Retailer</th><th>Price</th><th>Per egg</th><th>Pack</th><th>Stock</th><th>Link</th>' +
+    '</tr></thead><tbody>' +
+    sorted.map(function(o) {
+      const pack = (o.pack_eggs || "?") + " · " + (o.pack_weight_g ? (o.pack_weight_g + "g") : "?");
+      return '<tr>' +
+        '<td><b>' + escapeHtml(o.retailer || "") + '</b><div style="color:var(--muted);font-size:12px;margin-top:2px">' + escapeHtml(o.title || "") + '</div></td>' +
+        '<td class="num">' + pwMoney(o.price_aud) + '</td>' +
+        '<td class="num">' + pwPerEgg(o.per_egg_aud) + '</td>' +
+        '<td>' + escapeHtml(pack) + '</td>' +
+        '<td>' + pwStockPill(o.stock) + '</td>' +
+        '<td>' + (o.url ? ('<a href="' + escapeHtml(o.url) + '" target="_blank" rel="noopener">Open</a>') : "—") + '</td>' +
+      '</tr>';
+    }).join("") +
+    '</tbody></table>';
+}
+
+async function loadPriceWatch() {
+  const empty = $("pw-empty");
+  try {
+    const [snapRes, evRes] = await Promise.all([
+      fetch("/api/price-watch"),
+      fetch("/api/price-watch/events?limit=30", { headers: authHeaders() }),
+    ]);
+    if (!snapRes.ok) {
+      $("pw-700").innerHTML = "";
+      $("pw-30").innerHTML = "";
+      $("pw-stats").innerHTML = "";
+      $("pw-meta").textContent = "Could not load price watch (" + snapRes.status + ")";
+      empty.style.display = "block";
+      return;
+    }
+    const data = await snapRes.json();
+    const offers = data.offers || [];
+    const c700 = offers.filter(function(o) { return o.category === "caged_700g"; });
+    const c30 = offers.filter(function(o) { return o.category === "caged_30pack"; });
+    const s = data.summary || {};
+    const cheap700 = s.cheapest_700g_in_stock;
+    const cheap30 = s.cheapest_30pack_in_stock;
+    $("pw-stats").innerHTML =
+      '<div class="stat"><b>' + (cheap700 ? pwPerEgg(cheap700.per_egg_aud) : "—") + '</b><span>cheapest 700g / egg</span></div>' +
+      '<div class="stat"><b>' + (cheap30 ? pwPerEgg(cheap30.per_egg_aud) : "—") + '</b><span>cheapest 30pk / egg</span></div>' +
+      '<div class="stat"><b>' + offers.length + '</b><span>tracked SKUs</span></div>';
+    $("pw-meta").textContent = data.updatedAt
+      ? ("Updated " + fmtTime(data.updatedAt) + (data.source ? (" · source " + data.source) : ""))
+      : "No snapshot yet";
+    $("pw-700").innerHTML = renderPriceTable(c700);
+    $("pw-30").innerHTML = renderPriceTable(c30);
+
+    let events = [];
+    if (evRes.ok) {
+      const evData = await evRes.json();
+      events = evData.events || [];
+    }
+    if (!events.length && Array.isArray(data.last_changes)) events = data.last_changes;
+    $("pw-events").innerHTML = events.length ? events.map(function(ch) {
+      const delta = ch.delta_aud != null ? (" · Δ " + (ch.delta_aud > 0 ? "+" : "") + pwMoney(ch.delta_aud)) : "";
+      const fromP = ch.from ? pwMoney(ch.from.price_aud) + " / " + escapeHtml(ch.from.stock || "?") : "—";
+      const toP = ch.to ? pwMoney(ch.to.price_aud) + " / " + escapeHtml(ch.to.stock || "?") : "—";
+      return '<div class="pw-event">' +
+        '<b>' + escapeHtml(ch.type || "change") + '</b> · ' + escapeHtml(ch.retailer || "") +
+        '<div style="margin-top:4px">' + escapeHtml(ch.title || "") + delta + '</div>' +
+        '<div style="margin-top:4px;color:var(--muted)">' + fromP + ' → ' + toP +
+        (ch.at ? (' · ' + fmtTime(ch.at)) : '') + '</div>' +
+      '</div>';
+    }).join("") : '<p class="empty" style="display:block;padding:8px 0">No changes recorded yet.</p>';
+
+    empty.style.display = offers.length ? "none" : "block";
+  } catch (e) {
+    $("pw-meta").textContent = "Load failed";
+    empty.style.display = "block";
+  }
+}
+
+async function pollPriceWatchNow() {
+  const el = $("pw-msg");
+  el.textContent = "Checking…";
+  el.className = "msg";
+  try {
+    const res = await fetch("/api/price-watch/poll", { method: "POST", headers: authHeaders() });
+    const data = await res.json().catch(function() { return {}; });
+    if (!res.ok) {
+      el.textContent = data.error || "Poll failed";
+      el.className = "msg err";
+      return;
+    }
+    el.textContent = "Done · " + (data.changeCount || 0) + " change(s)";
+    el.className = "msg ok";
+    await loadPriceWatch();
+    setTimeout(function() { el.textContent = ""; }, 3000);
+  } catch (e) {
+    el.textContent = "Poll failed";
+    el.className = "msg err";
+  }
 }
 
 async function loadVisits(filter) {
@@ -3795,6 +4009,7 @@ async function boot() {
   setInterval(loadOrders, 30000);
   if (location.hash === "#assets") showAdminView("assets");
   if (location.hash === "#visits") showAdminView("visits");
+  if (location.hash === "#prices") showAdminView("prices");
 }
 
 $("key") && $("key").addEventListener("keydown", function(e) {
@@ -3807,10 +4022,15 @@ if (KEY) boot();
 </html>`;
 
 export default {
-  // Safety net every 15m: pause ads if stock hit 0, resume if we paused and stock returned.
+  // Every cron tick: Meta stock sync + competitor price poll (diff → events/webhook).
   async scheduled(_event, env, ctx) {
     const settings = await getSettings(env);
     ctx.waitUntil(syncMetaAdsForStock(env, settings.traysAvailable));
+    ctx.waitUntil(
+      runScheduledPoll(env).catch((err) => {
+        console.log("price-watch poll failed", String(err?.message || err));
+      })
+    );
   },
 
   async fetch(request, env, ctx) {
@@ -3841,7 +4061,7 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
           "X-Robots-Tag": "noindex",
           "Cache-Control": "no-store, max-age=0",
-          "X-Yolko-Admin": "112",
+          "X-Yolko-Admin": "113",
         },
       });
     }
@@ -3860,12 +4080,20 @@ export default {
     if (!path.includes(".")) path += ".html";
 
     const live = ext === "html" || ext === "css" || ext === "js";
-    const upstreamBase = live ? UPSTREAM_LIVE : UPSTREAM_ASSETS;
+    const chalkPath = path.startsWith("/assets/chalk-tray/");
+    const upstreamBase = chalkPath ? UPSTREAM_CHALK : live ? UPSTREAM_LIVE : UPSTREAM_ASSETS;
     const bust = live ? `?_${Date.now()}` : "";
-    const upstreamResp = await fetch(upstreamBase + path + bust, {
+    let upstreamResp = await fetch(upstreamBase + path + bust, {
       headers: { "User-Agent": "yolko-edge" },
       cf: { cacheTtl: 0 },
     });
+
+    if (!upstreamResp.ok && chalkPath) {
+      upstreamResp = await fetch(UPSTREAM_ASSETS + path, {
+        headers: { "User-Agent": "yolko-edge" },
+        cf: { cacheTtl: 0 },
+      });
+    }
 
     if (!upstreamResp.ok) {
       return new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain" } });
@@ -3876,7 +4104,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "155",
+        "X-Yolko-Build": "158",
       },
     });
   },
