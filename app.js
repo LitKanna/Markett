@@ -1585,3 +1585,9 @@ againButton.addEventListener("click", () => {
   orderSection.hidden = false;
   orderSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 });
+
+/* Re-measure after fonts/layout settle (iOS Safari chrome can shift post-load). */
+if (typeof window.__yolkoFitViewport === "function") {
+  requestAnimationFrame(() => window.__yolkoFitViewport());
+  window.addEventListener("load", () => window.__yolkoFitViewport(), { once: true, passive: true });
+}
