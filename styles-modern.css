@@ -17,8 +17,14 @@
   /* Fluid fit: scales with both width and height so any browser size fills cleanly */
   --page-gutter: clamp(12px, 2.4vw, 24px);
   --page-max: 1200px;
-  --topbar-h: clamp(56px, 8svh, 72px);
-  --section-pad: clamp(48px, 10svh, 120px);
+  /* --vvh/--app-height are set from JS (visualViewport) for real Chrome/iOS chrome height */
+  --vvh: 1svh;
+  --vvw: 1vw;
+  --app-height: 100svh;
+  --app-width: 100vw;
+  --frame-h: var(--app-height);
+  --topbar-h: clamp(56px, 8 * var(--vvh), 72px);
+  --section-pad: clamp(48px, 10 * var(--vvh), 120px);
   --space-xs: clamp(6px, 0.8vw, 10px);
   --space-sm: clamp(10px, 1.2vw, 16px);
   --space-md: clamp(16px, 2vw, 28px);
@@ -54,6 +60,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
+  min-height: var(--frame-h);
   padding-left: env(safe-area-inset-left, 0);
   padding-right: env(safe-area-inset-right, 0);
 }
@@ -311,17 +318,15 @@ h3 {
   transform: translateX(4px);
 }
 
-/* Hero: fills available viewport on any resolution */
+/* Hero: fills the measured browser window (not just CSS svh/dvh) */
 .hero {
-  min-height: calc(100svh - var(--topbar-h));
-  min-height: calc(100dvh - var(--topbar-h));
-  padding: clamp(12px, 2.5svh, 32px) 0 clamp(28px, 5svh, 56px);
+  min-height: calc(var(--frame-h) - var(--topbar-h));
+  padding: clamp(12px, 2.5 * var(--vvh), 32px) 0 clamp(28px, 5 * var(--vvh), 56px);
   border-bottom: 1px solid var(--line);
 }
 
 .hero-grid {
-  min-height: calc(100svh - var(--topbar-h) - clamp(40px, 8svh, 88px));
-  min-height: calc(100dvh - var(--topbar-h) - clamp(40px, 8svh, 88px));
+  min-height: calc(var(--frame-h) - var(--topbar-h) - clamp(40px, 8 * var(--vvh), 88px));
   display: grid;
   /* Always two columns on desktop/tablet landscape: image sits beside copy */
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -333,7 +338,7 @@ h3 {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(16px, 4svh, 42px) clamp(0px, 1.2vw, 18px) clamp(12px, 2.5svh, 28px) 0;
+  padding: clamp(16px, 4 * var(--vvh), 42px) clamp(0px, 1.2vw, 18px) clamp(12px, 2.5 * var(--vvh), 28px) 0;
   min-height: 0;
 }
 
@@ -435,19 +440,37 @@ h3 {
   min-width: 0;
   width: 100%;
   align-self: stretch;
-  /* Guarantee visible height so the image isn't collapsed beside the copy */
-  min-height: clamp(360px, 70svh, 820px);
+  display: flex;
+  /* Fit inside the measured frame height (Chrome / Safari / iPhone chrome) */
+  min-height: clamp(280px, 58 * var(--vvh), 720px);
+  max-height: calc(var(--frame-h) - var(--topbar-h) - clamp(24px, 6 * var(--vvh), 64px));
 }
 
 .showcase-card {
-  position: absolute;
-  inset: 0;
+  position: relative;
   width: 100%;
-  height: 100%;
+  flex: 1 1 auto;
+  /* Chalk heroes are 1:1 — keep square crop on fluid layouts */
+  aspect-ratio: 1 / 1;
+  max-height: min(78 * var(--vvh), 860px);
+  min-height: clamp(240px, 42 * var(--vvh), 520px);
   overflow: hidden;
   border-radius: var(--radius);
   background: #1a1a18;
   box-shadow: 0 clamp(16px, 3vw, 32px) clamp(32px, 6vw, 80px) rgba(23, 23, 20, 0.15);
+}
+
+/* Desktop/tablet landscape: fill the hero column beside the copy */
+@media (min-width: 901px) {
+  .showcase-card {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    height: 100%;
+    max-height: none;
+    min-height: 0;
+    flex: none;
+  }
 }
 
 .showcase-rotator {
@@ -1820,7 +1843,9 @@ h3 {
 
   .hero-showcase {
     min-height: 0;
+    max-height: none;
     width: 100%;
+    display: block;
   }
 
   .showcase-card {
@@ -1828,9 +1853,10 @@ h3 {
     inset: auto;
     width: 100%;
     height: auto;
-    aspect-ratio: 3 / 4;
-    max-height: min(70svh, 640px);
-    min-height: clamp(260px, 48svh, 520px);
+    /* Square chalk tray — was wrongly 3/4 after 1:1 assets shipped */
+    aspect-ratio: 1 / 1;
+    max-height: min(52 * var(--vvh), 520px);
+    min-height: clamp(200px, 36 * var(--vvh), 420px);
   }
 
   .price-card {
@@ -1927,9 +1953,9 @@ h3 {
   .showcase-card {
     position: relative;
     inset: auto;
-    aspect-ratio: 3 / 4;
-    max-height: min(62svh, 560px);
-    min-height: clamp(220px, 42svh, 480px);
+    aspect-ratio: 1 / 1;
+    max-height: min(46 * var(--vvh), 440px);
+    min-height: clamp(180px, 32 * var(--vvh), 360px);
   }
 
   .showcase-tag {
@@ -2124,11 +2150,12 @@ h3 {
 
 @media (max-height: 700px) and (min-width: 901px) {
   .hero-grid {
-    min-height: calc(100dvh - var(--topbar-h) - 24px);
+    min-height: calc(var(--frame-h) - var(--topbar-h) - 24px);
   }
 
   .hero-showcase {
-    min-height: calc(100dvh - var(--topbar-h) - 48px);
+    min-height: calc(var(--frame-h) - var(--topbar-h) - 48px);
+    max-height: calc(var(--frame-h) - var(--topbar-h) - 24px);
   }
 
   .hero-copy {
@@ -2136,8 +2163,40 @@ h3 {
   }
 
   .hero h1 {
-    font-size: clamp(40px, 6.5vh + 2vw, 96px);
+    font-size: clamp(40px, 6.5 * var(--vvh) + 2vw, 96px);
     margin-bottom: 12px;
+  }
+}
+
+/* Short phones (iPhone SE / compact Safari chrome): keep image in first screen */
+@media (max-width: 900px) and (max-height: 740px) {
+  .hero {
+    min-height: 0;
+    padding-bottom: clamp(12px, 2.5 * var(--vvh), 20px);
+  }
+
+  .hero-grid {
+    min-height: 0;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 11vw + 1vh, 72px);
+    margin-bottom: 10px;
+  }
+
+  .hero-sub {
+    margin-bottom: 14px;
+    font-size: clamp(13px, 3.4vw, 15px);
+  }
+
+  .hero-stats {
+    padding-top: 10px;
+  }
+
+  .showcase-card {
+    aspect-ratio: 1 / 1;
+    max-height: min(38 * var(--vvh), 300px);
+    min-height: clamp(160px, 28 * var(--vvh), 260px);
   }
 }
 
