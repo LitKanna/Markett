@@ -3,8 +3,12 @@ import { ingestSnapshot, getLatest, getEvents, runScheduledPoll } from "./price-
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
 const DEPLOY_SHA = "ff8db82067f9c5655ae6f7d375064666305ba0fc";
+// Chalk-tray heroes must not 404 when the storefront pin drifts (this caused the
+// black hero / “broken ratios” look after a later Worker deploy from main).
+const CHALK_ASSETS_SHA = "677ede9d579baaa94621d300d04b389de5e00cc6";
 const UPSTREAM_LIVE = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
 const UPSTREAM_ASSETS = `https://raw.githubusercontent.com/LitKanna/Markett/${DEPLOY_SHA}`;
+const UPSTREAM_CHALK = `https://raw.githubusercontent.com/LitKanna/Markett/${CHALK_ASSETS_SHA}`;
 
 const MIME = {
   html: "text/html; charset=utf-8",
@@ -4076,12 +4080,20 @@ export default {
     if (!path.includes(".")) path += ".html";
 
     const live = ext === "html" || ext === "css" || ext === "js";
-    const upstreamBase = live ? UPSTREAM_LIVE : UPSTREAM_ASSETS;
+    const chalkPath = path.startsWith("/assets/chalk-tray/");
+    const upstreamBase = chalkPath ? UPSTREAM_CHALK : live ? UPSTREAM_LIVE : UPSTREAM_ASSETS;
     const bust = live ? `?_${Date.now()}` : "";
-    const upstreamResp = await fetch(upstreamBase + path + bust, {
+    let upstreamResp = await fetch(upstreamBase + path + bust, {
       headers: { "User-Agent": "yolko-edge" },
       cf: { cacheTtl: 0 },
     });
+
+    if (!upstreamResp.ok && chalkPath) {
+      upstreamResp = await fetch(UPSTREAM_ASSETS + path, {
+        headers: { "User-Agent": "yolko-edge" },
+        cf: { cacheTtl: 0 },
+      });
+    }
 
     if (!upstreamResp.ok) {
       return new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain" } });
@@ -4092,7 +4104,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-cache" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "155",
+        "X-Yolko-Build": "158",
       },
     });
   },
