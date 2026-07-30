@@ -318,22 +318,22 @@ h3 {
   transform: translateX(4px);
 }
 
-/* Hero: one composition — copy + square chalk tray, vertically centered
-   in the measured browser frame (Chrome / Safari / iOS chrome). */
+/* Hero: one tight composition — copy locked to a square chalk tray.
+   Avoid equal 1fr|1fr columns (that left a hollow gap around a small image). */
 .hero {
   display: flex;
   align-items: center;
   min-height: calc(var(--frame-h) - var(--topbar-h));
-  padding: clamp(12px, 2.2 * var(--vvh), 28px) 0;
+  padding: clamp(16px, 3 * var(--vvh), 36px) 0;
   border-bottom: 1px solid var(--line);
 }
 
 .hero-grid {
   width: 100%;
   display: grid;
-  /* Copy | square image — equal visual weight, not a tall stretched crop */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(20px, 3vw, 40px);
+  /* Copy flexes; image sizes itself — keeps them glued as one unit */
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(24px, 3.5vw, 48px);
   align-items: center;
 }
 
@@ -341,7 +341,8 @@ h3 {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 clamp(0px, 1.2vw, 12px) 0 0;
+  padding: 0;
+  min-width: 0;
   min-height: 0;
 }
 
@@ -369,10 +370,11 @@ h3 {
 .hero h1 {
   /* Wide enough for "FRESH EGGS," / "TO YOUR DOOR." (HTML <br> sets the break). */
   max-width: 14ch;
-  margin-bottom: clamp(10px, 1.8 * var(--vvh), 22px);
-  font-size: clamp(40px, 6.8 * var(--vvh) + 1.4vw, 96px);
+  margin: 0 0 clamp(12px, 1.8 * var(--vvh), 20px);
+  font-size: clamp(44px, 5.8 * var(--vvh) + 1.6vw, 88px);
   font-weight: 800;
-  line-height: 0.86;
+  line-height: 0.88;
+  letter-spacing: -0.03em;
   text-transform: uppercase;
 }
 
@@ -444,23 +446,21 @@ h3 {
 .hero-showcase {
   position: relative;
   min-width: 0;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* Size from viewport height so the square fills the first screen without
+     leaving a dead column beside a tiny centered card */
+  --hero-media: min(46vw, calc(var(--frame-h) - var(--topbar-h) - 96px), 540px);
+  width: var(--hero-media);
+  flex: 0 0 auto;
 }
 
 .showcase-card {
   position: relative;
-  /* Chalk heroes are 1:1 — never stretch into a tall portrait crop */
-  width: min(100%, 68 * var(--vvh), 560px);
+  width: 100%;
   aspect-ratio: 1 / 1;
-  max-height: min(68 * var(--vvh), 560px);
-  margin-inline: auto;
   overflow: hidden;
-  border-radius: var(--radius);
+  border-radius: calc(var(--radius) + 4px);
   background: #1a1a18;
-  box-shadow: 0 clamp(16px, 3vw, 32px) clamp(32px, 6vw, 80px) rgba(23, 23, 20, 0.15);
+  box-shadow: 0 clamp(12px, 2.5vw, 28px) clamp(28px, 5vw, 64px) rgba(23, 23, 20, 0.14);
 }
 
 .showcase-rotator {
@@ -1816,19 +1816,13 @@ h3 {
 @media (max-width: 900px) {
   .hero {
     min-height: auto;
-    max-height: none;
-    overflow: visible;
+    display: block;
+    padding-block: clamp(12px, 3 * var(--vvh), 28px);
   }
 
   .hero-grid {
-    min-height: auto;
-    max-height: none;
     grid-template-columns: 1fr;
-  }
-
-  .hero-copy {
-    min-height: 0;
-    overflow: visible;
+    gap: clamp(20px, 4vw, 32px);
   }
 
   .hero h1 {
@@ -1837,14 +1831,14 @@ h3 {
 
   .hero-showcase {
     width: 100%;
-    display: block;
+    --hero-media: 100%;
   }
 
   .showcase-card {
     width: 100%;
-    max-width: none;
+    max-width: min(100%, 520px);
+    margin-inline: auto;
     aspect-ratio: 1 / 1;
-    max-height: min(52 * var(--vvh), 520px);
   }
 
   .price-card {
@@ -1939,11 +1933,7 @@ h3 {
   }
 
   .showcase-card {
-    position: relative;
-    inset: auto;
-    aspect-ratio: 1 / 1;
-    max-height: min(46 * var(--vvh), 440px);
-    min-height: clamp(180px, 32 * var(--vvh), 360px);
+    max-width: min(100%, 440px);
   }
 
   .showcase-tag {
@@ -2136,24 +2126,27 @@ h3 {
   }
 }
 
-/* Laptop / short desktop: shrink type + square so CTAs stay on-screen */
+/* Laptop / short desktop: keep the pair tight and on-screen */
 @media (max-height: 900px) and (min-width: 901px) {
   .hero {
-    padding-block: clamp(8px, 1.4 * var(--vvh), 16px);
+    padding-block: clamp(10px, 1.6 * var(--vvh), 20px);
+  }
+
+  .hero-grid {
+    gap: clamp(20px, 2.8vw, 36px);
+  }
+
+  .hero-showcase {
+    --hero-media: min(42vw, calc(var(--frame-h) - var(--topbar-h) - 72px), 460px);
   }
 
   .hero h1 {
-    font-size: clamp(36px, 6 * var(--vvh) + 1vw, 72px);
+    font-size: clamp(38px, 5.4 * var(--vvh) + 1vw, 72px);
     margin-bottom: clamp(8px, 1.2 * var(--vvh), 14px);
   }
 
   .hero-sub {
     margin-bottom: clamp(10px, 1.6 * var(--vvh), 16px);
-  }
-
-  .showcase-card {
-    width: min(100%, 58 * var(--vvh), 480px);
-    max-height: min(58 * var(--vvh), 480px);
   }
 
   .hero-stats {
@@ -2167,13 +2160,12 @@ h3 {
 }
 
 @media (max-height: 760px) and (min-width: 901px) {
-  .hero h1 {
-    font-size: clamp(34px, 5.4 * var(--vvh) + 0.8vw, 60px);
+  .hero-showcase {
+    --hero-media: min(40vw, calc(var(--frame-h) - var(--topbar-h) - 64px), 400px);
   }
 
-  .showcase-card {
-    width: min(100%, 52 * var(--vvh), 420px);
-    max-height: min(52 * var(--vvh), 420px);
+  .hero h1 {
+    font-size: clamp(34px, 5 * var(--vvh) + 0.8vw, 58px);
   }
 
   /* Drop secondary stats so kicker → CTAs always clear the fold */
@@ -2208,9 +2200,7 @@ h3 {
   }
 
   .showcase-card {
-    aspect-ratio: 1 / 1;
-    max-height: min(38 * var(--vvh), 300px);
-    min-height: clamp(160px, 28 * var(--vvh), 260px);
+    max-width: min(100%, 300px);
   }
 }
 
