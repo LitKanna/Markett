@@ -342,8 +342,11 @@ h3 {
   flex-direction: column;
   justify-content: flex-start;
   min-width: 0;
-  height: 100%;
   padding: 0;
+  /* Contribute 0 to row sizing so the square image alone sets the height,
+     then stretch to that height — keeps stats from pushing past the image. */
+  height: 0;
+  min-height: 100%;
 }
 
 .hero-kicker,
@@ -1831,7 +1834,13 @@ h3 {
   }
 
   .hero-copy {
+    height: auto;
+    min-height: 0;
     padding-top: 0;
+  }
+
+  .hero-stats {
+    margin-top: clamp(18px, 3vw, 28px);
   }
 
   .hero h1 {
@@ -1839,9 +1848,8 @@ h3 {
   }
 
   .showcase-card {
-    width: 100%;
-    max-width: min(100%, 480px);
-    max-height: none;
+    width: min(100%, 480px);
+    max-width: none;
     margin-inline: auto;
   }
 
@@ -2184,6 +2192,7 @@ h3 {
 
   .hero-copy {
     height: auto;
+    min-height: 0;
   }
 }
 
