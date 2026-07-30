@@ -1933,11 +1933,7 @@ h3 {
   }
 
   .showcase-card {
-    position: relative;
-    inset: auto;
-    aspect-ratio: 1 / 1;
-    max-height: min(46 * var(--vvh), 440px);
-    min-height: clamp(180px, 32 * var(--vvh), 360px);
+    max-width: min(100%, 440px);
   }
 
   .showcase-tag {
