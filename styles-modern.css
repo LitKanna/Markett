@@ -318,32 +318,28 @@ h3 {
   transform: translateX(4px);
 }
 
-/* Hero: one tight composition — copy locked to a square chalk tray.
-   Avoid equal 1fr|1fr columns (that left a hollow gap around a small image). */
+/* Hero: dense first-screen composition inside the page wrap.
+   CRITICAL: do not set width:100% on .hero-grid — it shares the node with
+   .wrap and would override the max-width, stretching copy|image to the
+   viewport edges (hollow cream void in the middle). */
 .hero {
-  display: flex;
-  align-items: center;
-  min-height: calc(var(--frame-h) - var(--topbar-h));
-  padding: clamp(16px, 3 * var(--vvh), 36px) 0;
+  padding: clamp(20px, 3.5 * var(--vvh), 40px) 0 clamp(28px, 4 * var(--vvh), 48px);
   border-bottom: 1px solid var(--line);
 }
 
 .hero-grid {
-  width: 100%;
   display: grid;
-  /* Copy flexes; image sizes itself — keeps them glued as one unit */
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(24px, 3.5vw, 48px);
-  align-items: center;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: clamp(28px, 3.2vw, 44px);
+  align-items: start;
 }
 
 .hero-copy {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0;
+  justify-content: flex-start;
   min-width: 0;
-  min-height: 0;
+  padding-top: clamp(4px, 0.8 * var(--vvh), 12px);
 }
 
 .hero-kicker,
@@ -351,7 +347,7 @@ h3 {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: clamp(8px, 1.8 * var(--vvh), 24px);
+  margin-bottom: clamp(10px, 1.6 * var(--vvh), 18px);
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
@@ -370,11 +366,11 @@ h3 {
 .hero h1 {
   /* Wide enough for "FRESH EGGS," / "TO YOUR DOOR." (HTML <br> sets the break). */
   max-width: 14ch;
-  margin: 0 0 clamp(12px, 1.8 * var(--vvh), 20px);
-  font-size: clamp(44px, 5.8 * var(--vvh) + 1.6vw, 88px);
+  margin: 0 0 clamp(14px, 2 * var(--vvh), 22px);
+  font-size: clamp(48px, 4.2vw + 2.8 * var(--vvh), 92px);
   font-weight: 800;
-  line-height: 0.88;
-  letter-spacing: -0.03em;
+  line-height: 0.9;
+  letter-spacing: -0.035em;
   text-transform: uppercase;
 }
 
@@ -383,10 +379,11 @@ h3 {
 }
 
 .hero-sub {
-  max-width: 42ch;
-  margin-bottom: clamp(12px, 2.2 * var(--vvh), 24px);
+  max-width: 36ch;
+  margin: 0 0 clamp(18px, 2.4 * var(--vvh), 26px);
   color: var(--muted);
-  font-size: clamp(14px, 1.2 * var(--vvh) + 0.4vw, 19px);
+  font-size: clamp(15px, 0.35vw + 14px, 18px);
+  line-height: 1.45;
 }
 
 .hero-sub strong {
@@ -401,15 +398,19 @@ h3 {
   gap: 10px;
 }
 
+.hero-cta .btn {
+  min-height: 48px;
+  padding-inline: 22px;
+}
+
 .hero-stats {
-  max-width: 420px;
+  max-width: 380px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  margin: clamp(16px, 2.4 * var(--vvh), 28px) 0 0;
-  padding-top: clamp(12px, 2 * var(--vvh), 22px);
+  margin: clamp(22px, 3 * var(--vvh), 32px) 0 0;
+  padding-top: clamp(14px, 2 * var(--vvh), 20px);
   border-top: 1px solid var(--line);
-  flex-shrink: 0;
 }
 
 .hero-stats div {
@@ -446,21 +447,18 @@ h3 {
 .hero-showcase {
   position: relative;
   min-width: 0;
-  /* Size from viewport height so the square fills the first screen without
-     leaving a dead column beside a tiny centered card */
-  --hero-media: min(46vw, calc(var(--frame-h) - var(--topbar-h) - 96px), 540px);
-  width: var(--hero-media);
-  flex: 0 0 auto;
+  width: 100%;
 }
 
 .showcase-card {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
+  max-height: min(560px, calc(var(--frame-h) - var(--topbar-h) - 120px));
   overflow: hidden;
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: calc(var(--radius) + 2px);
   background: #1a1a18;
-  box-shadow: 0 clamp(12px, 2.5vw, 28px) clamp(28px, 5vw, 64px) rgba(23, 23, 20, 0.14);
+  box-shadow: 0 18px 48px rgba(23, 23, 20, 0.12);
 }
 
 .showcase-rotator {
@@ -559,18 +557,18 @@ h3 {
 
 .showcase-tag {
   position: absolute;
-  top: 22px;
-  right: 22px;
+  top: 14px;
+  right: 14px;
   /* Above chalk-hold (z-index 4) and slide fades — otherwise the badge
      disappears/flickers during price swaps and Chrome backdrop sampling. */
   z-index: 5;
   margin: 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(23, 23, 20, 0.24);
-  border-radius: 5px;
+  padding: 8px 10px;
+  border: 1px solid rgba(23, 23, 20, 0.18);
+  border-radius: 4px;
   /* Solid frosted look without backdrop-filter: Chrome flickers glass
      badges when the layer underneath is mid opacity/transform animation. */
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -1815,30 +1813,27 @@ h3 {
 /* Stack hero only on narrower screens so image stays beside copy on desktop */
 @media (max-width: 900px) {
   .hero {
-    min-height: auto;
-    display: block;
-    padding-block: clamp(12px, 3 * var(--vvh), 28px);
+    padding-block: clamp(16px, 3 * var(--vvh), 28px);
   }
 
   .hero-grid {
     grid-template-columns: 1fr;
-    gap: clamp(20px, 4vw, 32px);
+    gap: clamp(18px, 3.5vw, 28px);
+  }
+
+  .hero-copy {
+    padding-top: 0;
   }
 
   .hero h1 {
     max-width: 14ch;
   }
 
-  .hero-showcase {
-    width: 100%;
-    --hero-media: 100%;
-  }
-
   .showcase-card {
     width: 100%;
-    max-width: min(100%, 520px);
+    max-width: min(100%, 480px);
+    max-height: none;
     margin-inline: auto;
-    aspect-ratio: 1 / 1;
   }
 
   .price-card {
@@ -2126,49 +2121,48 @@ h3 {
   }
 }
 
-/* Laptop / short desktop: keep the pair tight and on-screen */
-@media (max-height: 900px) and (min-width: 901px) {
+/* Laptop / short desktop: keep the pair dense and on-screen */
+@media (max-height: 820px) and (min-width: 901px) {
   .hero {
-    padding-block: clamp(10px, 1.6 * var(--vvh), 20px);
+    padding-block: clamp(12px, 1.8 * var(--vvh), 20px);
   }
 
   .hero-grid {
-    gap: clamp(20px, 2.8vw, 36px);
+    gap: clamp(20px, 2.5vw, 32px);
   }
 
-  .hero-showcase {
-    --hero-media: min(42vw, calc(var(--frame-h) - var(--topbar-h) - 72px), 460px);
+  .showcase-card {
+    max-height: min(480px, calc(var(--frame-h) - var(--topbar-h) - 88px));
   }
 
   .hero h1 {
-    font-size: clamp(38px, 5.4 * var(--vvh) + 1vw, 72px);
-    margin-bottom: clamp(8px, 1.2 * var(--vvh), 14px);
+    font-size: clamp(40px, 3.6vw + 2.2 * var(--vvh), 72px);
+    margin-bottom: 12px;
   }
 
   .hero-sub {
-    margin-bottom: clamp(10px, 1.6 * var(--vvh), 16px);
+    margin-bottom: 14px;
   }
 
   .hero-stats {
-    margin-top: clamp(12px, 1.8 * var(--vvh), 18px);
-    padding-top: clamp(8px, 1.2 * var(--vvh), 14px);
+    margin-top: 16px;
+    padding-top: 12px;
   }
 
   .hero-stats dt {
-    font-size: clamp(16px, 2.2 * var(--vvh), 22px);
+    font-size: clamp(16px, 2vw, 22px);
   }
 }
 
-@media (max-height: 760px) and (min-width: 901px) {
-  .hero-showcase {
-    --hero-media: min(40vw, calc(var(--frame-h) - var(--topbar-h) - 64px), 400px);
+@media (max-height: 700px) and (min-width: 901px) {
+  .showcase-card {
+    max-height: min(400px, calc(var(--frame-h) - var(--topbar-h) - 72px));
   }
 
   .hero h1 {
-    font-size: clamp(34px, 5 * var(--vvh) + 0.8vw, 58px);
+    font-size: clamp(34px, 3.2vw + 1.8 * var(--vvh), 56px);
   }
 
-  /* Drop secondary stats so kicker → CTAs always clear the fold */
   .hero-stats {
     display: none;
   }
