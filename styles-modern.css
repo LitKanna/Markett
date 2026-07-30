@@ -321,7 +321,10 @@ h3 {
 /* Hero: dense first-screen composition inside the page wrap.
    CRITICAL: do not set width:100% on .hero-grid — it shares the node with
    .wrap and would override the max-width, stretching copy|image to the
-   viewport edges (hollow cream void in the middle). */
+   viewport edges (hollow cream void in the middle).
+
+   Alignment: stretch columns to the square image height; pin stats to the
+   bottom so copy top = image top and stats bottom = image bottom. */
 .hero {
   padding: clamp(20px, 3.5 * var(--vvh), 40px) 0 clamp(28px, 4 * var(--vvh), 48px);
   border-bottom: 1px solid var(--line);
@@ -329,9 +332,9 @@ h3 {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: clamp(28px, 3.2vw, 44px);
-  align-items: start;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: clamp(24px, 2.8vw, 36px);
+  align-items: stretch;
 }
 
 .hero-copy {
@@ -339,7 +342,8 @@ h3 {
   flex-direction: column;
   justify-content: flex-start;
   min-width: 0;
-  padding-top: clamp(4px, 0.8 * var(--vvh), 12px);
+  height: 100%;
+  padding: 0;
 }
 
 .hero-kicker,
@@ -408,7 +412,8 @@ h3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  margin: clamp(22px, 3 * var(--vvh), 32px) 0 0;
+  /* Pin to bottom of the stretched copy column (= image bottom) */
+  margin-top: auto;
   padding-top: clamp(14px, 2 * var(--vvh), 20px);
   border-top: 1px solid var(--line);
 }
@@ -448,13 +453,17 @@ h3 {
   position: relative;
   min-width: 0;
   width: 100%;
+  display: flex;
+  align-items: stretch;
 }
 
 .showcase-card {
   position: relative;
-  width: 100%;
+  /* Square fills the media column; short viewports cap via width so ratio holds */
+  width: min(100%, calc(var(--frame-h) - var(--topbar-h) - 112px));
+  max-width: 560px;
   aspect-ratio: 1 / 1;
-  max-height: min(560px, calc(var(--frame-h) - var(--topbar-h) - 120px));
+  margin-left: auto; /* sit against the copy gap, not the outer edge */
   overflow: hidden;
   border-radius: calc(var(--radius) + 2px);
   background: #1a1a18;
@@ -2128,11 +2137,12 @@ h3 {
   }
 
   .hero-grid {
-    gap: clamp(20px, 2.5vw, 32px);
+    gap: clamp(18px, 2.2vw, 28px);
   }
 
   .showcase-card {
-    max-height: min(480px, calc(var(--frame-h) - var(--topbar-h) - 88px));
+    width: min(100%, calc(var(--frame-h) - var(--topbar-h) - 88px));
+    max-width: 480px;
   }
 
   .hero h1 {
@@ -2145,7 +2155,7 @@ h3 {
   }
 
   .hero-stats {
-    margin-top: 16px;
+    /* keep margin-top: auto so bottom still locks to image */
     padding-top: 12px;
   }
 
@@ -2156,7 +2166,8 @@ h3 {
 
 @media (max-height: 700px) and (min-width: 901px) {
   .showcase-card {
-    max-height: min(400px, calc(var(--frame-h) - var(--topbar-h) - 72px));
+    width: min(100%, calc(var(--frame-h) - var(--topbar-h) - 72px));
+    max-width: 400px;
   }
 
   .hero h1 {
@@ -2165,6 +2176,14 @@ h3 {
 
   .hero-stats {
     display: none;
+  }
+
+  .hero-grid {
+    align-items: start;
+  }
+
+  .hero-copy {
+    height: auto;
   }
 }
 
