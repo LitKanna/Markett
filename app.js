@@ -558,7 +558,7 @@ function describeOrder(bundleKey, qty) {
 }
 
 function refreshSubmitPrice() {
-  // Order summary strip removed — Buy now is the only CTA.
+  // Order summary strip removed. Buy now is the only CTA.
 }
 
 function syncFulfillmentUI() {
@@ -1072,14 +1072,14 @@ function applyPickupDaysOnly(pickup) {
 function applyPickup(pickup) {
   window.__YOLKO_PICKUP = pickup;
 
-  // Delivery section cards — keep policy details here only.
+  // Delivery section cards: keep policy details here only.
   const cardsBox = document.querySelector(".day-cards");
   if (cardsBox) {
     const satDate = nextPickupDate("Saturday");
     cardsBox.innerHTML = `
       <article class="day-card">
         <p class="day-name">Saturday ${satDate}</p>
-        <p class="day-time">Morning drop-off</p>
+        <p class="day-time">Morning delivery</p>
         <p class="day-note">Book by Friday night</p>
       </article>
       <article class="day-card">
@@ -1509,7 +1509,7 @@ function showConfirmation(b) {
   doneSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 }
 
-// Buy now: only CTA — create/reuse order + Stripe session.
+// Buy now: only CTA. Create/reuse order + Stripe session.
 const buynowBtn = document.getElementById("buynow-btn");
 const buynowLabel = document.getElementById("buynow-label");
 

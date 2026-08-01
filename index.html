@@ -19,7 +19,7 @@
       root.style.setProperty("--vvw", (w * 0.01) + "px");
       root.style.setProperty("--app-height", h + "px");
       root.style.setProperty("--app-width", w + "px");
-      /* iPhone notch / home indicator — CSS env() reads these; expose for layout math */
+      /* iPhone notch / home indicator. CSS env() reads these; expose for layout math */
       root.dataset.vvh = String(Math.round(h));
       root.dataset.vvw = String(Math.round(w));
     }

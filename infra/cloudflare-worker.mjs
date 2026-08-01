@@ -391,7 +391,7 @@ function stripeDetailsFromSession(session) {
   const amount =
     Number.isFinite(Number(session?.amount_total)) ? Number(session.amount_total) / 100 : null;
   const actuallyPaid = session?.payment_status === "paid";
-  // Only stamp paidAt from a real charge (or paid session). Never use session.created —
+  // Only stamp paidAt from a real charge (or paid session). Never use session.created -
   // that made unpaid checkouts look paid in admin after hydrate.
   const paidAtSec = actuallyPaid
     ? ((charge && typeof charge === "object" && charge.created) || null)
@@ -1862,7 +1862,7 @@ async function handleApi(request, env, url, ctx) {
         updatedAt: null,
         offers: [],
         summary: null,
-        note: "No snapshot yet — wait for cron poll or POST /api/price-watch/ingest",
+        note: "No snapshot yet. Wait for cron poll or POST /api/price-watch/ingest",
       });
     }
     return json({
@@ -2461,7 +2461,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
         <h3 class="ps-title">Caged 700g (dozen)</h3>
         <div id="pw-700"></div>
 
-        <h3 class="ps-title">Caged 30-packs <span style="font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">(not 700g — usually 1.5–1.75kg)</span></h3>
+        <h3 class="ps-title">Caged 30-packs <span style="font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">(not 700g. usually 1.5–1.75kg)</span></h3>
         <div id="pw-30"></div>
 
         <h3 class="ps-title">Recent changes</h3>
@@ -2476,7 +2476,7 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
           <h2>QR / Flyer visits</h2>
           <button class="ghost" onclick="loadVisits()" style="min-height:36px;padding:6px 12px;font-size:12px">Refresh</button>
         </div>
-        <p class="visit-note" id="visit-note">Tracks scans that land via <code>/f</code> or <code>?src=flyer</code>. Browsers cannot send gender, real name, or hardware device IDs — those stay blank until someone orders.</p>
+        <p class="visit-note" id="visit-note">Tracks scans that land via <code>/f</code> or <code>?src=flyer</code>. Browsers cannot send gender, real name, or hardware device IDs. Those stay blank until someone orders.</p>
         <div class="v-stats" id="visit-stats"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <button type="button" class="ghost" id="visit-filter-flyer" onclick="loadVisits('flyer')">Flyer / QR only</button>
@@ -2980,7 +2980,7 @@ async function fetchStripeDetails(orderId) {
     const data = await res.json();
     if (!res.ok || !data.stripe) return null;
     order.stripe = data.stripe;
-    // Trust Stripe payment_status from the API — never mark paid just because stripe{} exists.
+    // Trust Stripe payment_status from the API. Never mark paid just because stripe{} exists.
     if (data.paid === true || data.paymentStatus === "paid") {
       order.paymentStatus = "paid";
       if (order.status === "new") order.status = "confirmed";
@@ -3508,11 +3508,11 @@ function showAdminView(name) {
 }
 
 function pwMoney(n) {
-  if (n == null || n === "" || !Number.isFinite(Number(n))) return "—";
+  if (n == null || n === "" || !Number.isFinite(Number(n))) return "-";
   return "$" + Number(n).toFixed(2);
 }
 function pwPerEgg(n) {
-  if (n == null || n === "" || !Number.isFinite(Number(n))) return "—";
+  if (n == null || n === "" || !Number.isFinite(Number(n))) return "-";
   return (Number(n) * 100).toFixed(1) + "¢";
 }
 function pwStockPill(stock) {
@@ -3537,7 +3537,7 @@ function renderPriceTable(rows) {
         '<td class="num">' + pwPerEgg(o.per_egg_aud) + '</td>' +
         '<td>' + escapeHtml(pack) + '</td>' +
         '<td>' + pwStockPill(o.stock) + '</td>' +
-        '<td>' + (o.url ? ('<a href="' + escapeHtml(o.url) + '" target="_blank" rel="noopener">Open</a>') : "—") + '</td>' +
+        '<td>' + (o.url ? ('<a href="' + escapeHtml(o.url) + '" target="_blank" rel="noopener">Open</a>') : "-") + '</td>' +
       '</tr>';
     }).join("") +
     '</tbody></table>';
@@ -3566,8 +3566,8 @@ async function loadPriceWatch() {
     const cheap700 = s.cheapest_700g_in_stock;
     const cheap30 = s.cheapest_30pack_in_stock;
     $("pw-stats").innerHTML =
-      '<div class="stat"><b>' + (cheap700 ? pwPerEgg(cheap700.per_egg_aud) : "—") + '</b><span>cheapest 700g / egg</span></div>' +
-      '<div class="stat"><b>' + (cheap30 ? pwPerEgg(cheap30.per_egg_aud) : "—") + '</b><span>cheapest 30pk / egg</span></div>' +
+      '<div class="stat"><b>' + (cheap700 ? pwPerEgg(cheap700.per_egg_aud) : "-") + '</b><span>cheapest 700g / egg</span></div>' +
+      '<div class="stat"><b>' + (cheap30 ? pwPerEgg(cheap30.per_egg_aud) : "-") + '</b><span>cheapest 30pk / egg</span></div>' +
       '<div class="stat"><b>' + offers.length + '</b><span>tracked SKUs</span></div>';
     $("pw-meta").textContent = data.updatedAt
       ? ("Updated " + fmtTime(data.updatedAt) + (data.source ? (" · source " + data.source) : ""))
@@ -3583,8 +3583,8 @@ async function loadPriceWatch() {
     if (!events.length && Array.isArray(data.last_changes)) events = data.last_changes;
     $("pw-events").innerHTML = events.length ? events.map(function(ch) {
       const delta = ch.delta_aud != null ? (" · Δ " + (ch.delta_aud > 0 ? "+" : "") + pwMoney(ch.delta_aud)) : "";
-      const fromP = ch.from ? pwMoney(ch.from.price_aud) + " / " + escapeHtml(ch.from.stock || "?") : "—";
-      const toP = ch.to ? pwMoney(ch.to.price_aud) + " / " + escapeHtml(ch.to.stock || "?") : "—";
+      const fromP = ch.from ? pwMoney(ch.from.price_aud) + " / " + escapeHtml(ch.from.stock || "?") : "-";
+      const toP = ch.to ? pwMoney(ch.to.price_aud) + " / " + escapeHtml(ch.to.stock || "?") : "-";
       return '<div class="pw-event">' +
         '<b>' + escapeHtml(ch.type || "change") + '</b> · ' + escapeHtml(ch.retailer || "") +
         '<div style="margin-top:4px">' + escapeHtml(ch.title || "") + delta + '</div>' +
@@ -3642,26 +3642,26 @@ async function loadVisits(filter) {
   const visits = data.visits || [];
   $("visits-empty").style.display = visits.length ? "none" : "block";
   $("visits").innerHTML = visits.map(function(v) {
-    const loc = [v.city, v.region, v.country].filter(Boolean).join(", ") || "—";
-    const screen = (v.screen && v.screen.w) ? (v.screen.w + "×" + v.screen.h + (v.screen.dpr ? " @" + v.screen.dpr + "x" : "")) : "—";
-    const utm = v.utm ? [v.utm.source, v.utm.medium, v.utm.campaign].filter(Boolean).join(" / ") : "—";
+    const loc = [v.city, v.region, v.country].filter(Boolean).join(", ") || "-";
+    const screen = (v.screen && v.screen.w) ? (v.screen.w + "×" + v.screen.h + (v.screen.dpr ? " @" + v.screen.dpr + "x" : "")) : "-";
+    const utm = v.utm ? [v.utm.source, v.utm.medium, v.utm.campaign].filter(Boolean).join(" / ") : "-";
     return '<div class="visit-card">' +
       '<div class="v-top"><span class="v-src">' + escapeHtml(v.src || "direct") + '</span><span class="v-time">' + fmtTime(v.createdAt) + '</span></div>' +
       '<div class="v-grid">' +
         '<div><b>Location</b>' + escapeHtml(loc) + '</div>' +
-        '<div><b>IP</b>' + escapeHtml(v.ip || "—") + '</div>' +
+        '<div><b>IP</b>' + escapeHtml(v.ip || "-") + '</div>' +
         '<div><b>Device</b>' + escapeHtml((v.deviceType || "?") + " · " + (v.os || "?") + " · " + (v.browser || "?")) + '</div>' +
-        '<div><b>Visitor id</b><span style="word-break:break-all">' + escapeHtml(v.visitorId || "—") + '</span></div>' +
-        '<div><b>Language</b>' + escapeHtml(v.language || "—") + '</div>' +
-        '<div><b>Timezone</b>' + escapeHtml(v.tz || v.timezone || "—") + '</div>' +
+        '<div><b>Visitor id</b><span style="word-break:break-all">' + escapeHtml(v.visitorId || "-") + '</span></div>' +
+        '<div><b>Language</b>' + escapeHtml(v.language || "-") + '</div>' +
+        '<div><b>Timezone</b>' + escapeHtml(v.tz || v.timezone || "-") + '</div>' +
         '<div><b>Screen</b>' + escapeHtml(screen) + '</div>' +
-        '<div><b>Network</b>' + escapeHtml(v.connection || v.asnOrg || "—") + '</div>' +
+        '<div><b>Network</b>' + escapeHtml(v.connection || v.asnOrg || "-") + '</div>' +
         '<div><b>UTM</b>' + escapeHtml(utm) + '</div>' +
         '<div><b>Path</b>' + escapeHtml(v.path || "/") + '</div>' +
         '<div><b>Gender</b>not available from browser</div>' +
         '<div><b>Name</b>only after they order</div>' +
         '<div><b>Hardware device id</b>not available from browser</div>' +
-        '<div><b>Platform</b>' + escapeHtml(v.platform || "—") + '</div>' +
+        '<div><b>Platform</b>' + escapeHtml(v.platform || "-") + '</div>' +
       '</div>' +
     '</div>';
   }).join("");
