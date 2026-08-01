@@ -2266,35 +2266,45 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 .hours-row select { min-height:44px; }
 .hours-empty { margin:4px 0 10px; font-size:13.5px; color:var(--muted); }
 .b-sum { font-size:12.5px; font-weight:700; color:var(--muted); }
-#buyers { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:10px; }
-.buyer-card { border:1px solid var(--line); border-radius:0; padding:14px 14px 12px; background:var(--paper); }
-.bc-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-.b-rank { flex-shrink:0; width:26px; height:26px; display:grid; place-items:center; background:var(--canvas); border:1px solid var(--line); border-radius:0; font-weight:800; font-size:12px; color:var(--muted); }
+#buyers { display:grid; grid-template-columns:1fr; gap:12px; }
+@media (min-width:720px) { #buyers { grid-template-columns:repeat(2, 1fr); } }
+.buyer-card { border:1px solid var(--line); border-radius:0; padding:16px 16px 14px; background:var(--paper); }
+.bc-top { display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; }
+.b-rank { flex-shrink:0; width:28px; height:28px; display:grid; place-items:center; background:var(--canvas); border:1px solid var(--line); border-radius:0; font-weight:800; font-size:12px; color:var(--muted); margin-top:2px; }
 .b-rank.top { background:var(--yellow); color:var(--ink); border-color:var(--ink); }
 .bc-name { flex:1; min-width:0; }
-.bc-name b { display:block; font-size:14.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.b-spend { font-family:var(--display); font-weight:800; font-size:18px; color:var(--orange); }
-.bb { display:inline-block; margin-right:4px; padding:2px 7px; border-radius:0; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+.bc-name b { display:block; font-size:16px; letter-spacing:-.02em; line-height:1.2; }
+.bc-name .bb-row { margin-top:6px; display:flex; flex-wrap:wrap; gap:4px; }
+.b-spend { font-family:var(--display); font-weight:800; font-size:20px; color:var(--orange); line-height:1; }
+.b-spend small { display:block; margin-top:4px; font-family:inherit; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); text-align:right; }
+.bb { display:inline-block; padding:2px 7px; border-radius:0; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
 .bb.gold { background:var(--yellow); color:var(--ink); }
 .bb.green { background:var(--green-soft); color:var(--green); }
 .bb.blue { background:var(--blue-soft); color:var(--blue); }
 .bb.muted { background:#eee; color:var(--muted); }
-.spark { display:block; width:100%; height:38px; margin-bottom:10px; }
-.bc-details { margin:0 0 10px; padding:8px 10px; background:var(--canvas); border:1px solid var(--line); font-size:12.5px; line-height:1.45; color:var(--ink); }
-.bc-details a { color:var(--ink); font-weight:700; text-decoration:none; border-bottom:1px solid var(--line); }
-.bc-details .bc-addr { white-space:pre-line; margin-top:4px; color:var(--muted); font-weight:600; }
-.bc-details .bc-meta { margin-top:6px; font-size:11.5px; font-weight:700; color:var(--muted); }
-.bc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
-.bc-grid > div { background:var(--canvas); border:1px solid var(--line); border-radius:0; padding:7px 4px; text-align:center; }
-.bc-grid b { display:block; font-size:13.5px; }
-.bc-grid span { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); }
-.bc-foot { display:flex; align-items:center; gap:8px; }
-.b-insight { flex:1; font-size:11.5px; font-weight:700; padding:6px 9px; border-radius:0; }
+.spark { display:block; width:100%; height:34px; margin:10px 0 0; }
+.bc-details { margin:0; border:1px solid var(--line); background:var(--canvas); }
+.bc-row { display:grid; grid-template-columns:72px 1fr; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line); align-items:start; }
+.bc-row:last-child { border-bottom:0; }
+.bc-k { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding-top:3px; }
+.bc-v { font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.4; min-width:0; word-break:break-word; }
+.bc-v a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
+.bc-v a:hover { border-bottom-color:var(--ink); }
+.bc-v.addr { white-space:pre-line; font-weight:600; }
+.bc-v .muted { color:var(--muted); font-weight:600; }
+.bc-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.bc-actions a {
+  flex:1; min-width:88px; text-align:center; padding:9px 12px; font-size:12.5px; font-weight:800;
+  text-decoration:none; border:1px solid var(--ink); color:var(--ink); background:var(--paper);
+}
+.bc-actions a.primary { background:var(--ink); color:var(--paper); }
+.bc-actions a.wa { background:#25D366; border-color:#25D366; color:#fff; }
+.bc-foot { margin-top:10px; }
+.b-insight { display:block; font-size:12px; font-weight:700; padding:8px 10px; border-radius:0; }
 .b-insight.warn { background:var(--warn); color:var(--ink); }
 .b-insight.due { background:var(--blue-soft); color:var(--blue); }
 .b-insight.good { background:var(--green-soft); color:var(--green); }
 .b-insight.soft { background:var(--canvas); color:var(--muted); }
-.bc-call { flex-shrink:0; padding:6px 14px; background:var(--ink); color:var(--paper); border-radius:0; font-size:12px; font-weight:700; text-decoration:none; border:1px solid var(--ink); }
 .dayrow { display:grid; grid-template-columns:96px 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px; }
 .chk { display:flex; align-items:center; gap:8px; font-size:14.5px; font-weight:800; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:12px; }
 .chk input { width:20px; height:20px; min-height:0; accent-color:var(--orange); }
@@ -3265,7 +3275,11 @@ function renderBuyers(orders) {
     return;
   }
 
-  const BUNDLE_WORD = { tray1: "single trays", tray2: "2-tray packs", box: "full boxes", cage600: "cage 600g", cage700: "cage 700g", cage800: "cage 800g", fr600: "FR 600g", fr700: "FR 700g", fr800: "FR 800g", cage600case: "cage cases", cage700case: "cage cases", cage800case: "cage cases", fr600case: "FR cases", fr700case: "FR cases", fr800case: "FR cases" };
+  const BUNDLE_WORD = { tray1: "1-tray", tray2: "2-tray", box: "full box", cage600: "cage 600g", cage700: "cage 700g", cage800: "cage 800g", fr600: "FR 600g", fr700: "FR 700g", fr800: "FR 800g", cage600case: "cage case", cage700case: "cage case", cage800case: "cage case", fr600case: "FR case", fr700case: "FR case", fr800case: "FR case" };
+
+  function detailRow(label, valueHtml) {
+    return '<div class="bc-row"><div class="bc-k">' + label + '</div><div class="bc-v">' + valueHtml + '</div></div>';
+  }
 
   $("buyers").innerHTML = buyers.map(function(b, i) {
     b.history.sort(function(x, y) { return x.t - y.t; });
@@ -3274,7 +3288,7 @@ function renderBuyers(orders) {
     const daysSince = Math.max(0, Math.floor((Date.now() - newest) / 86400000));
 
     const favBundle = Object.keys(b.bundles).sort(function(x, y) { return b.bundles[y] - b.bundles[x]; })[0] || "tray1";
-    const favDay = Object.keys(b.days).sort(function(x, y) { return b.days[y] - b.days[x]; })[0] || "Sat";
+    const favDay = Object.keys(b.days).sort(function(x, y) { return b.days[y] - b.days[x]; })[0] || "Saturday";
 
     let badges = "";
     if (i === 0 && buyers.length > 1 && b.paidSpend > 0) badges += '<span class="bb gold">top</span>';
@@ -3287,7 +3301,7 @@ function renderBuyers(orders) {
     let insight = "", insightClass = "soft";
     if (b.paid === 0) {
       insight = b.expired
-        ? "Checkout expired. WhatsApp with fresh Saturday slot"
+        ? "Checkout expired. WhatsApp a fresh Saturday slot"
         : "Started checkout. Follow up to close";
       insightClass = "due";
     } else if (b.orders > 1) {
@@ -3305,44 +3319,55 @@ function renderBuyers(orders) {
       .filter(Boolean);
     const addrText = addrLines.length ? addrLines.join("\\n") : String(b.address || "").trim();
     const phoneDisp = b.phone ? fmtPhone(b.phone) : "";
+    const waDigits = b.phone
+      ? (String(b.phone).replace(/^0/, "61"))
+      : "";
+    const usual = (BUNDLE_WORD[favBundle] || favBundle) + " · " + String(favDay);
+    const ordersLine = b.orders + (b.orders === 1 ? " order" : " orders") +
+      " · " + b.trays + (b.trays === 1 ? " tray" : " trays") +
+      (b.paid ? (" · " + b.paid + " paid") : " · none paid");
+    const lastLine = b.lastPickup
+      ? (escapeHtml(b.lastPickup) + (b.lastStatus ? (' <span class="muted">· ' + escapeHtml(b.lastStatus) + "</span>") : ""))
+      : '<span class="muted">-</span>';
+
     const detailsHtml =
       '<div class="bc-details">' +
-        (phoneDisp
-          ? ('<div><a href="tel:' + escapeHtml(b.phone) + '">' + escapeHtml(phoneDisp) + '</a></div>')
-          : '<div class="bc-meta">No phone</div>') +
-        (b.email
-          ? ('<div><a href="mailto:' + escapeHtml(b.email) + '">' + escapeHtml(b.email) + '</a></div>')
-          : "") +
-        (addrText ? ('<div class="bc-addr">' + escapeHtml(addrText) + '</div>') : "") +
-        (b.lastPickup
-          ? ('<div class="bc-meta">Last: ' + escapeHtml(b.lastPickup) +
-             (b.lastStatus ? (" · " + escapeHtml(b.lastStatus)) : "") + "</div>")
-          : "") +
-      '</div>';
+        detailRow("Phone", phoneDisp
+          ? ('<a href="tel:' + escapeHtml(b.phone) + '">' + escapeHtml(phoneDisp) + "</a>")
+          : '<span class="muted">Not captured</span>') +
+        detailRow("Email", b.email
+          ? ('<a href="mailto:' + escapeHtml(b.email) + '">' + escapeHtml(b.email) + "</a>")
+          : '<span class="muted">Not captured</span>') +
+        detailRow("Address", addrText
+          ? ('<div class="addr">' + escapeHtml(addrText) + "</div>")
+          : '<span class="muted">Not captured</span>') +
+        detailRow("Last", lastLine) +
+        detailRow("Orders", escapeHtml(ordersLine)) +
+        detailRow("Usual", escapeHtml(usual)) +
+      "</div>";
+
+    const actions =
+      '<div class="bc-actions">' +
+        (b.phone ? ('<a class="primary" href="tel:' + escapeHtml(b.phone) + '">Call</a>') : "") +
+        (waDigits ? ('<a class="wa" href="https://wa.me/' + escapeHtml(waDigits) + '" target="_blank" rel="noopener">WhatsApp</a>') : "") +
+        (b.email ? ('<a href="mailto:' + escapeHtml(b.email) + '">Email</a>') : "") +
+      "</div>";
 
     const spendLabel = b.paidSpend > 0 ? b.paidSpend : 0;
 
     return '<div class="buyer-card">' +
       '<div class="bc-top">' +
-        '<span class="b-rank' + (i === 0 ? " top" : "") + '">' + (i + 1) + '</span>' +
-        '<div class="bc-name"><b>' + escapeHtml(b.name) + '</b><div>' + badges + '</div></div>' +
-        '<span class="b-spend">$' + spendLabel + '</span>' +
-      '</div>' +
+        '<span class="b-rank' + (i === 0 ? " top" : "") + '">' + (i + 1) + "</span>" +
+        '<div class="bc-name"><b>' + escapeHtml(b.name || "Customer") + "</b>" +
+          (badges ? ('<div class="bb-row">' + badges + "</div>") : "") +
+        "</div>" +
+        '<div class="b-spend">$' + spendLabel + "<small>paid</small></div>" +
+      "</div>" +
       detailsHtml +
-      sparkline(b.history, maxOrderV) +
-      '<div class="bc-grid">' +
-        '<div><b>' + b.orders + '</b><span>' + (b.orders === 1 ? "order" : "orders") + '</span></div>' +
-        '<div><b>' + b.trays + '</b><span>' + (b.trays === 1 ? "tray" : "trays") + '</span></div>' +
-        '<div><b>' + String(favDay).slice(0, 3) + '</b><span>usual day</span></div>' +
-        '<div><b>' + (BUNDLE_WORD[favBundle] || favBundle).split(" ")[0].replace("single", "trays").replace("2-tray", "2-packs") + '</b><span>usually</span></div>' +
-      '</div>' +
-      '<div class="bc-foot">' +
-        '<span class="b-insight ' + insightClass + '">' + insight + '</span>' +
-        (b.phone
-          ? ('<a class="bc-call" href="tel:' + escapeHtml(b.phone) + '" title="' + escapeHtml(phoneDisp) + '">Call</a>')
-          : "") +
-      '</div>' +
-    '</div>';
+      actions +
+      (b.history.length > 1 ? sparkline(b.history, maxOrderV) : "") +
+      '<div class="bc-foot"><span class="b-insight ' + insightClass + '">' + insight + "</span></div>" +
+    "</div>";
   }).join("");
 }
 
