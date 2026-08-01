@@ -977,12 +977,12 @@ function applySeoMeta(settings) {
 const PRODUCT_TYPES = {
   "1.75": {
     shortSpec: "Cage · Extra large · 1.75kg",
-    faq: "Pace Farm cage eggs, 30 to a tray (1.75kg). The same brand you'll find in the big supermarkets, for less.",
+    faq: "Pace Farm cage eggs, 30 to a tray (1.75kg). The same supermarket brand, for less.",
     alt: "Cage eggs · 1.75kg tray",
   },
   "1.5": {
     shortSpec: "Cage · Large · 1.5kg",
-    faq: "Pace Farm cage eggs, 30 to a tray (1.5kg). The same brand you'll find in the big supermarkets, for less.",
+    faq: "Pace Farm cage eggs, 30 to a tray (1.5kg). The same supermarket brand, for less.",
     alt: "Cage eggs · 1.5kg tray",
   },
   "fr-700": {
