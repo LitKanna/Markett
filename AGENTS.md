@@ -44,6 +44,13 @@ needs a KV namespace bound as `DATA` (wrangler dev provides a local simulation) 
 `ADMIN_KEY` and `STRIPE_KEY` secrets; Stripe endpoints return 503 when `STRIPE_KEY` is unset.
 `wrangler` is intentionally not a declared dependency. invoke via `npx`.
 
+Admin **Waiting** auto-archives unpaid orders whose Saturday delivery date
+(`pickupDate` like `25 Jul`) is already past in Australia/Sydney. Status becomes
+`cancelled` with `archiveReason: "expired_unpaid"`. Full customer fields stay on
+the order; the **Customers** panel includes cancelled/expired contacts (name,
+phone, email, address). Future unpaid dates stay in Waiting. Runs on
+`GET /api/orders` and the 15m cron.
+
 ### No lint / test / build tooling
 There is no ESLint/Prettier/Ruff or test framework configured. `npm test` is a placeholder
 that intentionally fails (`echo "Error: no test specified" && exit 1`). do not treat that as
