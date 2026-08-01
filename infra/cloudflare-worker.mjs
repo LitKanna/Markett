@@ -2,7 +2,7 @@ import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./deli
 import { ingestSnapshot, getLatest, getEvents, runScheduledPoll } from "./price-watch.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "71e27930dc35797e893e80cecb4c9fb46b94ac35";
+const DEPLOY_SHA = "5ab96f99c156d30f06db6d11f26d5755b949adc5";
 // Chalk-tray heroes must not 404 when the storefront pin drifts (this caused the
 // black hero / “broken ratios” look after a later Worker deploy from main).
 const CHALK_ASSETS_SHA = "677ede9d579baaa94621d300d04b389de5e00cc6";
@@ -133,6 +133,83 @@ async function rememberOpenOrder(env, phone, orderId) {
 
 async function clearOpenOrder(env, phone) {
   await env.DATA.delete(openOrderKey(phone)).catch(() => null);
+}
+
+const PICKUP_MONTHS = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+  jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+};
+
+/** Calendar Y/M/D parts in Australia/Sydney. */
+function sydneyYmdParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Australia/Sydney",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const get = (type) => Number(parts.find((p) => p.type === type)?.value || 0);
+  return { y: get("year"), m: get("month"), d: get("day") };
+}
+
+/**
+ * Parse storefront pickupDate strings like "25 Jul" into YYYYMMDD (Sydney calendar).
+ * Year is inferred from createdAt; rolls forward when the date would be before the order.
+ */
+function pickupDateYmd(pickupDate, createdAt) {
+  const m = /^(\d{1,2})\s+([A-Za-z]{3})/.exec(String(pickupDate || "").trim());
+  if (!m) return null;
+  const day = Number(m[1]);
+  const monthIdx = PICKUP_MONTHS[m[2].toLowerCase().slice(0, 3)];
+  if (!day || monthIdx == null || day < 1 || day > 31) return null;
+  const created = createdAt ? new Date(createdAt) : new Date();
+  const createdParts = sydneyYmdParts(Number.isNaN(created.getTime()) ? new Date() : created);
+  let year = createdParts.y;
+  let ymd = year * 10000 + (monthIdx + 1) * 100 + day;
+  const createdYmd = createdParts.y * 10000 + createdParts.m * 100 + createdParts.d;
+  // Dec order for early-Jan delivery (or any past-looking label): bump year.
+  if (ymd + 14 < createdYmd) {
+    year += 1;
+    ymd = year * 10000 + (monthIdx + 1) * 100 + day;
+  }
+  return ymd;
+}
+
+function isOrderPaidRecord(order) {
+  return order?.paymentStatus === "paid" || order?.stripe?.payment_status === "paid";
+}
+
+/** Waiting + unpaid + delivery Saturday already past (Sydney). */
+function shouldAutoArchiveExpiredUnpaid(order) {
+  if (!order || order.status !== "new") return false;
+  if (isOrderPaidRecord(order)) return false;
+  if (order.paymentStatus === "refunded") return false;
+  const pickupYmd = pickupDateYmd(order.pickupDate, order.createdAt);
+  if (!pickupYmd) return false;
+  const today = sydneyYmdParts();
+  const todayYmd = today.y * 10000 + today.m * 100 + today.d;
+  return pickupYmd < todayYmd;
+}
+
+/**
+ * Move expired unpaid Waiting orders into Archive (cancelled + archiveReason).
+ * Customer fields stay on the order record for the customers book.
+ * Unpaid Waiting never holds stock, so syncStock is a no-op.
+ */
+async function archiveExpiredUnpaidOrders(env, orders) {
+  const now = new Date().toISOString();
+  let changed = 0;
+  for (const order of orders) {
+    if (!shouldAutoArchiveExpiredUnpaid(order)) continue;
+    order.status = "cancelled";
+    order.archiveReason = "expired_unpaid";
+    order.archivedAt = now;
+    if (order.phone) await clearOpenOrder(env, order.phone).catch(() => null);
+    await syncStock(env, order, "cancelled");
+    await env.DATA.put(order.id, JSON.stringify(order));
+    changed += 1;
+  }
+  return changed;
 }
 
 function isAdmin(request, env) {
@@ -1144,6 +1221,9 @@ async function handleApi(request, env, url, ctx) {
       const valid = orders
         .filter((o) => o && typeof o === "object")
         .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+      // Auto-archive unpaid Waiting whose Saturday delivery date has passed.
+      // Keeps full customer fields on the order for the customers book.
+      await archiveExpiredUnpaidOrders(env, valid);
       return json({ orders: valid });
     } catch (err) {
       return json({ error: "orders_failed", detail: String(err && err.message || err), orders: [] }, 500);
@@ -2043,6 +2123,10 @@ h2 { font-family:var(--display); font-size:20px; font-weight:800; margin:0 0 14p
   flex-shrink:0; padding:3px 8px; border-radius:999px; background:var(--red-soft); color:var(--red);
   font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
 }
+.badge-expired {
+  flex-shrink:0; padding:3px 8px; border-radius:999px; background:#eee; color:var(--muted);
+  font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+}
 
 .o-detail {
   display:none; grid-column:1 / -1; gap:0; padding:10px 0 6px;
@@ -2182,30 +2266,45 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 .hours-row select { min-height:44px; }
 .hours-empty { margin:4px 0 10px; font-size:13.5px; color:var(--muted); }
 .b-sum { font-size:12.5px; font-weight:700; color:var(--muted); }
-#buyers { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; }
-.buyer-card { border:1px solid var(--line); border-radius:0; padding:14px 14px 12px; background:var(--paper); }
-.bc-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.b-rank { flex-shrink:0; width:26px; height:26px; display:grid; place-items:center; background:var(--canvas); border:1px solid var(--line); border-radius:0; font-weight:800; font-size:12px; color:var(--muted); }
+#buyers { display:grid; grid-template-columns:1fr; gap:12px; }
+@media (min-width:720px) { #buyers { grid-template-columns:repeat(2, 1fr); } }
+.buyer-card { border:1px solid var(--line); border-radius:0; padding:16px 16px 14px; background:var(--paper); }
+.bc-top { display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; }
+.b-rank { flex-shrink:0; width:28px; height:28px; display:grid; place-items:center; background:var(--canvas); border:1px solid var(--line); border-radius:0; font-weight:800; font-size:12px; color:var(--muted); margin-top:2px; }
 .b-rank.top { background:var(--yellow); color:var(--ink); border-color:var(--ink); }
 .bc-name { flex:1; min-width:0; }
-.bc-name b { display:block; font-size:14.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.b-spend { font-family:var(--display); font-weight:800; font-size:18px; color:var(--orange); }
-.bb { display:inline-block; margin-right:4px; padding:2px 7px; border-radius:0; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+.bc-name b { display:block; font-size:16px; letter-spacing:-.02em; line-height:1.2; }
+.bc-name .bb-row { margin-top:6px; display:flex; flex-wrap:wrap; gap:4px; }
+.b-spend { font-family:var(--display); font-weight:800; font-size:20px; color:var(--orange); line-height:1; }
+.b-spend small { display:block; margin-top:4px; font-family:inherit; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); text-align:right; }
+.bb { display:inline-block; padding:2px 7px; border-radius:0; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
 .bb.gold { background:var(--yellow); color:var(--ink); }
 .bb.green { background:var(--green-soft); color:var(--green); }
 .bb.blue { background:var(--blue-soft); color:var(--blue); }
-.spark { display:block; width:100%; height:38px; margin-bottom:10px; }
-.bc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px; }
-.bc-grid > div { background:var(--canvas); border:1px solid var(--line); border-radius:0; padding:7px 4px; text-align:center; }
-.bc-grid b { display:block; font-size:13.5px; }
-.bc-grid span { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); }
-.bc-foot { display:flex; align-items:center; gap:8px; }
-.b-insight { flex:1; font-size:11.5px; font-weight:700; padding:6px 9px; border-radius:0; }
+.bb.muted { background:#eee; color:var(--muted); }
+.spark { display:block; width:100%; height:34px; margin:10px 0 0; }
+.bc-details { margin:0; border:1px solid var(--line); background:var(--canvas); }
+.bc-row { display:grid; grid-template-columns:72px 1fr; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line); align-items:start; }
+.bc-row:last-child { border-bottom:0; }
+.bc-k { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding-top:3px; }
+.bc-v { font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.4; min-width:0; word-break:break-word; }
+.bc-v a { color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
+.bc-v a:hover { border-bottom-color:var(--ink); }
+.bc-v.addr { white-space:pre-line; font-weight:600; }
+.bc-v .muted { color:var(--muted); font-weight:600; }
+.bc-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.bc-actions a {
+  flex:1; min-width:88px; text-align:center; padding:9px 12px; font-size:12.5px; font-weight:800;
+  text-decoration:none; border:1px solid var(--ink); color:var(--ink); background:var(--paper);
+}
+.bc-actions a.primary { background:var(--ink); color:var(--paper); }
+.bc-actions a.wa { background:#25D366; border-color:#25D366; color:#fff; }
+.bc-foot { margin-top:10px; }
+.b-insight { display:block; font-size:12px; font-weight:700; padding:8px 10px; border-radius:0; }
 .b-insight.warn { background:var(--warn); color:var(--ink); }
 .b-insight.due { background:var(--blue-soft); color:var(--blue); }
 .b-insight.good { background:var(--green-soft); color:var(--green); }
 .b-insight.soft { background:var(--canvas); color:var(--muted); }
-.bc-call { flex-shrink:0; padding:6px 14px; background:var(--ink); color:var(--paper); border-radius:0; font-size:12px; font-weight:700; text-decoration:none; border:1px solid var(--ink); }
 .dayrow { display:grid; grid-template-columns:96px 1fr 1fr; gap:10px; align-items:end; margin-bottom:12px; }
 .chk { display:flex; align-items:center; gap:8px; font-size:14.5px; font-weight:800; text-transform:none; letter-spacing:0; color:var(--ink); padding-bottom:12px; }
 .chk input { width:20px; height:20px; min-height:0; accent-color:var(--orange); }
@@ -2375,9 +2474,10 @@ input:focus, select:focus { outline:none; border-color:var(--orange); box-shadow
 
     <div class="card">
       <div class="topline">
-        <h2>Buyers</h2>
+        <h2>Customers</h2>
         <span class="b-sum" id="buyer-sum"></span>
       </div>
+      <p class="hint" style="margin-top:-4px">Every contact from orders, including expired unpaid. Full address and phone kept for follow-up.</p>
       <div id="buyers"></div>
     </div>
     </div>
@@ -2836,9 +2936,11 @@ function saleCardHtml(o) {
   const receiptUrl = o.stripe && o.stripe.receiptUrl ? o.stripe.receiptUrl : "";
   const chip = isRefunded(o)
     ? '<span class="sale-chip refunded">Refunded</span>'
-    : (isPaid(o)
-      ? '<span class="sale-chip">Paid</span>'
-      : (o.sessionId ? '<span class="sale-chip" style="background:#eee;color:var(--muted)">Checkout open</span>' : ''));
+    : (o.archiveReason === "expired_unpaid"
+      ? '<span class="sale-chip" style="background:#eee;color:var(--muted)">Expired unpaid</span>'
+      : (isPaid(o)
+        ? '<span class="sale-chip">Paid</span>'
+        : (o.sessionId ? '<span class="sale-chip" style="background:#eee;color:var(--muted)">Checkout open</span>' : '')));
 
   let receiptBtn = "";
   // Receipt only when Stripe has actually charged (paid + receipt URL or paid status).
@@ -2876,6 +2978,7 @@ function orderRow(o, lineNo) {
   const open = OPEN_ORDER_ID === o.id;
   const badges =
     (isRefunded(o) ? '<span class="badge-refunded">Refunded</span>' : '') +
+    (o.archiveReason === "expired_unpaid" ? '<span class="badge-expired">Expired</span>' : '') +
     (prio ? '<span class="badge-paid">Paid</span>' : '');
   const place = o.fulfillment === "delivery"
     ? ([o.deliverySuburb, o.deliveryPostcode].filter(Boolean).join(" ") || "delivery")
@@ -2925,8 +3028,12 @@ function renderOrderBoard() {
   $("empty").style.display = (waiting.length || confirmed.length) ? "none" : "block";
 
   if (archived.length) {
+    const expiredN = archived.filter(function(o) { return o.archiveReason === "expired_unpaid"; }).length;
+    const archiveLabel = expiredN
+      ? ("Done &amp; archived · " + archived.length + " · " + expiredN + " expired unpaid")
+      : ("Done &amp; archived · " + archived.length);
     $("orders-archive").innerHTML =
-      '<details class="archive"' + (archiveWasOpen || openIsArchived ? " open" : "") + '><summary>Done &amp; cancelled · ' + archived.length + '</summary>' +
+      '<details class="archive"' + (archiveWasOpen || openIsArchived ? " open" : "") + '><summary>' + archiveLabel + '</summary>' +
       laneHtml("Archive", "archive-lane", archived, {}) + '</details>';
   } else {
     $("orders-archive").innerHTML = "";
@@ -3093,31 +3200,86 @@ function sparkline(history, maxV) {
 }
 
 function renderBuyers(orders) {
-  const active = orders.filter(function(o) { return o.status !== "cancelled"; });
+  // Customers book: keep every contact, including expired unpaid / cancelled.
   const map = {};
-  active.forEach(function(o) {
-    const b = map[o.phone] = map[o.phone] || { name: o.name, phone: o.phone, orders: 0, trays: 0, spend: 0, paid: 0, history: [], bundles: {}, days: {} };
+  orders.forEach(function(o) {
+    const phoneKey = String(o.phone || "").replace(/\\D/g, "");
+    const key = phoneKey || ("name:" + String(o.name || "").toLowerCase().trim());
+    if (!key || key === "name:") return;
+    const b = map[key] = map[key] || {
+      name: o.name,
+      phone: phoneKey,
+      email: "",
+      street: "",
+      suburb: "",
+      city: "",
+      postcode: "",
+      address: "",
+      orders: 0,
+      trays: 0,
+      spend: 0,
+      paidSpend: 0,
+      paid: 0,
+      expired: 0,
+      history: [],
+      bundles: {},
+      days: {},
+      lastPickup: "",
+      lastStatus: "",
+      lastCreated: "",
+    };
+    if (o.name) b.name = o.name;
+    if (phoneKey) b.phone = phoneKey;
+    const email = orderEmail(o);
+    if (email) b.email = email;
+    if (o.deliveryStreet) b.street = o.deliveryStreet;
+    if (o.deliverySuburb) b.suburb = o.deliverySuburb;
+    if (o.deliveryCity) b.city = o.deliveryCity;
+    if (o.deliveryPostcode) b.postcode = o.deliveryPostcode;
+    if (o.deliveryAddress) b.address = o.deliveryAddress;
     b.orders++;
     b.trays += traysFor(o);
     b.spend += o.price || 0;
-    if (o.paymentStatus === "paid") b.paid++;
+    if (o.paymentStatus === "paid") {
+      b.paid++;
+      b.paidSpend += o.price || 0;
+    }
+    if (o.archiveReason === "expired_unpaid") b.expired++;
     b.history.push({ t: new Date(o.createdAt).getTime(), v: o.price || 0 });
     b.bundles[o.bundle] = (b.bundles[o.bundle] || 0) + 1;
-    b.days[o.pickupDay] = (b.days[o.pickupDay] || 0) + 1;
+    b.days[o.pickupDay || "Saturday"] = (b.days[o.pickupDay || "Saturday"] || 0) + 1;
+    if (!b.lastCreated || String(o.createdAt || "") > b.lastCreated) {
+      b.lastCreated = o.createdAt || "";
+      b.lastPickup = o.pickupDate
+        ? ((o.pickupDay || "Saturday") + " " + o.pickupDate)
+        : (o.pickupDay || "");
+      b.lastStatus = o.archiveReason === "expired_unpaid"
+        ? "expired unpaid"
+        : (o.status || "");
+    }
   });
 
-  const buyers = Object.values(map).sort(function(a, b) { return b.spend - a.spend; });
+  const buyers = Object.values(map).sort(function(a, b) {
+    return (b.paidSpend - a.paidSpend) || (b.spend - a.spend) || String(a.name || "").localeCompare(String(b.name || ""));
+  });
   const repeat = buyers.filter(function(b) { return b.orders > 1; }).length;
+  const leads = buyers.filter(function(b) { return b.paid === 0; }).length;
   $("buyer-sum").textContent = buyers.length
-    ? buyers.length + (buyers.length === 1 ? " buyer" : " buyers") + " · " + repeat + " repeat"
+    ? buyers.length + (buyers.length === 1 ? " customer" : " customers") +
+      " · " + repeat + " repeat" +
+      (leads ? (" · " + leads + " never paid") : "")
     : "";
 
   if (!buyers.length) {
-    $("buyers").innerHTML = '<p class="empty">No buyers yet. They appear with their first order.</p>';
+    $("buyers").innerHTML = '<p class="empty">No customers yet. They appear with their first order.</p>';
     return;
   }
 
-  const BUNDLE_WORD = { tray1: "single trays", tray2: "2-tray packs", box: "full boxes", cage600: "cage 600g", cage700: "cage 700g", cage800: "cage 800g", fr600: "FR 600g", fr700: "FR 700g", fr800: "FR 800g", cage600case: "cage cases", cage700case: "cage cases", cage800case: "cage cases", fr600case: "FR cases", fr700case: "FR cases", fr800case: "FR cases" };
+  const BUNDLE_WORD = { tray1: "1-tray", tray2: "2-tray", box: "full box", cage600: "cage 600g", cage700: "cage 700g", cage800: "cage 800g", fr600: "FR 600g", fr700: "FR 700g", fr800: "FR 800g", cage600case: "cage case", cage700case: "cage case", cage800case: "cage case", fr600case: "FR case", fr700case: "FR case", fr800case: "FR case" };
+
+  function detailRow(label, valueHtml) {
+    return '<div class="bc-row"><div class="bc-k">' + label + '</div><div class="bc-v">' + valueHtml + '</div></div>';
+  }
 
   $("buyers").innerHTML = buyers.map(function(b, i) {
     b.history.sort(function(x, y) { return x.t - y.t; });
@@ -3125,17 +3287,24 @@ function renderBuyers(orders) {
     const newest = b.history[b.history.length - 1].t;
     const daysSince = Math.max(0, Math.floor((Date.now() - newest) / 86400000));
 
-    const favBundle = Object.keys(b.bundles).sort(function(x, y) { return b.bundles[y] - b.bundles[x]; })[0];
-    const favDay = Object.keys(b.days).sort(function(x, y) { return b.days[y] - b.days[x]; })[0];
+    const favBundle = Object.keys(b.bundles).sort(function(x, y) { return b.bundles[y] - b.bundles[x]; })[0] || "tray1";
+    const favDay = Object.keys(b.days).sort(function(x, y) { return b.days[y] - b.days[x]; })[0] || "Saturday";
 
     let badges = "";
-    if (i === 0 && buyers.length > 1) badges += '<span class="bb gold">top</span>';
+    if (i === 0 && buyers.length > 1 && b.paidSpend > 0) badges += '<span class="bb gold">top</span>';
     if (b.orders >= 3) badges += '<span class="bb green">regular</span>';
     if (b.paid === b.orders && b.orders > 0) badges += '<span class="bb green">prepays</span>';
-    if (b.orders === 1 && daysSince <= 10) badges += '<span class="bb blue">new</span>';
+    if (b.paid === 0) badges += '<span class="bb muted">lead</span>';
+    if (b.expired > 0 && b.paid === 0) badges += '<span class="bb muted">expired</span>';
+    if (b.orders === 1 && daysSince <= 10 && b.paid > 0) badges += '<span class="bb blue">new</span>';
 
     let insight = "", insightClass = "soft";
-    if (b.orders > 1) {
+    if (b.paid === 0) {
+      insight = b.expired
+        ? "Checkout expired. WhatsApp a fresh Saturday slot"
+        : "Started checkout. Follow up to close";
+      insightClass = "due";
+    } else if (b.orders > 1) {
       const spanDays = (newest - b.history[0].t) / 86400000;
       const gap = Math.max(1, Math.round(spanDays / (b.orders - 1)));
       const ratio = daysSince / gap;
@@ -3145,24 +3314,60 @@ function renderBuyers(orders) {
     } else if (daysSince <= 10) { insight = "New. Follow up to keep them"; insightClass = "due"; }
     else { insight = "Quiet " + daysSince + "d. Send a comeback"; insightClass = "soft"; }
 
+    const addrLines = [b.street, [b.suburb, b.city, b.postcode].filter(Boolean).join(" ")]
+      .map(function(p) { return String(p || "").trim(); })
+      .filter(Boolean);
+    const addrText = addrLines.length ? addrLines.join("\\n") : String(b.address || "").trim();
+    const phoneDisp = b.phone ? fmtPhone(b.phone) : "";
+    const waDigits = b.phone
+      ? (String(b.phone).replace(/^0/, "61"))
+      : "";
+    const usual = (BUNDLE_WORD[favBundle] || favBundle) + " · " + String(favDay);
+    const ordersLine = b.orders + (b.orders === 1 ? " order" : " orders") +
+      " · " + b.trays + (b.trays === 1 ? " tray" : " trays") +
+      (b.paid ? (" · " + b.paid + " paid") : " · none paid");
+    const lastLine = b.lastPickup
+      ? (escapeHtml(b.lastPickup) + (b.lastStatus ? (' <span class="muted">· ' + escapeHtml(b.lastStatus) + "</span>") : ""))
+      : '<span class="muted">-</span>';
+
+    const detailsHtml =
+      '<div class="bc-details">' +
+        detailRow("Phone", phoneDisp
+          ? ('<a href="tel:' + escapeHtml(b.phone) + '">' + escapeHtml(phoneDisp) + "</a>")
+          : '<span class="muted">Not captured</span>') +
+        detailRow("Email", b.email
+          ? ('<a href="mailto:' + escapeHtml(b.email) + '">' + escapeHtml(b.email) + "</a>")
+          : '<span class="muted">Not captured</span>') +
+        detailRow("Address", addrText
+          ? ('<div class="addr">' + escapeHtml(addrText) + "</div>")
+          : '<span class="muted">Not captured</span>') +
+        detailRow("Last", lastLine) +
+        detailRow("Orders", escapeHtml(ordersLine)) +
+        detailRow("Usual", escapeHtml(usual)) +
+      "</div>";
+
+    const actions =
+      '<div class="bc-actions">' +
+        (b.phone ? ('<a class="primary" href="tel:' + escapeHtml(b.phone) + '">Call</a>') : "") +
+        (waDigits ? ('<a class="wa" href="https://wa.me/' + escapeHtml(waDigits) + '" target="_blank" rel="noopener">WhatsApp</a>') : "") +
+        (b.email ? ('<a href="mailto:' + escapeHtml(b.email) + '">Email</a>') : "") +
+      "</div>";
+
+    const spendLabel = b.paidSpend > 0 ? b.paidSpend : 0;
+
     return '<div class="buyer-card">' +
       '<div class="bc-top">' +
-        '<span class="b-rank' + (i === 0 ? " top" : "") + '">' + (i + 1) + '</span>' +
-        '<div class="bc-name"><b>' + escapeHtml(b.name) + '</b><div>' + badges + '</div></div>' +
-        '<span class="b-spend">$' + b.spend + '</span>' +
-      '</div>' +
-      sparkline(b.history, maxOrderV) +
-      '<div class="bc-grid">' +
-        '<div><b>' + b.orders + '</b><span>' + (b.orders === 1 ? "order" : "orders") + '</span></div>' +
-        '<div><b>' + b.trays + '</b><span>' + (b.trays === 1 ? "tray" : "trays") + '</span></div>' +
-        '<div><b>' + favDay.slice(0, 3) + '</b><span>usual day</span></div>' +
-        '<div><b>' + (BUNDLE_WORD[favBundle] || favBundle).split(" ")[0].replace("single", "trays").replace("2-tray", "2-packs") + '</b><span>usually</span></div>' +
-      '</div>' +
-      '<div class="bc-foot">' +
-        '<span class="b-insight ' + insightClass + '">' + insight + '</span>' +
-        '<a class="bc-call" href="tel:' + b.phone + '" title="' + fmtPhone(b.phone) + '">Call</a>' +
-      '</div>' +
-    '</div>';
+        '<span class="b-rank' + (i === 0 ? " top" : "") + '">' + (i + 1) + "</span>" +
+        '<div class="bc-name"><b>' + escapeHtml(b.name || "Customer") + "</b>" +
+          (badges ? ('<div class="bb-row">' + badges + "</div>") : "") +
+        "</div>" +
+        '<div class="b-spend">$' + spendLabel + "<small>paid</small></div>" +
+      "</div>" +
+      detailsHtml +
+      actions +
+      (b.history.length > 1 ? sparkline(b.history, maxOrderV) : "") +
+      '<div class="bc-foot"><span class="b-insight ' + insightClass + '">' + insight + "</span></div>" +
+    "</div>";
   }).join("");
 }
 
@@ -4022,13 +4227,23 @@ if (KEY) boot();
 </html>`;
 
 export default {
-  // Every cron tick: Meta stock sync + competitor price poll (diff → events/webhook).
+  // Every cron tick: Meta stock sync + competitor price poll + expire unpaid past deliveries.
   async scheduled(_event, env, ctx) {
     const settings = await getSettings(env);
     ctx.waitUntil(syncMetaAdsForStock(env, settings.traysAvailable));
     ctx.waitUntil(
       runScheduledPoll(env).catch((err) => {
         console.log("price-watch poll failed", String(err?.message || err));
+      })
+    );
+    ctx.waitUntil(
+      (async () => {
+        const ids = await getOrderIndex(env);
+        const orders = await Promise.all(ids.map((id) => env.DATA.get(id, "json").catch(() => null)));
+        const valid = orders.filter((o) => o && typeof o === "object");
+        await archiveExpiredUnpaidOrders(env, valid);
+      })().catch((err) => {
+        console.log("expire unpaid archive failed", String(err?.message || err));
       })
     );
   },
@@ -4104,7 +4319,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-store, no-cache, must-revalidate, max-age=0" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "171",
+        "X-Yolko-Build": "174",
       },
     });
   },
