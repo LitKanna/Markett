@@ -2,7 +2,7 @@ import { checkDeliveryAddress, SITE_DELIVERY_FEE, MAX_DELIVERY_KM } from "./deli
 import { ingestSnapshot, getLatest, getEvents, runScheduledPoll } from "./price-watch.mjs";
 
 // Pin to commit SHA so GitHub raw serves the exact deploy (update on each push).
-const DEPLOY_SHA = "999b56036ab498fa124c4d68cde14b65be38a943";
+const DEPLOY_SHA = "5ab96f99c156d30f06db6d11f26d5755b949adc5";
 // Chalk-tray heroes must not 404 when the storefront pin drifts (this caused the
 // black hero / “broken ratios” look after a later Worker deploy from main).
 const CHALK_ASSETS_SHA = "677ede9d579baaa94621d300d04b389de5e00cc6";
@@ -4319,7 +4319,7 @@ export default {
       headers: {
         "Content-Type": MIME[ext] || "application/octet-stream",
         "Cache-Control": ext === "html" ? "no-store, no-cache, must-revalidate, max-age=0" : "public, max-age=60, must-revalidate",
-        "X-Yolko-Build": "173",
+        "X-Yolko-Build": "174",
       },
     });
   },
