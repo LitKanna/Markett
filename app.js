@@ -558,7 +558,7 @@ function describeOrder(bundleKey, qty) {
 }
 
 function refreshSubmitPrice() {
-  // Order summary strip removed — Buy now is the only CTA.
+  // Order summary strip removed. Buy now is the only CTA.
 }
 
 function syncFulfillmentUI() {
@@ -977,12 +977,12 @@ function applySeoMeta(settings) {
 const PRODUCT_TYPES = {
   "1.75": {
     shortSpec: "Cage · Extra large · 1.75kg",
-    faq: "Pace Farm cage eggs, 30 to a tray (1.75kg). The same brand you'll find in the big supermarkets, for less.",
+    faq: "Pace Farm cage eggs, 30 to a tray (1.75kg). The same supermarket brand, for less.",
     alt: "Cage eggs · 1.75kg tray",
   },
   "1.5": {
     shortSpec: "Cage · Large · 1.5kg",
-    faq: "Pace Farm cage eggs, 30 to a tray (1.5kg). The same brand you'll find in the big supermarkets, for less.",
+    faq: "Pace Farm cage eggs, 30 to a tray (1.5kg). The same supermarket brand, for less.",
     alt: "Cage eggs · 1.5kg tray",
   },
   "fr-700": {
@@ -1072,14 +1072,14 @@ function applyPickupDaysOnly(pickup) {
 function applyPickup(pickup) {
   window.__YOLKO_PICKUP = pickup;
 
-  // Delivery section cards — keep policy details here only.
+  // Delivery section cards: keep policy details here only.
   const cardsBox = document.querySelector(".day-cards");
   if (cardsBox) {
     const satDate = nextPickupDate("Saturday");
     cardsBox.innerHTML = `
       <article class="day-card">
         <p class="day-name">Saturday ${satDate}</p>
-        <p class="day-time">Morning drop-off</p>
+        <p class="day-time">Morning delivery</p>
         <p class="day-note">Book by Friday night</p>
       </article>
       <article class="day-card">
@@ -1509,7 +1509,7 @@ function showConfirmation(b) {
   doneSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 }
 
-// Buy now: only CTA — create/reuse order + Stripe session.
+// Buy now: only CTA. Create/reuse order + Stripe session.
 const buynowBtn = document.getElementById("buynow-btn");
 const buynowLabel = document.getElementById("buynow-label");
 
