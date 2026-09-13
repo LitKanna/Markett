@@ -56,7 +56,7 @@
   <meta name="ICBM" content="-33.8667, 151.0694">
   <meta name="keywords" content="Pace Farm eggs Sydney, egg delivery, 30 egg tray, Flemington">
 
-  <meta property="og:type" content="product">
+  <meta property="og:type" content="website">
   <meta property="og:site_name" content="YOLKO">
   <meta property="og:locale" content="en_AU">
   <meta property="og:title" content="YOLKO | Fresh Pace Farm Eggs · Sydney">
@@ -80,7 +80,7 @@
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/3y9K6as8bTXq_nANBjzKo3IeZx8z6up5BeSl9D4dj_x9PpZBMlGIInE.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2" crossorigin>
   <link rel="stylesheet" href="assets/fonts.css?v=73">
-  <link rel="stylesheet" href="styles-modern.css?v=136">
+  <link rel="stylesheet" href="styles-modern.css?v=137">
 
   <script id="yolko-jsonld" type="application/ld+json">
   {
@@ -103,13 +103,14 @@
         "description": "30 Pace Farm eggs for $13. Saturday delivery within 45 km of Flemington.",
         "url": "https://getyolko.com/",
         "telephone": "+61433975055",
+        "email": "orders@getyolko.com",
         "image": [
           "https://getyolko.com/assets/chalk-tray/13-1536.jpg?v=111"
         ],
         "logo": "https://getyolko.com/assets/yolko-app-icon-1024.png",
         "priceRange": "$13-$72",
         "currenciesAccepted": "AUD",
-        "paymentAccepted": "Cash, Credit Card, Debit Card",
+        "paymentAccepted": "Credit Card, Debit Card",
         "address": {
           "@type": "PostalAddress",
           "streetAddress": "Building D, Sydney Markets, 250 Parramatta Road",
@@ -310,8 +311,8 @@
           <div class="showcase-card">
             <div class="showcase-rotator" data-rotator="hero" aria-live="polite">
               <picture class="showcase-photo is-active" data-chalk-price="hero">
-                <source type="image/webp" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)">
-                <img id="hero-tray-img" src="assets/chalk-tray/13-1536.jpg?v=111" width="1536" height="1536" fetchpriority="high" decoding="async" alt="Pace Farm 30-egg tray for $13">
+                <source type="image/webp" srcset="assets/chalk-tray/13-640.webp?v=111 640w, assets/chalk-tray/13-928.webp?v=111 928w, assets/chalk-tray/13-1536.webp?v=111 1536w, assets/chalk-tray/13-2048.webp?v=111 2048w" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)">
+                <img id="hero-tray-img" src="assets/chalk-tray/13-1536.jpg?v=111" srcset="assets/chalk-tray/13-640.jpg?v=111 640w, assets/chalk-tray/13-928.jpg?v=111 928w, assets/chalk-tray/13-1536.jpg?v=111 1536w, assets/chalk-tray/13-2048.jpg?v=111 2048w" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)" width="1536" height="1536" fetchpriority="high" decoding="async" alt="Pace Farm 30-egg tray for $13" data-chalk-showing="13">
               </picture>
               <script>
               (function () {
@@ -322,10 +323,11 @@
                   if (c >= MIN && c <= MAX) p = c;
                 } catch (e) {}
                 window.__YOLKO_TRAY1 = p;
-                var sizes = "(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)";
                 var pic = document.currentScript.previousElementSibling;
                 var source = pic && pic.querySelector("source");
                 var img = pic && pic.querySelector("img");
+                if (img && img.dataset.chalkShowing === String(p) && source && source.getAttribute("srcset")) return;
+                var sizes = "(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)";
                 if (source) {
                   source.srcset = "assets/chalk-tray/" + p + "-640.webp?v=" + VER + " 640w, assets/chalk-tray/" + p + "-928.webp?v=" + VER + " 928w, assets/chalk-tray/" + p + "-1536.webp?v=" + VER + " 1536w, assets/chalk-tray/" + p + "-2048.webp?v=" + VER + " 2048w";
                   source.sizes = sizes;
@@ -829,6 +831,15 @@
             <span>YOLKO</span>
           </a>
           <p class="foot-tag">Fresh Pace Farm eggs, delivered in Sydney.</p>
+          <address class="foot-nap">
+            Building D, Sydney Markets<br>
+            250 Parramatta Road<br>
+            Flemington NSW 2129
+            <span class="foot-nap-links">
+              <a href="tel:+61433975055">+61 433 975 055</a>
+              <a href="mailto:orders@getyolko.com">orders@getyolko.com</a>
+            </span>
+          </address>
         </div>
 
         <nav class="foot-col" aria-label="Shop">
@@ -846,6 +857,8 @@
 
         <nav class="foot-col" aria-label="Contact">
           <p class="foot-h">Contact</p>
+          <a href="tel:+61433975055">+61 433 975 055</a>
+          <a href="mailto:orders@getyolko.com">orders@getyolko.com</a>
           <a href="https://wa.me/61433975055" target="_blank" rel="noopener noreferrer">WhatsApp</a>
           <a href="#order">Order now</a>
         </nav>
