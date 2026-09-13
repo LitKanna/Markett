@@ -1673,6 +1673,33 @@ h3 {
   line-height: 1.55;
 }
 
+.foot-nap {
+  max-width: 36ch;
+  margin: 16px 0 0;
+  font-style: normal;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.foot-nap-links {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.foot-nap a {
+  width: fit-content;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.foot-nap a:hover {
+  color: var(--yellow);
+}
+
 .foot-col {
   display: grid;
   gap: 10px;
