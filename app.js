@@ -92,7 +92,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 
 /* ---------- Hero / order tray image auto-rotate ---------- */
 const rotatorTimers = [];
-const HERO_SIZES = "(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)";
+const HERO_SIZES = "(max-width: 900px) min(100vw - 24px, 480px), min(50vw, 560px)";
 const ASSET_CACHE_VER = "111";
 
 function clearImageRotators() {

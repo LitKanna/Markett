@@ -311,8 +311,8 @@
           <div class="showcase-card">
             <div class="showcase-rotator" data-rotator="hero" aria-live="polite">
               <picture class="showcase-photo is-active" data-chalk-price="hero">
-                <source type="image/webp" srcset="assets/chalk-tray/13-640.webp?v=111 640w, assets/chalk-tray/13-928.webp?v=111 928w, assets/chalk-tray/13-1536.webp?v=111 1536w, assets/chalk-tray/13-2048.webp?v=111 2048w" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)">
-                <img id="hero-tray-img" src="assets/chalk-tray/13-1536.jpg?v=111" srcset="assets/chalk-tray/13-640.jpg?v=111 640w, assets/chalk-tray/13-928.jpg?v=111 928w, assets/chalk-tray/13-1536.jpg?v=111 1536w, assets/chalk-tray/13-2048.jpg?v=111 2048w" sizes="(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)" width="1536" height="1536" fetchpriority="high" decoding="async" alt="Pace Farm 30-egg tray for $13" data-chalk-showing="13">
+                <source type="image/webp" srcset="assets/chalk-tray/13-640.webp?v=111 640w, assets/chalk-tray/13-928.webp?v=111 928w, assets/chalk-tray/13-1536.webp?v=111 1536w, assets/chalk-tray/13-2048.webp?v=111 2048w" sizes="(max-width: 900px) min(100vw - 24px, 480px), min(50vw, 560px)">
+                <img id="hero-tray-img" src="assets/chalk-tray/13-1536.jpg?v=111" srcset="assets/chalk-tray/13-640.jpg?v=111 640w, assets/chalk-tray/13-928.jpg?v=111 928w, assets/chalk-tray/13-1536.jpg?v=111 1536w, assets/chalk-tray/13-2048.jpg?v=111 2048w" sizes="(max-width: 900px) min(100vw - 24px, 480px), min(50vw, 560px)" width="1536" height="1536" fetchpriority="high" decoding="async" alt="Pace Farm 30-egg tray for $13" data-chalk-showing="13">
               </picture>
               <script>
               (function () {
@@ -327,7 +327,7 @@
                 var source = pic && pic.querySelector("source");
                 var img = pic && pic.querySelector("img");
                 if (img && img.dataset.chalkShowing === String(p) && source && source.getAttribute("srcset")) return;
-                var sizes = "(max-width: 900px) min(100vw - 24px, 1200px), min(58vw, 960px)";
+                var sizes = "(max-width: 900px) min(100vw - 24px, 480px), min(50vw, 560px)";
                 if (source) {
                   source.srcset = "assets/chalk-tray/" + p + "-640.webp?v=" + VER + " 640w, assets/chalk-tray/" + p + "-928.webp?v=" + VER + " 928w, assets/chalk-tray/" + p + "-1536.webp?v=" + VER + " 1536w, assets/chalk-tray/" + p + "-2048.webp?v=" + VER + " 2048w";
                   source.sizes = sizes;
@@ -875,6 +875,6 @@
   </footer>
 
   <script src="config.js?v=88"></script>
-  <script src="app.js?v=138"></script>
+  <script src="app.js?v=139"></script>
 </body>
 </html>
