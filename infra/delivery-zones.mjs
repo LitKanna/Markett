@@ -1,4 +1,4 @@
-// delivery-zones.mjs — YOLKO delivery zone check from Sydney Markets / Flemington.
+// delivery-zones.mjs - YOLKO delivery zone check from Sydney Markets / Flemington.
 //
 // Owner rule (Jul 2026):
 //   Within 45 km of Sydney Markets  -> +$5 flat delivery (Saturday only)
@@ -8,16 +8,23 @@
 //
 // ASSUMPTIONS:
 // - Hub is Paddy's Markets Flemington / Sydney Markets: -33.8667, 151.0694.
-// - Suburb rows use approximate centroids (~±1 km). Good enough for a 45 km gate.
+// - Suburb rows use locality centroids. Good enough for a 45 km gate.
 // - Road distance ≈ haversine × ROAD_FACTOR (1.3). Harbour crossings use 1.5.
+// - NSW centroids are bundled from the Matthew Proctor Australian postcodes
+//   dataset (Delivery Area rows within 100 km of the hub). No runtime geocode API.
 //
 // Usage:
-//   node infra/delivery-zones.mjs strathfield
-//   node infra/delivery-zones.mjs --check "Strathfield" "Sydney" "2135"
+//   node infra/delivery-zones.mjs
+//   node infra/delivery-zones.mjs --prove
 //   node infra/delivery-zones.mjs --table
+//   node infra/delivery-zones.mjs strathfield
+//   node infra/delivery-zones.mjs --check "Padstow" "Sydney" "2211" "1 Padstow Pde"
 //
 // Exports: HUB, MAX_DELIVERY_KM, SITE_DELIVERY_FEE, ROAD_FACTOR, SUBURBS,
-//   haversineKm, quoteDelivery, checkDeliveryAddress, findSuburb
+//   UNKNOWN_SUBURB_ERROR, haversineKm, needsHarbourCrossing, quoteDelivery,
+//   checkDeliveryAddress, findSuburb
+
+import NSW_CENTROIDS from "./nsw-suburb-centroids.mjs";
 
 export const HUB = {
   name: "Paddy's Markets Flemington (Sydney Markets)",
@@ -27,6 +34,9 @@ export const HUB = {
 export const ROAD_FACTOR = 1.3;
 export const MAX_DELIVERY_KM = 45;
 export const SITE_DELIVERY_FEE = 5;
+
+export const UNKNOWN_SUBURB_ERROR =
+  "We could not match that suburb or postcode. WhatsApp us or email orders@getyolko.com and we will check if we can deliver.";
 
 export function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -52,10 +62,19 @@ function normPostcode(pc) {
   return digits.length === 4 ? digits : "";
 }
 
-// Approximate centroids + primary postcodes within ~45 km of Flemington.
-// postcodes: array of NSW postcodes commonly used for that suburb.
-export const SUBURBS = [
-  { name: "Flemington", aliases: ["homebush west"], lat: -33.871, lng: 151.07, postcodes: ["2129", "2140"] },
+// North of Sydney Harbour / east of Lane Cove typically needs a harbour bridge.
+// Sutherland Shire south of the Georges River typically needs a river crossing.
+export function needsHarbourCrossing(lat, lng) {
+  const northShore = lat > -33.845 && lat < -33.55 && lng > 151.145;
+  const laneCoveEast = lat > -33.83 && lat < -33.55 && lng > 151.13;
+  const sutherland = lat < -34.01 && lat > -34.15 && lng > 150.97;
+  return northShore || laneCoveEast || sutherland;
+}
+
+// Hand-tuned inner-Sydney rows: aliases, crossing flags, and hub-facing names
+// that customers type (Flemington, Sydney CBD) which are not always official localities.
+export const SUBURB_OVERRIDES = [
+  { name: "Flemington", aliases: ["homebush west", "sydney markets"], lat: -33.871, lng: 151.07, postcodes: ["2129", "2140"] },
   { name: "Sydney Olympic Park", aliases: ["olympic park"], lat: -33.847, lng: 151.063, postcodes: ["2127"] },
   { name: "Homebush", lat: -33.865, lng: 151.084, postcodes: ["2140"] },
   { name: "Strathfield", lat: -33.879, lng: 151.082, postcodes: ["2135"] },
@@ -153,7 +172,6 @@ export const SUBURBS = [
   { name: "Sutherland", lat: -34.031, lng: 151.058, postcodes: ["2232"], crossing: true },
   { name: "Miranda", lat: -34.034, lng: 151.102, postcodes: ["2228"], crossing: true },
   { name: "Caringbah", lat: -34.043, lng: 151.122, postcodes: ["2229"], crossing: true },
-  // Edge / often out of range — kept so we can calculate and decline clearly
   { name: "Penrith", lat: -33.751, lng: 150.694, postcodes: ["2750"] },
   { name: "St Marys", lat: -33.766, lng: 150.774, postcodes: ["2760"] },
   { name: "Campbelltown", lat: -34.065, lng: 150.814, postcodes: ["2560"] },
@@ -162,58 +180,136 @@ export const SUBURBS = [
   { name: "Windsor", lat: -33.606, lng: 150.814, postcodes: ["2756"] },
 ];
 
+function rowFromCentroid(row) {
+  const [name, lat, lng, ...postcodes] = row;
+  return {
+    name,
+    lat,
+    lng,
+    postcodes: postcodes.map(String),
+    crossing: needsHarbourCrossing(lat, lng),
+    source: "dataset",
+  };
+}
+
+function rowFromOverride(s) {
+  return {
+    name: s.name,
+    aliases: s.aliases || [],
+    lat: s.lat,
+    lng: s.lng,
+    postcodes: (s.postcodes || []).map(String),
+    crossing: !!s.crossing,
+    source: "override",
+  };
+}
+
+function mergeSuburbLists() {
+  const byKey = new Map();
+  for (const raw of NSW_CENTROIDS) {
+    const row = rowFromCentroid(raw);
+    const key = normName(row.name);
+    if (!byKey.has(key)) byKey.set(key, []);
+    byKey.get(key).push(row);
+  }
+  for (const raw of SUBURB_OVERRIDES) {
+    const row = rowFromOverride(raw);
+    const key = normName(row.name);
+    // Overrides replace same-name dataset rows so existing quotes stay stable.
+    byKey.set(key, [row]);
+  }
+  return [...byKey.values()].flat();
+}
+
+export const SUBURBS = mergeSuburbLists();
+
+const byName = new Map();
+const byPostcode = new Map();
+
+function indexPush(map, key, suburb) {
+  if (!key) return;
+  if (!map.has(key)) map.set(key, []);
+  const list = map.get(key);
+  if (!list.includes(suburb)) list.push(suburb);
+}
+
+for (const suburb of SUBURBS) {
+  indexPush(byName, normName(suburb.name), suburb);
+  for (const alias of suburb.aliases || []) indexPush(byName, normName(alias), suburb);
+  for (const pc of suburb.postcodes || []) indexPush(byPostcode, pc, suburb);
+}
+
+function pickClosest(list) {
+  if (!list.length) return null;
+  if (list.length === 1) return list[0];
+  return list.slice().sort((a, b) => {
+    const da = haversineKm(HUB.lat, HUB.lng, a.lat, a.lng);
+    const db = haversineKm(HUB.lat, HUB.lng, b.lat, b.lng);
+    return da - db;
+  })[0];
+}
+
+function namesOverlap(a, b) {
+  return a.includes(b) || b.includes(a);
+}
+
 export function findSuburb({ suburb, city, postcode } = {}) {
   const pc = normPostcode(postcode);
   const suburbQ = normName(suburb);
   const cityQ = normName(city);
 
   if (suburbQ) {
-    const exact = SUBURBS.find((s) => {
-      const n = normName(s.name);
-      const aliases = (s.aliases || []).map(normName);
-      return n === suburbQ || aliases.includes(suburbQ);
-    });
-    if (exact) return exact;
+    const exact = byName.get(suburbQ) || [];
+    if (exact.length) {
+      if (pc) {
+        const withPc = exact.filter((s) => (s.postcodes || []).includes(pc));
+        if (withPc.length) return pickClosest(withPc);
+      }
+      return pickClosest(exact);
+    }
 
-    const partial = SUBURBS.find((s) => {
-      const n = normName(s.name);
-      const aliases = (s.aliases || []).map(normName);
-      return n.includes(suburbQ) || suburbQ.includes(n) || aliases.some((a) => a.includes(suburbQ) || suburbQ.includes(a));
-    });
-    if (partial) return partial;
+    if (pc) {
+      const pcHits = byPostcode.get(pc) || [];
+      const loose = pcHits.filter((s) => {
+        const n = normName(s.name);
+        const aliases = (s.aliases || []).map(normName);
+        return namesOverlap(n, suburbQ) || aliases.some((a) => namesOverlap(a, suburbQ));
+      });
+      if (loose.length) return pickClosest(loose);
+    }
   }
 
   if (pc) {
-    const byPc = SUBURBS.filter((s) => (s.postcodes || []).includes(pc));
+    const byPc = byPostcode.get(pc) || [];
     if (byPc.length === 1) return byPc[0];
     if (byPc.length > 1 && suburbQ) {
-      const match = byPc.find((s) => normName(s.name).includes(suburbQ) || suburbQ.includes(normName(s.name)));
-      if (match) return match;
+      const match = byPc.filter((s) => namesOverlap(normName(s.name), suburbQ));
+      if (match.length) return pickClosest(match);
     }
-    if (byPc.length > 1 && cityQ) {
-      const match = byPc.find((s) => normName(s.name).includes(cityQ) || cityQ.includes(normName(s.name)));
-      if (match) return match;
+    if (byPc.length > 1 && cityQ && cityQ !== "sydney" && cityQ !== "nsw") {
+      const match = byPc.filter((s) => namesOverlap(normName(s.name), cityQ));
+      if (match.length) return pickClosest(match);
     }
-    if (byPc.length >= 1) return byPc[0];
+    if (byPc.length >= 1) return pickClosest(byPc);
   }
 
   if (cityQ && cityQ !== "sydney" && cityQ !== "nsw") {
-    const byCity = SUBURBS.find((s) => {
-      const n = normName(s.name);
-      const aliases = (s.aliases || []).map(normName);
-      return n === cityQ || aliases.includes(cityQ) || n.includes(cityQ);
-    });
-    if (byCity) return byCity;
+    const byCity = byName.get(cityQ) || [];
+    if (byCity.length) return pickClosest(byCity);
   }
 
   return null;
 }
 
 export function quoteDelivery(input) {
-  let lat, lng, name, crossing = false, postcodes = [];
+  let lat;
+  let lng;
+  let name;
+  let crossing = false;
+  let postcodes = [];
   if (typeof input === "string") {
     const hit = findSuburb({ suburb: input });
-    if (!hit) return { ok: false, error: `unknown suburb: ${input}` };
+    if (!hit) return { ok: false, deliver: false, error: UNKNOWN_SUBURB_ERROR, code: "unknown_suburb" };
     ({ lat, lng, name } = hit);
     crossing = !!hit.crossing;
     postcodes = hit.postcodes || [];
@@ -222,14 +318,14 @@ export function quoteDelivery(input) {
       lat = Number(input.lat);
       lng = Number(input.lng);
       name = input.name || `${lat},${lng}`;
-      crossing = !!input.crossing;
+      crossing = input.crossing != null ? !!input.crossing : needsHarbourCrossing(lat, lng);
     } else {
       const hit = findSuburb(input);
       if (!hit) {
         return {
           ok: false,
           deliver: false,
-          error: "We could not match that suburb/postcode. Try a nearby suburb within 45 km of Sydney Markets.",
+          error: UNKNOWN_SUBURB_ERROR,
           code: "unknown_suburb",
         };
       }
@@ -238,7 +334,7 @@ export function quoteDelivery(input) {
       postcodes = hit.postcodes || [];
     }
   } else {
-    return { ok: false, deliver: false, error: "suburb or postcode required", code: "missing_address" };
+    return { ok: false, deliver: false, error: "Enter a suburb or postcode.", code: "missing_address" };
   }
 
   const straightKm = haversineKm(HUB.lat, HUB.lng, lat, lng);
@@ -256,8 +352,8 @@ export function quoteDelivery(input) {
     fee: deliver ? SITE_DELIVERY_FEE : null,
     band: deliver ? `<=${MAX_DELIVERY_KM}km` : `>${MAX_DELIVERY_KM}km`,
     note: deliver
-      ? `Within ${MAX_DELIVERY_KM} km of Sydney Markets — +$${SITE_DELIVERY_FEE} Saturday delivery.`
-      : `Outside ${MAX_DELIVERY_KM} km of Sydney Markets — we only deliver within this area (pickup at Flemington still available).`,
+      ? `Within ${MAX_DELIVERY_KM} km of Sydney Markets: +$${SITE_DELIVERY_FEE} Saturday delivery.`
+      : `Outside ${MAX_DELIVERY_KM} km of Sydney Markets. We only deliver within this area.`,
   };
 }
 
@@ -284,7 +380,7 @@ export function checkDeliveryAddress({ street, suburb, city, postcode } = {}) {
       ok: false,
       deliver: false,
       code: quote.code || "unknown_suburb",
-      error: quote.error || "Could not check that address.",
+      error: quote.error || UNKNOWN_SUBURB_ERROR,
       street: streetClean,
       suburb: suburbClean,
       city: cityClean,
@@ -328,11 +424,52 @@ export function checkDeliveryAddress({ street, suburb, city, postcode } = {}) {
   };
 }
 
+export const PROVE_CASES = [
+  { suburb: "Padstow", city: "Sydney", postcode: "2211", street: "1 Padstow Pde", expect: "deliver" },
+  { suburb: "Revesby", city: "Sydney", postcode: "2212", street: "1 The River Rd", expect: "deliver" },
+  { suburb: "Panania", city: "Sydney", postcode: "2213", street: "1 Tower St", expect: "deliver" },
+  { suburb: "Bankstown", city: "Sydney", postcode: "2200", street: "1 Chapel Rd", expect: "deliver" },
+  { suburb: "Liverpool", city: "Sydney", postcode: "2170", street: "1 Macquarie St", expect: "deliver" },
+  { suburb: "Hurstville", city: "Sydney", postcode: "2220", street: "1 Forest Rd", expect: "deliver" },
+  { suburb: "Penrith", city: "Sydney", postcode: "2750", street: "1 High St", expect: "decline" },
+  { suburb: "Gosford", city: "Sydney", postcode: "2250", street: "1 Mann St", expect: "decline" },
+  { suburb: "NotARealSuburb", city: "Sydney", postcode: "2999", street: "1 Mystery St", expect: "unknown" },
+];
+
+function pad(v, n) {
+  return String(v).padEnd(n);
+}
+
+export function proveRows() {
+  return PROVE_CASES.map((c) => {
+    const result = checkDeliveryAddress(c);
+    return { ...c, result };
+  });
+}
+
+function printProve() {
+  console.log(pad("Suburb", 22) + pad("PC", 8) + pad("Matched", 22) + pad("~road km", 10) + pad("OK?", 8) + "Code");
+  for (const row of proveRows()) {
+    const r = row.result;
+    const ok = r.deliver ? "YES" : "NO";
+    console.log(
+      pad(row.suburb, 22) +
+        pad(row.postcode, 8) +
+        pad(r.matchedSuburb || "-", 22) +
+        pad(r.roadKmEstimate ?? "-", 10) +
+        pad(ok, 8) +
+        (r.code || (r.deliver ? "in_range" : ""))
+    );
+  }
+}
+
 function printTable() {
-  const rows = SUBURBS.map((s) => quoteDelivery(s.name)).sort((a, b) => a.roadKmEstimate - b.roadKmEstimate);
-  const pad = (v, n) => String(v).padEnd(n);
+  const rows = SUBURBS.map((s) => quoteDelivery({ suburb: s.name, postcode: s.postcodes?.[0] })).sort(
+    (a, b) => (a.roadKmEstimate || 99) - (b.roadKmEstimate || 99)
+  );
   console.log(pad("Suburb", 28) + pad("~road km", 10) + pad("OK?", 8) + "Fee");
   for (const r of rows) {
+    if (!r.ok) continue;
     console.log(
       pad(r.name, 28) +
         pad(r.roadKmEstimate, 10) +
@@ -353,7 +490,9 @@ function runningAsCli() {
 
 if (runningAsCli()) {
   const args = process.argv.slice(2);
-  if (args.length === 0 || args[0] === "--table") {
+  if (args.length === 0 || args[0] === "--prove") {
+    printProve();
+  } else if (args[0] === "--table") {
     printTable();
   } else if (args[0] === "--check") {
     const [, suburb, city, postcode, ...streetParts] = args;

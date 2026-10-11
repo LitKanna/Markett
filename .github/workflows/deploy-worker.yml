@@ -5,9 +5,12 @@ on:
     branches: ["main"]
     paths:
       - "infra/cloudflare-worker.mjs"
+      - "infra/delivery-zones.mjs"
+      - "infra/nsw-suburb-centroids.mjs"
       - "wrangler.toml"
       - "index.html"
       - "styles.css"
+      - "styles-modern.css"
       - "app.js"
       - "config.js"
       - "assets/**"
