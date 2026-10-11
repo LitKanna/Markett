@@ -610,6 +610,7 @@ async function refreshDeliveryZoneHint() {
   const postcode = String(document.getElementById("delivery-postcode")?.value || "").replace(/\D/g, "").slice(0, 4);
   if (!suburb && !postcode) {
     hint.hidden = true;
+    hint.className = "field-hint";
     hint.textContent = "";
     hint.style.color = "";
     return;
@@ -628,19 +629,30 @@ async function refreshDeliveryZoneHint() {
     const d = await res.json().catch(() => ({}));
     if (d.deliver) {
       hint.hidden = false;
+      hint.className = "field-hint field-hint-ok";
       hint.textContent = `✓ ${d.matchedSuburb || suburb} · ~${d.roadKmEstimate} km`;
-      hint.style.color = "var(--green, #1a7a3c)";
+      hint.style.color = "";
     } else if (d.code === "out_of_range") {
       hint.hidden = false;
+      hint.className = "field-hint field-hint-out";
       hint.textContent = `✗ Outside 45 km (~${d.roadKmEstimate} km). We can't deliver there yet`;
-      hint.style.color = "var(--red, #b00020)";
+      hint.style.color = "";
+    } else if (d.code === "unknown_suburb") {
+      hint.hidden = false;
+      hint.className = "field-hint field-hint-unknown";
+      const wa = String(config.whatsappNumber || "61433975055").replace(/\D/g, "") || "61433975055";
+      hint.innerHTML =
+        `We could not match that suburb or postcode. <a href="https://wa.me/${wa}" target="_blank" rel="noopener noreferrer">WhatsApp us</a> or email <a href="mailto:orders@getyolko.com">orders@getyolko.com</a> and we will check if we can deliver.`;
+      hint.style.color = "";
     } else {
       hint.hidden = false;
-      hint.textContent = d.error || "Enter suburb + postcode to check delivery.";
-      hint.style.color = "var(--red, #b00020)";
+      hint.className = "field-hint field-hint-out";
+      hint.textContent = d.error || "Enter suburb and postcode to check delivery.";
+      hint.style.color = "";
     }
   } catch {
     hint.hidden = true;
+    hint.className = "field-hint";
     hint.textContent = "";
     hint.style.color = "";
   }

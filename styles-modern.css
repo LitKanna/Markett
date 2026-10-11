@@ -1415,6 +1415,23 @@ h3 {
   line-height: 1.35;
 }
 
+.field-hint-ok {
+  color: var(--green, #15734c);
+}
+
+.field-hint-out {
+  color: #b00020;
+}
+
+.field-hint-unknown {
+  color: #8a5a12;
+}
+
+.field-hint-unknown a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .hp-field {
   position: absolute;
   left: -10000px;
